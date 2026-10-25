@@ -1,0 +1,67 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# MLflow data and artifacts
+mlruns/
+mlflow.db
+mlruns.db
+*.db
+*.sqlite
+*.sqlite3
+.trash/
+
+# Datasets (large files ignored, keeping .gitkeep in raw/interim/processed)
+data/raw/*
+!data/raw/.gitkeep
+data/interim/*
+!data/interim/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Helper and report generation scripts (local only)
+src/utils/build_executive_report.py
+src/utils/generate_mlflow_ui_figures.py
+
+# Raw figures and intermediate images (compiled inside the PDF/Word reports)
+reports/figures/
+reports/figures/*
+
+# Generic team files
+reports/Fase 1_EquipoXX.*
+
+# OS generated files
+.DS_Store
+Thumbs.db
