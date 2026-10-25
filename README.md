@@ -87,7 +87,6 @@ python -m unittest tests/test_pipeline.py -v
 ```powershell
 mlflow ui --backend-store-uri sqlite:///mlruns.db --host 127.0.0.1 --port 5000
 ```
-Luego abre en tu navegador: http://127.0.0.1:5000
 
 ---
 
