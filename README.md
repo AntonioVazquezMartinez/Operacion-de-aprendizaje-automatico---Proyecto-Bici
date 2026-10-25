@@ -99,4 +99,3 @@ Luego abre en tu navegador: http://127.0.0.1:5000
 | Data Scientist | Jesus Angel Rincon Ruiz | Definicion del ML Canvas, analisis exploratorio (EDA) y diseno de variables de tiempo y rezagos. |
 | Software Engineer | Erick Francisco Siller Ojeda | Estructuracion con Cookiecutter DS, refactorizacion a clases POO y pruebas unitarias. |
 | Site Reliability Engineer (SRE) | Gustavo Alejandro Vazquez Rivas | Configuracion de dependencias, base de datos local SQLite para MLflow y entorno reproducible. |
-| ML Engineer | Jose Antonio Vazquez Martinez | Conexion de logs y hashes SHA-256 en MLflow y contratos de datos para la Fase 2. |
