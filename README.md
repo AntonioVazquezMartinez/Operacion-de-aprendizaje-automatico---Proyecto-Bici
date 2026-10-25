@@ -2,7 +2,7 @@
 
 Este repositorio contiene la entrega de la Fase 1 (Procesamiento y Modelado Inicial) para el proyecto colaborativo del curso Operacion con Modelos de Machine Learning (TC5061) en la Maestria en Inteligencia Artificial Aplicada del Tecnologico de Monterrey.
 
-- Repositorio Oficial: https://github.com/AntonioVazquezMartinez/Operacion-de-aprendizaje-automatico---Proyecto-Bici
+- Repositorio: https://github.com/AntonioVazquezMartinez/Operacion-de-aprendizaje-automatico---Proyecto-Bici
 - Equipo Asignado: Equipo 19
 - Integrantes:
   - Jose Antonio Vazquez Martinez (A01797208) - Data Engineer & ML Engineer
