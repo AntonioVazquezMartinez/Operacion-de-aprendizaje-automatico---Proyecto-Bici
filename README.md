@@ -25,9 +25,14 @@ El objetivo es construir la base de un pipeline productivo de Machine Learning c
 ## Estructura del Proyecto (Cookiecutter Data Science)
 
 ```text
-Tarea_4_Equipo/
+Operacion-de-aprendizaje-automatico---Proyecto-Bici/
 │
+├── .github/
+│   └── workflows/
+│       └── tests.yml        <- Integracion continua: corre las pruebas en cada push y pull request
 ├── .gitignore               <- Archivos y carpetas ignorados por git
+├── Makefile                 <- Targets reproducibles del pipeline (make help)
+├── pyproject.toml           <- Metadatos del paquete mibici-mlops (Python >= 3.11)
 ├── README.md                <- Documentacion principal del proyecto
 ├── requirements.txt         <- Librerias de Python requeridas
 ├── environment.yml          <- Configuracion del entorno para Conda
@@ -60,6 +65,7 @@ Tarea_4_Equipo/
 └── reports/
     ├── ML_Canvas_MiBici.md  <- Canvas formal de Machine Learning
     ├── roles_mlops.md       <- Matriz de responsabilidades y flujo entre roles
+    ├── figures/             <- Figuras del EDA generadas por el pipeline (versionadas en git)
     ├── Fase 1_Equipo19.docx <- Reporte ejecutivo en Word editable
     └── Fase 1_Equipo19.pdf  <- Reporte ejecutivo oficial en PDF (con figuras integradas)
 ```
@@ -68,13 +74,25 @@ Tarea_4_Equipo/
 
 ## Guia de Inicio Rapido
 
-### 1. Activar Entorno Virtual
+### 1. Crear y Activar el Entorno Virtual (Python 3.11+)
 ```powershell
-# En PowerShell
-..\Tarea_3\.venv\Scripts\Activate.ps1
+# En PowerShell (Windows)
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
 ```
 
-### 2. Ejecutar Pipeline de Ingesta, Limpieza, Features y Baselines
+```bash
+# En bash (macOS / Linux)
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### 2. Ejecutar el Pipeline de Ingesta, Limpieza, Features, Preprocesamiento y Baselines
+
+El pipeline consta de cinco modulos que se ejecutan en orden. Los dos ultimos (`src/features/preprocessor.py` y `src/models/train_baseline.py`) forman parte del pipeline: generan las versiones preprocesadas de la matriz (con y sin PCA) y entrenan los baselines que se comparan en MLflow.
+
 ```powershell
 python -m src.data.downloader
 python -m src.data.cleaner
@@ -83,6 +101,17 @@ python -m src.features.preprocessor
 python -m src.models.train_baseline
 ```
 
+Con `make` (disponible en macOS, Linux y Git Bash en Windows) el mismo flujo se ejecuta con un solo comando. `make help` lista todos los targets:
+
+```bash
+make help        # Lista los targets disponibles
+make pipeline    # Ejecuta los cinco modulos en orden
+make test        # Corre la suite de pruebas
+make mlflow-ui   # Levanta la interfaz de MLflow
+```
+
+Cada etapa tambien se puede correr por separado (`make data`, `make clean-data`, `make features`, `make preprocess`, `make baselines`). Si el interprete no esta activado en la terminal, se indica con `make test PYTHON=.venv/bin/python`.
+
 Los datos se descargan del portal de datos abiertos de MiBici (https://www.mibici.net/es/datos-abiertos/). Por defecto se usa mayo de 2024; otros meses se agregan en `TRIPS_URLS` de `src/data/downloader.py`.
 
 ### 3. Ejecutar Pruebas Automatizadas
@@ -90,7 +119,11 @@ Los datos se descargan del portal de datos abiertos de MiBici (https://www.mibic
 python -m unittest tests/test_pipeline.py -v
 ```
 
-### 4. Visualizar Experimentos y Versiones en MLflow UI
+### 4. Integracion Continua
+
+El flujo `.github/workflows/tests.yml` instala `requirements.txt` con Python 3.11 y corre la suite de pruebas en cada push y pull request hacia GitHub, de modo que ningun cambio se integra a `main` sin pasar las pruebas.
+
+### 5. Visualizar Experimentos y Versiones en MLflow UI
 ```powershell
 mlflow ui --backend-store-uri sqlite:///mlruns.db --host 127.0.0.1 --port 5000
 ```

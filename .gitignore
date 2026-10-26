@@ -51,10 +51,6 @@ data/interim/*
 data/processed/*
 !data/processed/.gitkeep
 
-# Raw figures and intermediate images (compiled inside the PDF/Word reports)
-reports/figures/
-reports/figures/*
-
 # Generic team files
 reports/Fase 1_EquipoXX.*
 
