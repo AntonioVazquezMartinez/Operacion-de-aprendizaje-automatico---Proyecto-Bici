@@ -12,7 +12,7 @@
 
 ## 2. Fuentes de Datos (Data Sources)
 - **Datos de Viajes (MiBici Open Data):** Registros históricos de trayectos mensuales (`Viaje_Id`, `Usuario_Id`, `Genero`, `Año_de_nacimiento`, `Inicio_del_viaje`, `Fin_del_viaje`, `Origen_Id`, `Destino_Id`).
-- **Nomenclatura y Catálogo de Estaciones:** Metadatos de infraestructura (`id`, `name`, `obcn`, `location`, `latitude`, `longitude`, `capacity`).
+- **Nomenclatura y Catálogo de Estaciones:** Metadatos de infraestructura (`id`, `name`, `latitude`, `longitude`, `dpcapacity`).
 - **Datos de Calendario:** Días festivos oficiales en México, vacaciones escolares, días laborables vs. fines de semana.
 
 ---

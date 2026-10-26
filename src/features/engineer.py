@@ -141,7 +141,8 @@ class MiBiciFeatureEngineer:
         )
 
         # 2. Construcción de una cuadrícula completa (Estaciones x Horas) para modelar demanda cero
-        all_stations = df_stations["id"].unique()
+        # Solo estaciones activas en el periodo; el catálogo incluye estaciones abiertas después.
+        all_stations = demand_series["Origen_Id"].unique()
         min_time = demand_series["fecha_hora"].min()
         max_time = demand_series["fecha_hora"].max()
         all_hours = pd.date_range(start=min_time, end=max_time, freq="h")
