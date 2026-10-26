@@ -87,6 +87,11 @@ class MLflowDataVersioner:
                 for k, v in tags.items():
                     mlflow.set_tag(k, v)
 
+            mlflow.log_input(
+                mlflow.data.from_pandas(df, source=file_path, name=os.path.basename(file_path)),
+                context=stage,
+            )
+
             # Subir el archivo como artefacto del run
             if os.path.exists(file_path):
                 mlflow.log_artifact(file_path, artifact_path="datasets")
