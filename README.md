@@ -42,10 +42,13 @@ Tarea_4_Equipo/
 │
 ├── src/                     <- Codigo fuente modular con POO
 │   ├── data/
-│   │   ├── downloader.py    <- Clase MiBiciDataDownloader: Adquisicion y generacion de datos base
+│   │   ├── downloader.py    <- Clase MiBiciDataDownloader: Descarga de datos abiertos de MiBici (viajes y estaciones)
 │   │   └── cleaner.py       <- Clase MiBiciDataCleaner: Limpieza y validacion de reglas de negocio
 │   ├── features/
-│   │   └── engineer.py      <- Clase MiBiciFeatureEngineer: Variables de tiempo, ciclicas y de rezago
+│   │   ├── engineer.py      <- Clase MiBiciFeatureEngineer: Variables de tiempo, ciclicas y de rezago
+│   │   └── preprocessor.py  <- Clase MiBiciPreprocessor: Particion temporal, escalado, codificacion y PCA
+│   ├── models/
+│   │   └── train_baseline.py <- Clase BaselineTrainer: Baselines por version de datos registrados en MLflow
 │   └── utils/
 │       └── mlflow_logger.py <- Clase MLflowDataVersioner: Versionado, metadatos y trazabilidad en MLflow
 │
@@ -71,12 +74,16 @@ Tarea_4_Equipo/
 ..\Tarea_3\.venv\Scripts\Activate.ps1
 ```
 
-### 2. Ejecutar Pipeline de Ingesta, Limpieza y Features
+### 2. Ejecutar Pipeline de Ingesta, Limpieza, Features y Baselines
 ```powershell
 python -m src.data.downloader
 python -m src.data.cleaner
 python -m src.features.engineer
+python -m src.features.preprocessor
+python -m src.models.train_baseline
 ```
+
+Los datos se descargan del portal de datos abiertos de MiBici (https://www.mibici.net/es/datos-abiertos/). Por defecto se usa mayo de 2024; otros meses se agregan en `TRIPS_URLS` de `src/data/downloader.py`.
 
 ### 3. Ejecutar Pruebas Automatizadas
 ```powershell
