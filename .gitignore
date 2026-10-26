@@ -51,10 +51,6 @@ data/interim/*
 data/processed/*
 !data/processed/.gitkeep
 
-# Helper and report generation scripts (local only)
-src/utils/build_executive_report.py
-src/utils/generate_mlflow_ui_figures.py
-
 # Raw figures and intermediate images (compiled inside the PDF/Word reports)
 reports/figures/
 reports/figures/*
