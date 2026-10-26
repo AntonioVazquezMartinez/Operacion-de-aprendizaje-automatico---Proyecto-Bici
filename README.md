@@ -105,3 +105,11 @@ mlflow ui --backend-store-uri sqlite:///mlruns.db --host 127.0.0.1 --port 5000
 | Data Scientist | Jesus Angel Rincon Ruiz | Definicion del ML Canvas, analisis exploratorio (EDA) y diseno de variables de tiempo y rezagos. |
 | Software Engineer | Erick Francisco Siller Ojeda | Estructuracion con Cookiecutter DS, refactorizacion a clases POO y pruebas unitarias. |
 | Site Reliability Engineer (SRE) | Gustavo Alejandro Vazquez Rivas | Configuracion de dependencias, base de datos local SQLite para MLflow y entorno reproducible. |
+
+---
+
+## Declaracion de Uso de Inteligencia Artificial
+
+Ver `reports/declaracion_ia.md`. Resumen:
+
+- Anthropic. (2026). Claude (Opus 5.5) [Modelo de lenguaje grande], utilizado como herramienta de consulta y de apoyo en la revision de la redaccion, la organizacion, el formato del reporte y la rubrica. El experimento corresponde a la ejecucion real del pipeline sobre los datos abiertos de MiBici, registrada en MLflow. https://claude.ai/
