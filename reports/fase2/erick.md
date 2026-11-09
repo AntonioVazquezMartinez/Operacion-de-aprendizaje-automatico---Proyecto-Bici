@@ -2,40 +2,40 @@
 
 ## Rol: Software Engineer (SWE)
 
-En la Fase 2 mi responsabilidad fue la calidad del software: que el proyecto tuviera una
-estructura estándar, que ningún módulo dependiera de valores fijos y que el comportamiento
-del pipeline quedara protegido por pruebas automatizadas (evidencia en `reports/fase2/erick.md`).
+Mi responsabilidad en la Fase 2 fue la calidad del software: revisar que la estructura y la
+configuración del proyecto cumplieran lo que el reporte afirma y que el comportamiento del
+pipeline quedara protegido por pruebas automatizadas. Para que la participación sea
+verificable, separo lo que revisé de lo que cambié en el repositorio.
 
-Actividades realizadas o revisadas en esta fase:
+### Lo que revisé
 
-- **Migración a Cookiecutter Data Science v2.** Revisé que la estructura siguiera la
-  convención actual de la plantilla: un módulo por etapa (`src/dataset.py`,
-  `src/features.py`, `src/plots.py`, `src/tracking.py`, `src/modeling/`), notebook con
-  nombre `1.0-eq19-eda-mibici.ipynb` que importa `src/` en lugar de duplicar lógica,
-  `pyproject.toml` para instalar el paquete en modo editable y `Makefile` con un comando
-  por etapa.
-- **Configuración centralizada en `config.yaml`.** Validé que rutas, meses, reglas de
-  limpieza, semilla, proporciones de la partición, experimentos de MLflow, modelos,
-  hiperparámetros fijos y espacios de búsqueda de Optuna vivan en un solo archivo y se lean
-  con `src/config.py`. Cada módulo se ejecuta como CLI y acepta `--config`, por lo que un
-  experimento distinto no requiere tocar código.
-- **Suite de pruebas (`unittest`).** Revisé las pruebas de limpieza (anomalías
-  inyectadas en cantidades conocidas), características (rezagos solo con información
-  pasada, sin rezago de 1 h), partición cronológica, preprocesador ajustado solo con
-  train, construcción de cada modelo desde `config.yaml`, reproducibilidad con la semilla
-  y la prueba de integración que entrena, registra en un Model Registry temporal y vuelve a
-  cargar el `champion`.
-- **Ajustes incluidos en este commit tras la revisión de código:**
-  - `ModelTrainer` registra en MLflow la configuración *efectiva* (con sobrescrituras)
-    como artefacto de la corrida comparativa, en lugar de copiar el archivo original;
-    `run()` ya no necesita la ruta del YAML como argumento y la prueba de integración
-    verifica que el artefacto `config.yaml` exista.
-  - La prueba de días festivos verifica `is_holiday` de forma determinista sobre una
-    cuadrícula construida a propósito; antes la aserción dependía de que el 1 de mayo
-    sobreviviera al descarte de las primeras 168 h de historial y nunca se ejecutaba.
-  - Dos pruebas nuevas de `read_month`: lectura de un CSV mensual en latin-1 con una
-    fila mal formada (se conserva todo menos esa fila) y rechazo de un encabezado
-    inesperado. Con esto la suite pasa de 17 a 20 pruebas.
+La migración a Cookiecutter Data Science v2, `config.yaml`, `src/config.py`, los módulos por
+etapa y la interfaz de línea de comandos con `--config` los implementó Jesús Ángel Rincón Ruiz
+(commit `93586e4`). Mi revisión de ese trabajo consistió en comprobar, contra el código, que:
+
+- ningún módulo de `src/` conserva rutas, meses, umbrales, semilla ni hiperparámetros fijos;
+  todo se lee de `config.yaml` y las rutas se resuelven desde la raíz del repositorio;
+- cada módulo se ejecuta como CLI y acepta otra configuración sin tocar código;
+- el notebook `1.0-eq19-eda-mibici.ipynb` solo importa clases de `src/` y muestra resultados;
+- la suite existente cubre limpieza, cuadrícula estación-hora, ausencia de rezagos menores a
+  24 h, partición cronológica, preprocesador ajustado solo con train, reproducibilidad con
+  semilla y la integración con MLflow y el Model Registry.
+
+### Lo que cambié (commit `6213844`, rama `fase2-modelado`)
+
+- **Prueba de días festivos corregida.** La aserción sobre `is_holiday` estaba dentro de un
+  `if` que nunca se cumplía, porque el 1 de mayo cae en las 168 h de historial que se
+  descartan; la prueba pasaba sin verificar nada. Ahora se comprueba sobre una cuadrícula
+  construida a propósito y espera exactamente `[1, 1, 0]`.
+- **Dos pruebas nuevas de `read_month`.** Lectura de un CSV mensual en latin-1 con una fila
+  mal formada (se conserva todo menos esa fila) y rechazo de un encabezado inesperado. Ese
+  camino de lectura, que resolvió las incidencias reales de 2025, no tenía ninguna prueba.
+- **`ModelTrainer` registra la configuración efectiva.** La corrida comparativa subía a MLflow
+  el archivo `config.yaml` tal cual estaba en disco, a partir de una ruta que `run()` recibía
+  como argumento redundante. Ahora serializa la configuración cargada, incluidas las
+  sobrescrituras, y `run()` no necesita argumentos. La prueba de integración verifica que el
+  artefacto exista.
+- Con esto la suite pasa de 17 a 20 pruebas; `README.md` lista la carpeta `reports/fase2/`.
 
 ## Reflexión
 
@@ -54,10 +54,10 @@ software, no solo de ciencia de datos: el modelo deja de ser un archivo `.pkl` q
 tiene en su máquina y pasa a ser una versión con hash del dataset, hiperparámetros,
 métricas y un alias (`champion`, `challenger`) que el código de predicción consume por
 nombre. Eso desacopla a quien entrena de quien predice, igual que una interfaz desacopla a
-dos módulos. Finalmente, el cambio de versión de MLflow (3.18) que rompió la serialización
-nos recordó que las dependencias también son parte del sistema y que la prueba de
-integración, que entrena y vuelve a cargar el modelo registrado, fue la que detectó el
-problema antes de que llegara al reporte. Para la Fase 3, desde el rol de software, propongo
+dos módulos. Finalmente, la incidencia que el equipo documentó con la serialización en
+MLflow 3.18 me recordó que las dependencias también son parte del sistema, y que la prueba
+de integración, que entrena y vuelve a cargar el modelo registrado, es el lugar donde ese tipo
+de ruptura debe detectarse antes de que llegue al reporte. Para la Fase 3, desde el rol de software, propongo
 convertir la validación del encabezado de cada CSV mensual en una prueba de contrato sobre el
 esquema de entrada, y activar el linter ya configurado en `pyproject.toml` (ruff) como paso
 previo a las pruebas, para que el estilo y los errores básicos se detecten antes de ejecutar
