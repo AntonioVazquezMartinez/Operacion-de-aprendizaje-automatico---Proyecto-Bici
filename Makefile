@@ -1,32 +1,49 @@
-# Flujo de trabajo reproducible del pipeline de datos de MiBici (Fase 1).
-# Uso: make <target> [PYTHON=ruta/al/python]
+#################################################################################
+# Comandos del proyecto MiBici (Cookiecutter Data Science)                      #
+# En Windows sin `make`, ejecuta los comandos de cada regla directamente.       #
+#################################################################################
 
 PYTHON ?= python
 
-.PHONY: help data clean-data features preprocess baselines pipeline test mlflow-ui
+.PHONY: requirements data features eda train predict test mlflow-ui pipeline clean
 
-help: ## Muestra los targets disponibles
-	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
+## Instalar dependencias y el paquete en modo editable
+requirements:
+	$(PYTHON) -m pip install -r requirements.txt
+	$(PYTHON) -m pip install -e .
 
-data: ## Descarga viajes y catálogo de estaciones a data/raw y registra la versión raw en MLflow
-	$(PYTHON) -m src.data.downloader
+## Descargar y limpiar los datos (registra raw e interim en MLflow)
+data:
+	$(PYTHON) -m src.dataset
 
-clean-data: ## Limpia los viajes brutos hacia data/interim y registra la versión interim
-	$(PYTHON) -m src.data.cleaner
+## Construir la matriz de características (registra processed en MLflow)
+features:
+	$(PYTHON) -m src.features
 
-features: ## Construye la matriz de demanda horaria en data/processed y las figuras del EDA
-	$(PYTHON) -m src.features.engineer
+## Generar las figuras del análisis exploratorio
+eda:
+	$(PYTHON) -m src.plots
 
-preprocess: ## Particiona, escala, codifica y aplica PCA sobre la matriz procesada
-	$(PYTHON) -m src.features.preprocessor
+## Entrenar, ajustar con Optuna, comparar y registrar modelos
+train:
+	$(PYTHON) -m src.modeling.train
 
-baselines: ## Entrena los baselines por versión de datos y los registra en MLflow
-	$(PYTHON) -m src.models.train_baseline
+## Predecir el periodo de prueba con el modelo champion del Model Registry
+predict:
+	$(PYTHON) -m src.modeling.predict
 
-pipeline: data clean-data features preprocess baselines ## Ejecuta el pipeline completo en orden
+## Ejecutar las pruebas
+test:
+	$(PYTHON) -m pytest -v
 
-test: ## Corre la suite de pruebas automatizadas
-	$(PYTHON) -m unittest tests/test_pipeline.py -v
+## Abrir la interfaz de MLflow
+mlflow-ui:
+	mlflow ui --backend-store-uri sqlite:///mlruns.db --port 5000
 
-mlflow-ui: ## Levanta la interfaz de MLflow sobre la base local mlruns.db
-	mlflow ui --backend-store-uri sqlite:///mlruns.db --host 127.0.0.1 --port 5000
+## Pipeline completo de punta a punta
+pipeline: data features eda train predict
+
+## Borrar archivos compilados de Python
+clean:
+	find . -type f -name "*.py[co]" -delete
+	find . -type d -name "__pycache__" -delete

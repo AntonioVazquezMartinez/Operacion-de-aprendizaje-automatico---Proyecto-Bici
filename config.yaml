@@ -1,0 +1,115 @@
+# =============================================================================
+# Configuración central del proyecto MiBici - Equipo 19 (Fase 2)
+# Todas las rutas son relativas a la raíz del repositorio. Ningún módulo de src/
+# tiene rutas, semillas ni hiperparámetros fijos: todo se lee de este archivo.
+# =============================================================================
+
+seed: 42
+
+paths:
+  raw_dir: data/raw
+  interim_dir: data/interim
+  processed_dir: data/processed
+  external_dir: data/external
+  models_dir: models
+  figures_dir: reports/figures
+  reports_dir: reports
+
+data:
+  # Meses a utilizar (AAAA-MM). Para cada mes se busca primero el archivo
+  # data/raw/datos_abiertos_AAAA_MM.csv; si no existe, se descarga de trip_urls.
+  # Para ampliar el periodo basta con agregar meses aquí (y su URL o el CSV en data/raw).
+  # Año completo 2025 (CSV colocados en data/raw). Fase 1 usaba solo 2024-05.
+  months: ["2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06",
+           "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12"]
+  trip_urls:
+    "2024-05": https://www.mibici.net/site/assets/files/81663/datos_abiertos_2024_05.csv
+  stations_url: https://www.mibici.net/site/assets/files/1118/nomenclatura_2026_09.csv
+  download_timeout_seconds: 120
+  raw_trips_file: viajes_raw.csv
+  stations_file: nomenclatura_estaciones.csv
+  interim_file: viajes_cleaned.csv
+  features_file: mibici_hourly_demand.csv
+
+cleaning:
+  min_duration_seconds: 60     # viajes más cortos = desanclajes fallidos
+  max_duration_minutes: 120    # viajes más largos = anomalías (p99 = 31 min)
+  min_age: 14
+  max_age: 90
+
+features:
+  target: demand_count
+  # Solo rezagos >= 24 h: el ML Canvas define un horizonte de 1 a 24 h, así que el
+  # rezago de 1 h de la Fase 1 no estaría disponible al predecir con más de 1 h de anticipación.
+  lag_hours: [24, 168]
+  # Promedio de la demanda a la misma hora en los N días previos (solo información pasada).
+  same_hour_mean_days: 7
+  # Se descartan las primeras horas sin historial completo en lugar de rellenarlas con ceros.
+  drop_incomplete_history: true
+  numeric_base: [sin_hour, cos_hour, sin_dayofweek, cos_dayofweek, latitude, longitude, capacity]
+  binary: [is_weekend, is_holiday]
+  categorical: [Origen_Id]
+
+split:
+  # Partición cronológica por horas: train / val / test (el resto).
+  train_size: 0.70
+  val_size: 0.15
+
+mlflow:
+  tracking_uri: sqlite:///mlruns.db
+  artifact_dir: mlartifacts
+  data_experiment: MiBici_Datos
+  training_experiment: MiBici_Fase2_Modelos
+  registered_model_name: mibici-demand-forecaster
+  champion_alias: champion
+  challenger_alias: challenger
+  # Subir los CSV completos como artefactos duplica gigas cuando se amplía el periodo;
+  # el hash SHA-256 y mlflow.log_input ya garantizan la trazabilidad.
+  log_dataset_artifacts: false
+
+tuning:
+  metric: val_mae            # métrica que minimiza Optuna y que decide el modelo champion
+  n_trials: 20               # trials por modelo (se puede sobrescribir con --n-trials)
+  timeout_seconds: 900       # tiempo máximo de búsqueda por modelo
+  train_sample_rows: 300000  # Optuna busca con una muestra de train; el modelo final usa todos los datos
+
+models:
+  # class: ruta del estimador de scikit-learn; params: fijos; search_space: lo que ajusta Optuna.
+  # random_state se toma de `seed` automáticamente cuando el estimador lo acepta.
+  dummy_mean:
+    enabled: true
+    register: false          # referencia mínima; no se registra en el Model Registry
+    class: sklearn.dummy.DummyRegressor
+    params: {strategy: mean}
+
+  poisson:
+    enabled: true
+    register: true
+    class: sklearn.linear_model.PoissonRegressor
+    params: {max_iter: 500}
+    search_space:
+      alpha: {type: float, low: 1.0e-6, high: 1.0, log: true}
+
+  hist_gradient_boosting:
+    enabled: true
+    register: true
+    class: sklearn.ensemble.HistGradientBoostingRegressor
+    params: {loss: poisson, early_stopping: false}
+    search_space:
+      learning_rate: {type: float, low: 0.02, high: 0.3, log: true}
+      max_iter: {type: int, low: 100, high: 500}
+      max_leaf_nodes: {type: int, low: 15, high: 127}
+      min_samples_leaf: {type: int, low: 20, high: 200}
+      l2_regularization: {type: float, low: 1.0e-6, high: 1.0, log: true}
+
+  random_forest:
+    enabled: true
+    register: true
+    class: sklearn.ensemble.RandomForestRegressor
+    params: {n_jobs: -1, max_samples: 0.1}
+    n_trials: 5              # más lento: menos trials
+    search_space:
+      n_estimators: {type: int, low: 30, high: 100}
+      max_depth: {type: int, low: 6, high: 14}
+      min_samples_leaf: {type: int, low: 20, high: 100}
+      max_features: {type: float, low: 0.3, high: 1.0}
