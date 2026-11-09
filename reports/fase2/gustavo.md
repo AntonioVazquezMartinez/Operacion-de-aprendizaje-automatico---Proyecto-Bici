@@ -3,8 +3,10 @@
 ## Rol: Site Reliability Engineer (SRE)
 
 **Actividades en la Fase 2:** Entorno reproducible (requirements.txt, environment.yml,
-pyproject.toml, Makefile), verificación del pipeline en un clon limpio y gestión de la
-base de MLflow.
+pyproject.toml, Makefile); verificación del pipeline en un clon limpio con un entorno
+virtual nuevo (Windows 11, Python 3.13, MLflow 3.18: 17 pruebas aprobadas); gestión de
+la base de MLflow; detección de dependencias sin versión fija y de avisos de
+obsolescencia como mejora para la siguiente fase (evidencia en reports/fase2/gustavo.md).
 
 ## Verificación de reproducibilidad en un clon limpio
 
@@ -54,16 +56,17 @@ Esta fase me mostró que la reproducibilidad no se logra con buenas intenciones,
 sino con mecanismos concretos. Al pasar de un mes a un año de datos aparecieron
 problemas que con un solo archivo eran invisibles: codificaciones distintas entre
 meses, comillas mal cerradas en julio y el bloqueo del portal a la descarga
-automática. Un pipeline que "funciona en mi máquina" con un mes puede fallar en otro
+automática. Un pipeline que funciona en una máquina con un mes puede fallar en otro
 entorno con doce. Por eso valoro tener las dependencias declaradas en
 requirements.txt y environment.yml, una semilla única inyectada desde config.yaml y
 pruebas automatizadas que confirman que el mismo código produce las mismas
-predicciones. El cambio de formato de serialización en MLflow 3.18 fue un buen
+predicciones; al verificar el proyecto en un clon limpio, las 17 pruebas se aprobaron
+también con Python 3.13. El cambio de formato de serialización en MLflow 3.18 fue un buen
 ejemplo de cómo una actualización de una librería puede romper el flujo sin tocar
 nuestro código. También entendí el Model Registry como una herramienta de operación
 y no solo de registro: los alias champion y challenger permiten cambiar el modelo en
 producción o regresar a una versión anterior sin modificar el código que lo consume.
 Para la siguiente fase, mi prioridad será automatizar estas verificaciones con
-GitHub Actions, fijar las versiones exactas de las dependencias y empezar a
-monitorear el data drift, para que la reproducibilidad y la confiabilidad no
+GitHub Actions, fijar las versiones exactas de las dependencias y monitorear el data
+drift, para que la reproducibilidad y la confiabilidad no
 dependan de una revisión manual.
