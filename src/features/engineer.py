@@ -3,7 +3,6 @@
 import os
 from typing import Tuple
 import matplotlib
-matplotlib.use("Agg")  # Backend sin interfaz gráfica para renderizado seguro
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -209,5 +208,8 @@ class MiBiciFeatureEngineer:
 
 
 if __name__ == "__main__":
+    # Solo la ejecución por consola usa el backend sin ventana; al importar el módulo desde un
+    # notebook se respeta el backend inline.
+    matplotlib.use("Agg")
     engineer = MiBiciFeatureEngineer()
     engineer.run()

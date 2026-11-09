@@ -15,6 +15,16 @@ TRIPS_URLS: Dict[str, str] = {
 }
 STATIONS_URL = f"{BASE_URL}/1118/nomenclatura_2026_09.csv"
 
+# El portal de MiBici responde HTTP 406 al User-Agent por defecto de requests;
+# se envía uno de navegador para que acepte la descarga.
+REQUEST_HEADERS: Dict[str, str] = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    )
+}
+REQUEST_TIMEOUT_SECONDS = 120
+
 TRIP_COLUMNS = [
     "Viaje_Id",
     "Usuario_Id",
@@ -38,7 +48,7 @@ class MiBiciDataDownloader:
     def _download(self, url: str, path: str) -> None:
         if os.path.exists(path):
             return
-        response = requests.get(url, timeout=120)
+        response = requests.get(url, headers=REQUEST_HEADERS, timeout=REQUEST_TIMEOUT_SECONDS)
         response.raise_for_status()
         with open(path, "wb") as f:
             f.write(response.content)
