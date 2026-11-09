@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from src.dataset import MiBiciDataCleaner
+from src.dataset import TRIP_COLUMNS, MiBiciDataCleaner, MiBiciDataDownloader
 from src.features import (
     MiBiciFeatureEngineer,
     build_preprocessor,
@@ -45,6 +45,42 @@ class TestDataAndFeatures(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         shutil.rmtree(cls.tmp, ignore_errors=True)
+
+    # ---------------------------------------------------------------- lectura de CSV mensuales
+    def _write_month_csv(self, name: str, rows: list, encoding: str) -> Path:
+        path = self.tmp / name
+        header = ["Viaje_Id", "Usuario_Id", "Genero", "Año_de_nacimiento",
+                  "Inicio_del_viaje", "Fin_del_viaje", "Origen_Id", "Destino_Id"]
+        path.write_text("\n".join([",".join(header), *rows]) + "\n", encoding=encoding)
+        return path
+
+    def _normal_row(self, i: int, genero: str = "M") -> str:
+        return f"{i},{1000 + i},{genero},1990,2025-07-01 08:00:00,2025-07-01 08:15:00,1,2"
+
+    def test_read_month_latin1_file_with_malformed_row(self):
+        """Un CSV en latin-1 con una fila mal formada se lee completo y solo descarta esa fila.
+
+        Combina las dos incidencias reales de los archivos de MiBici: codificación distinta
+        de UTF-8 (el encabezado trae "Año") y registros con un número incorrecto de campos.
+        """
+        n = 200
+        rows = [self._normal_row(i) for i in range(n)]
+        rows[1] = rows[1] + ",columna_extra"          # fila con 9 campos
+        rows[-1] = self._normal_row(n - 1, genero="Niña")
+        path = self._write_month_csv("datos_abiertos_2025_07.csv", rows, encoding="latin-1")
+
+        df = MiBiciDataDownloader.read_month(path)
+
+        self.assertEqual(list(df.columns), TRIP_COLUMNS)
+        self.assertEqual(len(df), n - 1)
+        self.assertIn("Niña", set(df["Genero"]))
+
+    def test_read_month_rejects_unexpected_header(self):
+        rows = [self._normal_row(0)]
+        path = self._write_month_csv("datos_abiertos_2025_08.csv", rows, encoding="utf-8")
+        path.write_text(path.read_text(encoding="utf-8").replace("Viaje_Id", "Trip_Id"), encoding="utf-8")
+        with self.assertRaises(ValueError):
+            MiBiciDataDownloader.read_month(path)
 
     # ---------------------------------------------------------------- limpieza
     def test_cleaner_removes_injected_anomalies(self):
@@ -102,9 +138,16 @@ class TestDataAndFeatures(unittest.TestCase):
         self.assertIn(date(2024, 2, 5), holidays_2024)    # primer lunes de febrero
         self.assertIn(date(2024, 11, 18), holidays_2024)  # tercer lunes de noviembre
         self.assertIn(date(2024, 10, 1), holidays_2024)   # cambio de gobierno
-        may_first = self.df_features[self.df_features["fecha_hora"].dt.date == date(2024, 5, 1)]
-        if len(may_first):
-            self.assertTrue((may_first["is_holiday"] == 1).all())
+
+    def test_is_holiday_flag_marks_only_holidays(self):
+        """is_holiday se calcula sobre la fecha de cada hora, independientemente del historial descartado."""
+        grid = pd.DataFrame({
+            "Origen_Id": [1, 1, 1],
+            "fecha_hora": pd.to_datetime(["2024-05-01 08:00", "2024-05-01 23:00", "2024-05-02 08:00"]),
+            "demand_count": [3, 1, 2],
+        })
+        flagged = MiBiciFeatureEngineer.add_calendar_features(grid)
+        self.assertEqual(flagged["is_holiday"].tolist(), [1, 1, 0])
 
     # ---------------------------------------------------------------- partición y preprocesamiento
     def test_temporal_split_is_chronological(self):

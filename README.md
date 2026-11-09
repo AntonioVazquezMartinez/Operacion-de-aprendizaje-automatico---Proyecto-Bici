@@ -38,6 +38,7 @@ Las estaciones de MiBici se vacían o se saturan en las horas pico. El modelo es
 │   └── diccionario_datos.md
 ├── reports/
 │   ├── figures/           <- Figuras del EDA y comparación de modelos
+│   ├── fase2/             <- Rol y reflexión de cada integrante en la Fase 2
 │   ├── model_comparison.csv
 │   ├── ML_Canvas_MiBici.md
 │   └── roles_mlops.md

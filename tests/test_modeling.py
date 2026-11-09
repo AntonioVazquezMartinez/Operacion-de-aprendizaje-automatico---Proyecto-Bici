@@ -87,12 +87,18 @@ class TestModelingPipeline(unittest.TestCase):
 
         trainer = ModelTrainer(self.config, model_names=["dummy_mean", "poisson", "hist_gradient_boosting"],
                                n_trials=2)
-        table = trainer.run(Path(__file__).resolve().parents[1] / "config.yaml")
+        table = trainer.run()
         self.assertEqual(len(table), 3)
 
         import mlflow
 
         client = mlflow.MlflowClient()
+        experiment = client.get_experiment_by_name(self.config["mlflow"]["training_experiment"])
+        comparison = client.search_runs([experiment.experiment_id], "tags.stage = 'comparison'")
+        self.assertEqual(len(comparison), 1)
+        artifacts = {a.path for a in client.list_artifacts(comparison[0].info.run_id)}
+        self.assertIn("config.yaml", artifacts)
+
         name = self.config["mlflow"]["registered_model_name"]
         champion = client.get_model_version_by_alias(name, "champion")
         self.assertIn("val_mae", champion.tags)

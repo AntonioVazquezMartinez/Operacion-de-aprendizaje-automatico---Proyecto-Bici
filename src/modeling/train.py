@@ -26,6 +26,7 @@ import mlflow
 import mlflow.sklearn  # noqa: F401  (carga explícita del flavor de scikit-learn)
 import optuna
 import pandas as pd
+import yaml
 from mlflow.models import infer_signature
 
 from src.config import Config, base_arg_parser, load_config
@@ -190,7 +191,11 @@ class ModelTrainer:
             mlflow.set_tags({"phase": "Fase 2", "stage": "comparison", "best_model": table.iloc[0]["model"]})
             mlflow.log_artifact(str(csv_path))
             mlflow.log_artifact(str(fig_path), artifact_path="plots")
-            mlflow.log_artifact(str(self.config_path))
+            with tempfile.TemporaryDirectory() as tmp:
+                config_snapshot = Path(tmp) / "config.yaml"
+                config_snapshot.write_text(yaml.safe_dump(dict(self.config), allow_unicode=True, sort_keys=False),
+                                           encoding="utf-8")
+                mlflow.log_artifact(str(config_snapshot))
         print("\n" + table[["model", "val_mae", "test_mae", "test_rmse", "test_r2"]].to_string(index=False))
         return table
 
@@ -233,8 +238,7 @@ class ModelTrainer:
             client.set_registered_model_alias(name, reg["challenger_alias"], candidates[1]["version"])
             print(f"Alias '{reg['challenger_alias']}' -> v{candidates[1]['version']} ({candidates[1]['model']})")
 
-    def run(self, config_path: str | Path) -> pd.DataFrame:
-        self.config_path = Path(config_path)
+    def run(self) -> pd.DataFrame:
         setup_mlflow(self.config, self.config["mlflow"]["training_experiment"])
         parts = self.load_data()
         print(f"Datos: train {len(parts['train'])}, val {len(parts['val'])}, test {len(parts['test'])} filas")
@@ -252,7 +256,7 @@ def main() -> None:
     parser.add_argument("--no-register", action="store_true", help="No registrar en el Model Registry")
     args = parser.parse_args()
     trainer = ModelTrainer(load_config(args.config), args.models, args.n_trials, register=not args.no_register)
-    trainer.run(args.config)
+    trainer.run()
 
 
 if __name__ == "__main__":
