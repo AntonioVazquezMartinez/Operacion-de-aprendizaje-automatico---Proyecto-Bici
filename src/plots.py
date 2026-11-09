@@ -10,13 +10,11 @@ from pathlib import Path
 from typing import List
 
 import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
-matplotlib.use("Agg")  # backend sin interfaz gráfica (terminal, CI y MLflow)
-import matplotlib.pyplot as plt  # noqa: E402
-import numpy as np  # noqa: E402
-import pandas as pd  # noqa: E402
-
-from src.config import Config, base_arg_parser, load_config  # noqa: E402
+from src.config import Config, base_arg_parser, load_config
 
 DAY_NAMES = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
 
@@ -129,6 +127,9 @@ def plot_model_comparison(results: pd.DataFrame, path: Path, metric: str = "test
 
 
 def main() -> None:
+    # Solo la ejecución por consola usa el backend sin ventana; al importar el módulo desde un
+    # notebook se respeta el backend inline.
+    matplotlib.use("Agg")
     args = base_arg_parser("Figuras del análisis exploratorio").parse_args()
     config = load_config(args.config)
     df_trips = pd.read_csv(config.file("interim_dir", "interim_file"))

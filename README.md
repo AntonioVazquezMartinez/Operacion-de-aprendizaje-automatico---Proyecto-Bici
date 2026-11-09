@@ -18,6 +18,7 @@ Las estaciones de MiBici se vacían o se saturan en las horas pico. El modelo es
 ## Estructura del proyecto (Cookiecutter Data Science v2)
 
 ```text
+├── .github/workflows/     <- Integración continua: corre las pruebas en cada pull request y en push a main
 ├── Makefile               <- Comandos del pipeline (make data, make train, ...)
 ├── README.md
 ├── config.yaml            <- Configuración única: rutas, meses, reglas, semillas, modelos e hiperparámetros
@@ -99,6 +100,8 @@ python -m src.modeling.train --n-trials 5                               # prueba
 ```bash
 python -m pytest -v
 ```
+
+El flujo `.github/workflows/tests.yml` ejecuta la misma suite en GitHub Actions en cada pull request y en cada push a `main`.
 
 La prueba de integración entrena, registra y vuelve a cargar el modelo `champion` en una base de MLflow temporal.
 

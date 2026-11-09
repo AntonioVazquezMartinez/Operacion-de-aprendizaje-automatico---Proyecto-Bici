@@ -16,6 +16,15 @@ import requests
 
 from src.config import Config, base_arg_parser, load_config
 
+# El portal de MiBici responde HTTP 406 al User-Agent por defecto de requests;
+# se envía uno de navegador para que acepte la descarga.
+REQUEST_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    )
+}
+
 TRIP_COLUMNS = [
     "Viaje_Id",
     "Usuario_Id",
@@ -43,7 +52,7 @@ class MiBiciDataDownloader:
         if path.exists():
             return
         print(f"Descargando {url}")
-        response = requests.get(url, timeout=self.timeout)
+        response = requests.get(url, headers=REQUEST_HEADERS, timeout=self.timeout)
         response.raise_for_status()
         path.write_bytes(response.content)
 
