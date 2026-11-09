@@ -31,8 +31,16 @@ Tarea_4_Equipo/
 ├── README.md                <- Documentacion principal del proyecto
 ├── requirements.txt         <- Librerias de Python requeridas
 ├── environment.yml          <- Configuracion del entorno para Conda
+├── LICENSE                  <- Licencia MIT
+├── Makefile                 <- Comandos utiles (make data, make lint, make clean)
+├── setup.py                 <- Hace el proyecto instalable (pip install -e .)
+├── tox.ini                  <- Configuracion de flake8
+├── test_environment.py      <- Verifica la version de Python del entorno
+├── docs/                    <- Documentacion Sphinx (plantilla Cookiecutter)
+├── references/              <- Diccionarios de datos y material de referencia
 │
 ├── data/
+│   ├── external/            <- Datos de fuentes de terceros
 │   ├── raw/                 <- Datos brutos originales descargados de MiBici (inmutables)
 │   ├── interim/             <- Datos limpios tras aplicar los filtros de calidad
 │   └── processed/           <- Datos con caracteristicas listos para el modelo
@@ -49,6 +57,8 @@ Tarea_4_Equipo/
 │   │   └── preprocessor.py  <- Clase MiBiciPreprocessor: Particion temporal, escalado, codificacion y PCA
 │   ├── models/
 │   │   └── train_baseline.py <- Clase BaselineTrainer: Baselines por version de datos registrados en MLflow
+│   ├── visualization/
+│   │   └── visualize.py     <- Graficas orientadas a resultados
 │   └── utils/
 │       └── mlflow_logger.py <- Clase MLflowDataVersioner: Versionado, metadatos y trazabilidad en MLflow
 │
@@ -58,6 +68,7 @@ Tarea_4_Equipo/
 ├── models/                  <- Modelos entrenados y serializados (Fase 2)
 │
 └── reports/
+    ├── figures/             <- Graficas y figuras generadas para los reportes
     ├── ML_Canvas_MiBici.md  <- Canvas formal de Machine Learning
     ├── roles_mlops.md       <- Matriz de responsabilidades y flujo entre roles
     ├── Fase 1_Equipo19.docx <- Reporte ejecutivo en Word editable
