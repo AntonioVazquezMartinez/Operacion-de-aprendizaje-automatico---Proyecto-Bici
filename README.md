@@ -129,6 +129,24 @@ mlflow ui --backend-store-uri sqlite:///mlruns.db --port 5000
 
 Agrega los meses en `data.months` de `config.yaml`. Si el CSV `datos_abiertos_AAAA_MM.csv` ya está en `data/raw/` se usa directamente; si no, agrega su URL en `data.trip_urls`. Con un año de datos conviene fijar `tuning.train_sample_rows` para acelerar Optuna.
 
+### Datos de entrada (descarga manual)
+
+El portal de MiBici bloquea la descarga automática (HTTP 406), por lo que los archivos se descargan a mano desde https://www.mibici.net/es/datos-abiertos/ y se colocan en `data/raw/` con estos nombres:
+
+- Viajes: `datos_abiertos_2025_01.csv` ... `datos_abiertos_2025_12.csv`
+- Catálogo de estaciones: `nomenclatura_2026_09.csv`
+
+`src/dataset.py` usa primero los archivos presentes en `data/raw/` y solo intenta descargar los que falten. Lee archivos en UTF-8 o latin-1 y tolera registros con comillas mal cerradas (caso de julio de 2025), reportando cuántas filas descarta.
+
+### Resultados de la Fase 2 (datos 2025)
+
+| Modelo | MAE val. | MAE prueba | RMSE prueba | R² prueba | Registry |
+|---|---|---|---|---|---|
+| HistGradientBoosting (Poisson) | 0.804 | **0.766** | 1.304 | 0.693 | v1 · `champion` |
+| RandomForest | 0.826 | 0.783 | 1.351 | 0.670 | v2 · `challenger` |
+| PoissonRegressor | 1.249 | 1.098 | 3.115 | -0.753 | v3 |
+| Dummy (media) | 1.630 | 1.535 | 2.355 | -0.002 | — |
+
 ---
 
 ## Declaración de uso de Inteligencia Artificial
