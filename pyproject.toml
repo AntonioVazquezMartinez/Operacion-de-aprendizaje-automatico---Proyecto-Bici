@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mibici-demand"
+version = "0.2.0"
+description = "Predicción de demanda horaria por estación en MiBici Guadalajara con prácticas de MLOps (Equipo 19, TC5061)."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "José Antonio Vázquez Martínez" },
+  { name = "Jesús Ángel Rincón Ruiz" },
+  { name = "Erick Francisco Siller Ojeda" },
+  { name = "Gustavo Alejandro Vázquez Rivas" },
+]
+
+[tool.setuptools.packages.find]
+include = ["src*"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
