@@ -37,6 +37,20 @@ etapa y la interfaz de línea de comandos con `--config` los implementó Jesús 
   artefacto exista.
 - Con esto la suite pasa de 17 a 20 pruebas; `README.md` lista la carpeta `reports/fase2/`.
 
+### Integración de main en la rama de Fase 2 (commits `a2a048a` y `e682de8`)
+
+- Atendí la revisión de Antonio al PR 2 de Fase 1 (`a2a048a`): el backend Agg de matplotlib
+  dejó de fijarse al importar el módulo, el notebook de EDA se reejecutó con las cuatro gráficas
+  incrustadas y el workflow de CI dejó de dispararse dos veces por commit.
+- Integré main en `fase2-modelado` con un merge sin reescritura de historia (`e682de8`). En los
+  archivos que la Fase 2 reescribió se conservó la versión de la Fase 2. De los archivos que la
+  Fase 2 había eliminado recuperé lo que se había perdido al mover el código: el encabezado
+  User-Agent en `src/dataset.py` (el portal de MiBici responde 406 sin él) y el backend Agg de
+  `src/plots.py`, que ahora se activa solo en la ejecución por consola.
+- El workflow `.github/workflows/tests.yml` corre la suite completa con pytest en cada pull
+  request y en cada push a main. La corrida sobre `e682de8` pasó las 20 pruebas, incluida la de
+  integración con MLflow y el Model Registry.
+
 ## Reflexión
 
 Pasar de un mes a un año completo de datos cambió el tipo de problemas que aparecen. Con
