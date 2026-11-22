@@ -18,7 +18,7 @@ En apego a los lineamientos de la actividad, se declara el uso de herramientas d
 
 ## Fase final
 
-- Anthropic. (2026). Claude (Opus 5.5) [Modelo de lenguaje grande], utilizado como apoyo en:
+- Anthropic. (2026). Claude (Fable 5.2 y Opus 5.5) [Modelo de lenguaje grande], utilizado como apoyo en:
   - la migración de las pruebas a pytest y su configuración de cobertura e integración continua;
   - el servicio de predicción con FastAPI y Pydantic, y su documentación (OpenAPI y Postman);
   - el Dockerfile, los scripts de verificación de reproducibilidad entre entornos y la configuración de DVC;

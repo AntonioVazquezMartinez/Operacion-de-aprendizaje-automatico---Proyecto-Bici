@@ -29,6 +29,11 @@ FIGS = REPORTS / "figures"
 REPO_URL = "https://github.com/AntonioVazquezMartinez/Operacion-de-aprendizaje-automatico---Proyecto-Bici"
 DOCKERHUB_URL = "https://hub.docker.com/r/gusrivasmna/mibici-demand-service"
 DOCKER_IMAGE = "gusrivasmna/mibici-demand-service"
+ACTIONS_URL = f"{REPO_URL}/actions"
+# Corrida del flujo docker-reproducibilidad en GitHub Actions (hadolint + verificación de la imagen publicada).
+GHA_RUN_URL = f"{REPO_URL}/actions/runs/45060105120"  # se sustituye por _fuente.run de github_actions.json
+# Corrida del flujo tests (pytest con cobertura, Python 3.13, runner Linux) del mismo push.
+TESTS_RUN_URL = f"{REPO_URL}/actions/runs/45060105154"
 
 # Integrantes: nombre, matrícula, rol, archivo de la fase final y alias con los que aparecen en Git.
 MEMBERS = [
@@ -187,13 +192,17 @@ def load_repro() -> Dict[str, Any]:
         if isinstance(data, dict) and "verdict" in data:
             data["_file"] = path.relative_to(ROOT).as_posix()
             envs.append(data)
-    linux = read_text(REPRO / "pipeline_linux_pytest.log")
-    lin = None
-    if linux:
-        m = re.search(r"(?:(\d+) failed, )?(\d+) passed[^\n]*in ([\d.]+)s", linux)
-        if m:
-            lin = {"failed": int(m.group(1) or 0), "passed": int(m.group(2)), "seconds": float(m.group(3)),
-                   "file": "reports/fase_final/reproducibilidad/pipeline_linux_pytest.log"}
+    def pytest_summary(name: str) -> Optional[Dict[str, Any]]:
+        text = read_text(REPRO / name)
+        m = re.search(r"(?:(\d+) failed, )?(\d+) passed[^\n]*in ([\d.]+)s", text or "")
+        if not m:
+            return None
+        return {"failed": int(m.group(1) or 0), "passed": int(m.group(2)), "seconds": float(m.group(3)),
+                "file": f"reports/fase_final/reproducibilidad/{name}"}
+
+    # Vigente: código actual + modelo real en Linux (v2). Antecedente: la corrida que motivó la tolerancia 1e-9.
+    lin = pytest_summary("pipeline_linux_pytest_v2.log")
+    lin_prev = pytest_summary("pipeline_linux_pytest.log")
     diag = read_text(REPRO / "diagnostico_exp" / "resumen.txt")
     standalone = read_text(LOGS / "08_verify_standalone_serve_env.log") or ""
     sm = re.search(r"max_abs_diff ([\d.eE+-]+)", standalone)
@@ -206,7 +215,7 @@ def load_repro() -> Dict[str, Any]:
             pipeline_cmp = {"file": f"reports/fase_final/reproducibilidad/{name}", "data": pipeline_cmp}
     pipeline_csv = read_csv(REPRO / "pipeline_linux_vs_windows.csv") if REPRO.exists() else None
     pipeline_md = (REPRO / "pipeline_linux_vs_windows.md").exists() if REPRO.exists() else False
-    return {"envs": envs, "linux_pytest": lin, "diag": diag, "pipeline_csv": pipeline_csv, "pipeline_md": pipeline_md,
+    return {"envs": envs, "linux_pytest": lin, "linux_pytest_prev": lin_prev, "diag": diag, "pipeline_csv": pipeline_csv, "pipeline_md": pipeline_md,
             "standalone_diff": sm.group(1) if sm else None, "verify_diff": vm.group(1) if vm else None,
             "pipeline_cmp": pipeline_cmp}
 
@@ -217,6 +226,7 @@ def load_docker() -> Dict[str, Any]:
     out["tags_documented"] = sorted(set(re.findall(re.escape(DOCKER_IMAGE) + r":([\w.\-]+)", docs)))
     gha = read_json(REPRO / "github_actions.json") if REPRO.exists() else None
     out["gha"] = gha
+    out["gha_run_url"] = (gha or {}).get("_fuente", {}).get("run") or GHA_RUN_URL
     digest = read_text(REPRO / "github_actions_image_digest.json") if REPRO.exists() else None
     out["digest"] = digest.strip() if digest else None
     push_logs = [p for p in REPRO.glob("*") if re.search(r"push|dockerhub|publicacion", p.name, re.I)] \

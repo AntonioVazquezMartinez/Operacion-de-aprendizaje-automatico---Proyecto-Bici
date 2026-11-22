@@ -147,8 +147,14 @@ pytest -q --cov=src --cov-report=term-missing      # con cobertura (lo que corre
 Resultado de la fase final (`reports/fase_final/logs/10_pytest_cobertura.log`): **270 aprobadas, 0 fallidas,
 cobertura 93 % de `src/`** (líneas y ramas). Las pruebas usan datos sintéticos y una base de MLflow temporal: no
 necesitan red, datos reales ni `mlruns.db`. Las dos pruebas que comparan contra las predicciones de referencia
-usan tolerancia `1e-9` (ver [Reproducibilidad](#reproducibilidad)). Detalle por archivo y marcadores en
-`tests/README.md`. CI: `.github/workflows/tests.yml`.
+usan tolerancia `1e-9` (ver [Reproducibilidad](#reproducibilidad)); con ella la suite completa también pasa en
+un contenedor Linux con el modelo real: 270 aprobadas
+(`reports/fase_final/reproducibilidad/pipeline_linux_pytest_v2.log`; la primera corrida, con igualdad exacta, dio
+268/2 y está en `pipeline_linux_pytest.log` como antecedente). Detalle por archivo y marcadores en
+`tests/README.md`. CI: `.github/workflows/tests.yml` corre la suite en cada push
+([pestaña Actions](https://github.com/AntonioVazquezMartinez/Operacion-de-aprendizaje-automatico---Proyecto-Bici/actions);
+corrida exitosa del push final: [45060105154](https://github.com/AntonioVazquezMartinez/Operacion-de-aprendizaje-automatico---Proyecto-Bici/actions/runs/45060105154));
+ahí se omiten las pruebas que necesitan `models/champion/`, que no está en Git.
 
 ---
 
@@ -256,7 +262,7 @@ Detalle, política de tags y publicación: [`docs/docker.md`](docs/docker.md).
 | Windows 11, venv de entrenamiento | 0.0 | 500/500 | PASS | `reports/fase_final/reproducibilidad/windows_venv.json` |
 | Contenedor Linux local (`ml-service:latest`) | 8.88e-16 | 495/500 | PASS | `reproducibilidad/contenedor_local.json` |
 | Imagen descargada de DockerHub (`docker pull`) | 8.88e-16 | 495/500 | PASS | `reproducibilidad/imagen_dockerhub.json` |
-| Runner de GitHub Actions | pendiente | pendiente | pendiente | `docker-reproducibilidad.yml` → `reproducibilidad/github_actions.json` |
+| Runner de GitHub Actions (`ubuntu-latest`, imagen de DockerHub) | 8.88e-16 | 495/500 | PASS | `reproducibilidad/github_actions.json`, [corrida 45060105120](https://github.com/AntonioVazquezMartinez/Operacion-de-aprendizaje-automatico---Proyecto-Bici/actions/runs/45060105120) |
 
 La diferencia de 1 ulp en Linux está en el `exp()` final de la pérdida Poisson, que calcula la biblioteca
 matemática del sistema (UCRT en Windows, glibc en Linux); la suma de los árboles es idéntica bit a bit
@@ -361,7 +367,7 @@ Las reflexiones individuales se toman de `reports/fase_final/<nombre>.md`.
 
 ## Declaración de uso de Inteligencia Artificial
 
-Ver `reports/declaracion_ia.md`. Resumen: en las tres fases se usó Anthropic. (2026). Claude (Opus 5.5) [Modelo de
-lenguaje grande] como apoyo en la redacción, la estructura del repositorio, el código y la documentación. El equipo
+Ver `reports/declaracion_ia.md`. Resumen: se usó Anthropic. (2026). Claude [Modelo de lenguaje grande] (Opus 5.5 en
+las Fases 1 y 2; Fable 5.2 y Opus 5.5 en la fase final) como apoyo en la redacción, la estructura del repositorio, el código y la documentación. El equipo
 revisó, ejecutó y validó el código; los resultados corresponden a ejecuciones reales registradas en los logs y
 artefactos del repositorio. https://claude.ai/

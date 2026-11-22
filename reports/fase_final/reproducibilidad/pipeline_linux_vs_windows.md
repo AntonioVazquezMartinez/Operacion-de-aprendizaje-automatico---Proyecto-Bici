@@ -112,3 +112,6 @@ igual columna a columna: solo `sin_hour` difiere (1 ulp, sección 1).
   y `tests/test_serving.py::test_modelo_real_reproduce_la_referencia` exigen igualdad exacta y fallan en Linux por
   ese ulp (`pipeline_linux_pytest.log`: 268 passed, 2 failed). En GitHub Actions se omiten porque `models/champion/`
   no está en Git, pero fallarían en cualquier Linux con el modelo (p. ej. tras `dvc pull`).
+
+> **Nota (actualización):** las dos pruebas se cambiaron a tolerancia `1e-9`. Con el código actual y el modelo real,
+> la suite completa en el contenedor Linux da `270 passed` (`pipeline_linux_pytest_v2.log`).

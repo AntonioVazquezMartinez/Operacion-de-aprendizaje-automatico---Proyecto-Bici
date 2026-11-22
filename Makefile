@@ -77,7 +77,7 @@ dvc-repro:
 ## Diagrama de la solución y reporte final en Word
 report:
 	$(PYTHON) scripts/build_architecture_diagram.py
-	$(PYTHON) reports/build_report.py
+	$(PYTHON) reports/build_report.py --readme
 
 ## Abrir la interfaz de MLflow
 mlflow-ui:

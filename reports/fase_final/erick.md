@@ -22,7 +22,7 @@ integración continua.
 | Integración | Carga → limpieza → características → Optuna → Model Registry temporal → recarga del champion → predicción → métricas | `tests/integration/test_pipeline_e2e.py` |
 | API | `POST /predict`, `POST /predict/raw`, `GET /health`, `GET /model-info`; Pydantic v2 con `extra_forbidden`; errores 422/404/503 con el mismo cuerpo JSON | `src/serving/`, `docs/api.md`, `docs/openapi.json` |
 | Prueba de humo | 21 peticiones por entorno (9 respuestas 200, 9 de 422, 2 de 404, 1 de 405) y 3 de 503 sin modelo; 500/500 predicciones idénticas en venv completo y en venv solo de servicio | `reports/fase_final/logs/20_api_smoke.log` |
-| Pruebas en Linux | En el contenedor Linux, 268 aprobadas y 2 fallidas: las dos pruebas que exigen igualdad exacta con la referencia fallan por 1 ulp (8.9e-16) en 5 de 500 filas | `reports/fase_final/reproducibilidad/pipeline_linux_pytest.log`, `pipeline_linux_vs_windows.md` (sección 5) |
+| Pruebas en Linux | Primera corrida en el contenedor Linux con el modelo real: 268 aprobadas y 2 fallidas (dos pruebas exigían igualdad exacta y fallaron por 1 ulp, 8.9e-16, en 5 de 500 filas). Se cambiaron a tolerancia 1e-9 y la corrida vigente da 270 aprobadas | `reproducibilidad/pipeline_linux_pytest.log` (antecedente), `reproducibilidad/pipeline_linux_pytest_v2.log` (vigente), `pipeline_linux_vs_windows.md` |
 | CI | `tests.yml`: Python 3.13, `pytest -q --cov=src` en push a `main`/`fase-final` y en PR; `docker-reproducibilidad.yml`: hadolint y verificación de la imagen publicada | `.github/workflows/` |
 
 ## Preguntas guía
@@ -30,7 +30,7 @@ integración continua.
 1. ¿Qué comportamientos críticos protege la suite (reglas de limpieza, ausencia de fuga en rezagos, partición
    cronológica, esquema de la API, reproducción de la referencia)? ¿Qué falta por probar?
 2. ¿Qué revela el 74 % de `drift.py` frente al 100 % de `features.py`? ¿Vale la pena perseguir 100 %?
-3. ¿Qué enseñan las dos pruebas que fallan en Linux por 1 ulp? ¿Cómo deberían escribirse las pruebas de
+3. ¿Qué enseñan las dos pruebas que fallaron en Linux por 1 ulp? ¿Cómo deberían escribirse las pruebas de
    reproducibilidad (tolerancia explícita, igual que `scripts/verify_reproducibility.py` con 1e-9)?
 4. ¿Por qué `/predict` recibe solo estación, fecha y rezagos y el servidor deriva el resto con `src/features.py`?
    ¿Qué riesgo evita (training-serving skew)?

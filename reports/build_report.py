@@ -13,6 +13,7 @@ Uso:
     python reports/build_report.py                      # genera el .docx (y actualiza el índice con Word si existe)
     python reports/build_report.py --no-word            # sin abrir Word (el índice se actualiza con F9)
     python reports/build_report.py --pdf ruta/al.pdf    # además exporta a PDF con Word (Windows)
+    python reports/build_report.py --readme             # además llena la fila de GitHub Actions del README
 """
 
 from __future__ import annotations
@@ -916,10 +917,14 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
     para(ctx, ("b", "Análisis. "), "La cobertura global supera la meta de 85 % que nos fijamos. El módulo menos cubierto es "
               "src/monitoring/drift.py: las líneas sin cubrir son la orquestación de la CLI y el registro en MLflow, "
               "cuya lógica de cálculo sí está probada en metrics.py, rules.py y scenarios.py. Las pruebas también "
-              "revelaron límites reales: dos pruebas que exigían igualdad exacta con la referencia fallaron en Linux por "
-              "una diferencia de 1 ulp (sección 4.10) y se corrigieron para usar tolerancia 1e-9; la lección es que "
-              "una prueba de reproducibilidad debe declarar su tolerancia en lugar de suponer igualdad bit a bit "
-              "entre sistemas operativos.")
+              "revelaron límites reales: en una primera corrida en Linux, dos pruebas que exigían igualdad exacta con la "
+              "referencia fallaron por una diferencia de 1 ulp (sección 4.10) y se corrigieron para usar tolerancia "
+              "1e-9; con ese ajuste la suite completa pasa también en Linux con el modelo real. La lección es que una "
+              "prueba de reproducibilidad debe declarar su tolerancia en lugar de suponer igualdad bit a bit entre "
+              "sistemas operativos. En GitHub Actions el flujo tests.yml corre la suite con cobertura en Python 3.13 y un "
+         "runner Linux en cada push (", Link("pestaña Actions", rd.ACTIONS_URL), "; corrida exitosa del push final: ",
+         Link(rd.TESTS_RUN_URL.rsplit("/", 1)[-1], rd.TESTS_RUN_URL), "); ahí se omiten las pruebas que necesitan models/champion, que "
+         "no está en Git.")
 
     # 4.9 Serving
     heading(ctx, "4.9 Servicio de predicción con FastAPI", 2)
@@ -1022,14 +1027,16 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
         efills[(len(erows) + j, 5)] = OK_FILL
     gha_row = []
     if not dock.get("gha"):
-        gha_row = [["runner de GitHub Actions (imagen de DockerHub)", "Linux", "1e-09", "—", "—", "—",
-                    [Pend("reproducibilidad/github_actions.json")]]]
+        gha_row = [["runner de GitHub Actions (imagen de DockerHub)", "Linux", "1e-09", "—", "—",
+                    "success (CI)", [Link(f"corrida {dock['gha_run_url'].rsplit('/', 1)[-1]}", dock["gha_run_url"]), " ",
+                                     Pend("reproducibilidad/github_actions.json")]]]
     table(ctx, "t:envs", "Verificación de las 500 predicciones de referencia por entorno",
           ["Entorno", "Servidor", "Tolerancia", "Dif. máx.", "Idénticas bit a bit", "Veredicto", "Archivo"],
           erows + extra + gha_row, widths=[1.5, 1.3, 0.75, 0.75, 0.8, 0.7, 1.4], size=8,
           align=["l", "l", "r", "r", "r", "c", "l"], fills=efills,
           note=["archivos en reports/fase_final/reproducibilidad/ y reports/fase_final/logs/. La fila con tolerancia "
-                "0 es un control deliberadamente estricto: falla por la diferencia de 1 ulp que se explica abajo."])
+                "0 es un control deliberadamente estricto: falla por la diferencia de 1 ulp que se explica abajo. "
+                "Corrida del runner de GitHub Actions: ", Link(dock["gha_run_url"], dock["gha_run_url"]), "."])
     lin_env = next((e for e in envs if e["_file"].endswith("/contenedor_local.json")), None)
     lin_ep = val(lin_env, "endpoints", "predict") or {}
     lin_rows = lin_ep.get("rows", "s/d")
@@ -1058,14 +1065,17 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
              "reports/fase_final/reproducibilidad/pipeline_linux_vs_windows.md.")
     else:
         para(ctx, ("b", "Tercera verificación: reentrenamiento en Linux. "), Pend("pipeline_linux_vs_windows.csv"))
-    lin = rep.get("linux_pytest")
-    if lin:
-        para(ctx, ("b", "Pruebas en Linux. "), f"La suite completa dentro del contenedor del pipeline: {lin['passed']} "
-                                         f"aprobadas y {lin['failed']} fallidas ({lin['file']}). ",
-             "Las fallas son las dos pruebas de igualdad exacta mencionadas en la sección 4.8; esa corrida es "
-             "anterior al ajuste y hoy ambas pruebas comparan con tolerancia 1e-9 (tests/test_serving.py y "
-             "tests/integration/test_versioned_artifacts.py), igual que la verificación del servicio. Repetir la "
-             "suite en Linux con el modelo queda como trabajo futuro." if lin["failed"] else "")
+    lin, lin_prev = rep.get("linux_pytest"), rep.get("linux_pytest_prev")
+    if lin or lin_prev:
+        prev_txt = (f"La primera corrida de la suite en el contenedor Linux con el modelo real dio {lin_prev['passed']} "
+                    f"aprobadas y {lin_prev['failed']} fallidas ({lin_prev['file']}): las dos pruebas que exigían "
+                    "igualdad exacta con la referencia fallaron por el ulp descrito arriba. Se cambiaron a tolerancia "
+                    "1e-9 (tests/test_serving.py y tests/integration/test_versioned_artifacts.py), igual que la "
+                    "verificación del servicio. " if lin_prev and lin_prev["failed"] else "")
+        cur_txt = (f"Con el código actual, la suite completa en Linux (Python 3.13.9, modelo real) da "
+                   f"{lin['passed']} aprobadas y {lin['failed']} fallidas en {lin['seconds']:.1f} s ({lin['file']})."
+                   if lin else Pend("corrida vigente de la suite en Linux"))
+        para(ctx, ("b", "Pruebas en Linux. "), prev_txt, cur_txt)
     para(ctx, ("b", "Análisis reflexivo. "), "La reproducibilidad tiene niveles. El artefacto desplegado se reproduce entre "
               "entornos con una diferencia máxima de 1 ulp; el reentrenamiento se reproduce exactamente dentro de un "
               "mismo sistema operativo, pero no bit a bit entre sistemas cuando el algoritmo usa funciones "
@@ -1118,10 +1128,16 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
     para(ctx, ("b", "Análisis. "), "Como models/champion no se versiona en Git (es binario y se rastrea con DVC), el runner de "
               "GitHub Actions no construye la imagen: descarga la publicada en DockerHub, la levanta y verifica la "
               "referencia. Así la prueba de \"otro entorno\" es literal: una máquina que nunca vio los datos ni la "
-              "base de MLflow reproduce las predicciones del modelo versionado. La misma verificación ya se hizo localmente "
-              "con la imagen descargada de DockerHub (Tabla ", ctx.ref("t:envs"), "); falta registrar la del runner: ",
-         None if dock.get("gha") else Pend("resultado de la verificación en GitHub Actions "
-                                           "(reproducibilidad/github_actions.json)"))
+              "base de MLflow reproduce las predicciones del modelo versionado. La misma verificación se hizo localmente "
+              "con la imagen descargada de DockerHub (Tabla ", ctx.ref("t:envs"), "). El flujo "
+              "docker-reproducibilidad.yml corrió con éxito en GitHub (lint del Dockerfile con hadolint y verificación "
+              "de la imagen publicada; ", Link(f"corrida {dock['gha_run_url'].rsplit('/', 1)[-1]}", dock["gha_run_url"]), ")",
+         [", con veredicto ", ("b", str(val(dock, "gha", "verdict"))), ", diferencia máxima ",
+          str(val(dock, "gha", "endpoints", "predict", "max_abs_diff")), " y ",
+          str(val(dock, "gha", "endpoints", "predict", "rows_bitwise_identical")), "/",
+          str(val(dock, "gha", "endpoints", "predict", "rows")), " filas idénticas bit a bit "
+          "(reproducibilidad/github_actions.json)."] if dock.get("gha") else
+         [". ", Pend("JSON del runner en reproducibilidad/github_actions.json")])
 
     # 4.12 Drift
     heading(ctx, "4.12 Monitoreo de data drift", 2)
@@ -1357,8 +1373,8 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
                "Configurar un remoto de DVC (almacenamiento del Tec o en la nube) para que cualquier integrante obtenga "
                "datos y modelo con dvc pull sin volver a ejecutar el pipeline.",
                "Agregar clima y calendario escolar, y evaluar modelos por horizonte (1, 6 y 24 h).",
-               "Correr la suite completa también en Linux con el modelo (en CI, tras un dvc pull desde un remoto) "
-               "para registrar que pasa con la tolerancia de 1e-9.",
+               "Que el CI también ejecute las pruebas que dependen del modelo real (hoy se omiten en GitHub Actions "
+               "porque models/champion no está en Git), obteniéndolo con dvc pull desde un remoto.",
                "Exponer métricas del servicio (latencia, errores 4xx/5xx) y registrar las predicciones para cerrar el "
                "ciclo con las etiquetas reales.",
                "Recomendación a MiBici: usar el modelo para priorizar estaciones por riesgo en las horas pico y "
@@ -1471,7 +1487,7 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
         "Fase 2: Anthropic. (2026). Claude (Opus 5.5) [Modelo de lenguaje grande], utilizado como apoyo en la "
         "reestructuración del repositorio a Cookiecutter Data Science v2, la refactorización a módulos configurables, "
         "el código del pipeline con Optuna, MLflow Tracking y Model Registry, las pruebas y la documentación.",
-        "Fase final: Anthropic. (2026). Claude (Opus 5.5) [Modelo de lenguaje grande], utilizado como apoyo en la "
+        "Fase final: Anthropic. (2026). Claude (Fable 5.2 y Opus 5.5) [Modelo de lenguaje grande], utilizado como apoyo en la "
         "migración de las pruebas a pytest, el servicio con FastAPI, el Dockerfile, los scripts de verificación de "
         "reproducibilidad y la configuración de DVC, la simulación de data drift, el diagrama de la solución, el generador de este reporte y la "
         "redacción y revisión de la documentación. https://claude.ai/"]:
@@ -1508,12 +1524,34 @@ def word_postprocess(docx: Path, pdf: Path | None) -> str:
         word.Quit()
 
 
+def update_readme_gha(D) -> str:
+    """Llena la fila "Runner de GitHub Actions" de la tabla de reproducibilidad del README con github_actions.json."""
+    readme = ROOT / "README.md"
+    text = readme.read_text(encoding="utf-8")
+    gha = D["docker"].get("gha")
+    url = D["docker"]["gha_run_url"]
+    run = f"[corrida {url.rsplit('/', 1)[-1]}]({url})"
+    if gha:
+        ep = val(gha, "endpoints", "predict") or {}
+        row = (f"| Runner de GitHub Actions (`ubuntu-latest`, imagen de DockerHub) | {ep.get('max_abs_diff'):.3g} | "
+               f"{ep.get('rows_bitwise_identical')}/{ep.get('rows')} | {gha.get('verdict')} | "
+               f"`reproducibilidad/github_actions.json`, {run} |")
+    else:
+        row = (f"| Runner de GitHub Actions (`ubuntu-latest`, imagen de DockerHub) | pendiente | pendiente | "
+               f"flujo en verde | {run}; JSON pendiente en `reproducibilidad/github_actions.json` |")
+    new, k = re.subn(r"^\| Runner de GitHub Actions.*$", lambda _: row, text, flags=re.M)
+    if k:
+        readme.write_text(new, encoding="utf-8", newline="\n")
+    return f"README: fila de GitHub Actions {'actualizada' if k else 'no encontrada'}"
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--output", type=Path, default=OUT)
     ap.add_argument("--date", help="Fecha de la portada (AAAA-MM-DD); por omisión, hoy")
     ap.add_argument("--no-word", action="store_true", help="No abrir Word para actualizar el índice")
     ap.add_argument("--pdf", type=Path, help="Exportar también a PDF con Word")
+    ap.add_argument("--readme", action="store_true", help="Actualizar la fila de GitHub Actions del README")
     args = ap.parse_args()
     report_date = date.fromisoformat(args.date) if args.date else date.today()
     D = rd.load_all()
@@ -1536,6 +1574,8 @@ def main() -> None:
     for p_ in dict.fromkeys(ctx.pending):
         print(f"  - {p_}")
     print(f"Textos guía en amarillo: {len(ctx.guides)}")
+    if args.readme:
+        print(update_readme_gha(D))
     if not args.no_word:
         try:
             print(word_postprocess(args.output, args.pdf))
