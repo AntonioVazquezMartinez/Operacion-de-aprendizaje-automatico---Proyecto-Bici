@@ -19,7 +19,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, TargetEncoder
 
-from src.config import Config, base_arg_parser, load_config
+from src.config import Config, base_arg_parser, load_config, set_global_seeds
 
 
 # --------------------------------------------------------------------------- calendario
@@ -230,7 +230,9 @@ def main() -> None:
     parser = base_arg_parser("Ingeniería de características de MiBici")
     parser.add_argument("--no-mlflow", action="store_true")
     args = parser.parse_args()
-    run(load_config(args.config), use_mlflow=not args.no_mlflow)
+    config = load_config(args.config)
+    set_global_seeds(config["seed"])
+    run(config, use_mlflow=not args.no_mlflow)
 
 
 if __name__ == "__main__":

@@ -29,7 +29,7 @@ import pandas as pd
 import yaml
 from mlflow.models import infer_signature
 
-from src.config import Config, base_arg_parser, load_config
+from src.config import Config, base_arg_parser, load_config, set_global_seeds
 from src.features import load_features, model_input_columns, temporal_split
 from src.modeling.pipeline import build_pipeline, evaluate, suggest_params
 from src.plots import plot_hourly_profile, plot_model_comparison
@@ -113,9 +113,19 @@ class ModelTrainer:
             study_name=f"{name}_tuning",
             sampler=optuna.samplers.TPESampler(seed=self.config["seed"]),
         )
-        study.optimize(objective, n_trials=int(n_trials), timeout=self.tuning.get("timeout_seconds"))
-        mlflow.log_metrics({"tuning_best_val": float(study.best_value), "tuning_trials": float(len(study.trials))})
-        print(f"  {name}: {len(study.trials)} trials, mejor {self.metric} = {study.best_value:.4f}")
+        # Sin timeout (null en config.yaml) el número de trials es fijo y la búsqueda no depende del reloj.
+        timeout = self.tuning.get("timeout_seconds")
+        study.optimize(objective, n_trials=int(n_trials), timeout=float(timeout) if timeout is not None else None)
+        completed = [t for t in study.trials if t.state == optuna.trial.TrialState.COMPLETE]
+        mlflow.log_params({"tuning_n_trials_requested": int(n_trials),
+                           "tuning_timeout_seconds": "none" if timeout is None else timeout})
+        mlflow.log_metrics({
+            "tuning_best_val": float(study.best_value),
+            "tuning_trials": float(len(study.trials)),
+            "tuning_trials_completed": float(len(completed)),
+        })
+        print(f"  {name}: {len(completed)}/{int(n_trials)} trials completados, "
+              f"mejor {self.metric} = {study.best_value:.4f}")
         return dict(study.best_params)
 
     # ------------------------------------------------------------------ entrenamiento
@@ -255,7 +265,9 @@ def main() -> None:
     parser.add_argument("--n-trials", type=int, help="Trials de Optuna por modelo (sobrescribe config.yaml)")
     parser.add_argument("--no-register", action="store_true", help="No registrar en el Model Registry")
     args = parser.parse_args()
-    trainer = ModelTrainer(load_config(args.config), args.models, args.n_trials, register=not args.no_register)
+    config = load_config(args.config)
+    set_global_seeds(config["seed"])
+    trainer = ModelTrainer(config, args.models, args.n_trials, register=not args.no_register)
     trainer.run()
 
 

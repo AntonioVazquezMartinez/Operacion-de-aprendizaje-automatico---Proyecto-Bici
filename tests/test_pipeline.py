@@ -167,5 +167,21 @@ class TestDataAndFeatures(unittest.TestCase):
         self.assertEqual(pre.transform(test[cols]).shape[1], len(names))
 
 
+class TestGlobalSeeds(unittest.TestCase):
+
+    def test_set_global_seeds_is_reproducible(self):
+        import os
+        import random
+
+        from src.config import set_global_seeds
+
+        draws = []
+        for _ in range(2):
+            set_global_seeds(42)
+            draws.append((random.random(), float(np.random.rand())))
+        self.assertEqual(draws[0], draws[1])
+        self.assertEqual(os.environ["PYTHONHASHSEED"], "42")
+
+
 if __name__ == "__main__":
     unittest.main()

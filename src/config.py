@@ -8,9 +8,12 @@ from __future__ import annotations
 
 import argparse
 import copy
+import os
+import random
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+import numpy as np
 import yaml
 
 PROJ_ROOT = Path(__file__).resolve().parents[1]
@@ -62,6 +65,19 @@ def load_config(path: Optional[str | Path] = None, overrides: Optional[Dict[str,
         else:
             data[section] = values
     return Config(data)
+
+
+def set_global_seeds(seed: int) -> None:
+    """Fija las semillas globales (random, NumPy y PYTHONHASHSEED) para ejecuciones reproducibles.
+
+    Los estimadores y Optuna reciben además su propia semilla desde config.yaml; esto cubre el
+    azar global que usan las librerías sin un `random_state` explícito. `PYTHONHASHSEED` solo
+    afecta a subprocesos lanzados después de llamar a esta función.
+    """
+    seed = int(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    random.seed(seed)
+    np.random.seed(seed)
 
 
 def base_arg_parser(description: str) -> argparse.ArgumentParser:
