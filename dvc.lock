@@ -1,0 +1,504 @@
+schema: '2.0'
+stages:
+  data:
+    cmd: python -m src.dataset
+    deps:
+    - path: data/raw/datos_abiertos_2025_01.csv
+      hash: md5
+      md5: aa64a5ad93e5f5a5caf10d3e2f6ce0e4
+      size: 32959338
+    - path: data/raw/datos_abiertos_2025_02.csv
+      hash: md5
+      md5: 99793ab8eeac1b345d57e5cd5f8ed411
+      size: 32304810
+    - path: data/raw/datos_abiertos_2025_03.csv
+      hash: md5
+      md5: ccf4a891a7e4ab6a92eb82160594dfbb
+      size: 35131572
+    - path: data/raw/datos_abiertos_2025_04.csv
+      hash: md5
+      md5: 7a218a5f4b151dc218822af478efc750
+      size: 31755599
+    - path: data/raw/datos_abiertos_2025_05.csv
+      hash: md5
+      md5: 6f3bbec9f198381068c359e7bfa00534
+      size: 34332994
+    - path: data/raw/datos_abiertos_2025_06.csv
+      hash: md5
+      md5: 0a0c677a5e5130ff7c941d228ceeedf5
+      size: 30924814
+    - path: data/raw/datos_abiertos_2025_07.csv
+      hash: md5
+      md5: bfd6f68e0fd70b6eb018392c17a31e06
+      size: 31932339
+    - path: data/raw/datos_abiertos_2025_08.csv
+      hash: md5
+      md5: e79ea10e0c074ebe7f94a61f039d6ad9
+      size: 32506714
+    - path: data/raw/datos_abiertos_2025_09.csv
+      hash: md5
+      md5: e6a61f35023db47caa0021c51bb14849
+      size: 32686988
+    - path: data/raw/datos_abiertos_2025_10.csv
+      hash: md5
+      md5: 6fc6afa50270408d1e4f7cb9b5300991
+      size: 36442309
+    - path: data/raw/datos_abiertos_2025_11.csv
+      hash: md5
+      md5: 150291e3aabf9791df5d0bd6e766c938
+      size: 32997087
+    - path: data/raw/datos_abiertos_2025_12.csv
+      hash: md5
+      md5: d98655b053d5f6304bcdc6409c5d82a7
+      size: 29089463
+    - path: data/raw/nomenclatura_2026_10.csv
+      hash: md5
+      md5: baa3090cd9567531596fb0ba5df6a048
+      size: 33941
+    - path: src/config.py
+      hash: md5
+      md5: ca5dfe378d88c86bb6a3c986e2a0554f
+      size: 3369
+    - path: src/dataset.py
+      hash: md5
+      md5: c73f31815183671111f8a5ebdb447871
+      size: 12036
+    - path: src/tracking.py
+      hash: md5
+      md5: 000fe64713ae8645e0e37c00fd3e6c14
+      size: 3454
+    params:
+      config.yaml:
+        cleaning:
+          min_duration_seconds: 60
+          max_duration_minutes: 120
+          min_age: 14
+          max_age: 90
+        data:
+          months:
+          - 2025-01
+          - 2025-02
+          - 2025-03
+          - 2025-04
+          - 2025-05
+          - 2025-06
+          - 2025-07
+          - 2025-08
+          - 2025-09
+          - 2025-10
+          - 2025-11
+          - 2025-12
+          trip_urls:
+            2024-05: 
+              https://www.mibici.net/site/assets/files/81663/datos_abiertos_2024_05.csv
+            2025-01: 
+              https://www.mibici.net/site/assets/files/97653/datos_abiertos_2025_01.csv
+            2025-02: 
+              https://www.mibici.net/site/assets/files/99879/datos_abiertos_2025_02.csv
+            2025-03: 
+              https://www.mibici.net/site/assets/files/101986/datos_abiertos_2025_03.csv
+            2025-04: 
+              https://www.mibici.net/site/assets/files/103813/datos_abiertos_2025_04.csv
+            2025-05: 
+              https://www.mibici.net/site/assets/files/105513/datos_abiertos_2025_05.csv
+            2025-06: 
+              https://www.mibici.net/site/assets/files/107088/datos_abiertos_2025_06.csv
+            2025-07: 
+              https://www.mibici.net/site/assets/files/108898/datos_abiertos_2025_07.csv
+            2025-08: 
+              https://www.mibici.net/site/assets/files/111021/datos_abiertos_2025_08.csv
+            2025-09: 
+              https://www.mibici.net/site/assets/files/113216/datos_abiertos_2025_09.csv
+            2025-10: 
+              https://www.mibici.net/site/assets/files/115104/datos_abiertos_2025_10.csv
+            2025-11: 
+              https://www.mibici.net/site/assets/files/116773/datos_abiertos_2025_11.csv
+            2025-12: 
+              https://www.mibici.net/site/assets/files/118153/datos_abiertos_2025_12.csv
+          stations_url: 
+            https://www.mibici.net/site/assets/files/1118/nomenclatura_2026_10.csv
+          download_timeout_seconds: 120
+          raw_trips_file: viajes_raw.csv
+          stations_file: nomenclatura_estaciones.csv
+          interim_file: viajes_cleaned.csv
+          features_file: mibici_hourly_demand.csv
+        seed: 42
+    outs:
+    - path: data/interim/viajes_cleaned.csv
+      hash: md5
+      md5: ed04797a6c969851f2ee4b9dc81020cc
+      size: 436953575
+    - path: data/raw/nomenclatura_estaciones.csv
+      hash: md5
+      md5: e131a442bd72fd997d73a10a1ecd7317
+      size: 34291
+    - path: data/raw/viajes_raw.csv
+      hash: md5
+      md5: ad2935523ee763010f653339e90df8f5
+      size: 334060347
+  features:
+    cmd: python -m src.features
+    deps:
+    - path: data/interim/viajes_cleaned.csv
+      hash: md5
+      md5: ed04797a6c969851f2ee4b9dc81020cc
+      size: 436953575
+    - path: data/raw/nomenclatura_estaciones.csv
+      hash: md5
+      md5: e131a442bd72fd997d73a10a1ecd7317
+      size: 34291
+    - path: src/config.py
+      hash: md5
+      md5: ca5dfe378d88c86bb6a3c986e2a0554f
+      size: 3369
+    - path: src/features.py
+      hash: md5
+      md5: 70ad690204faf0172e2d101a97092944
+      size: 10773
+    params:
+      config.yaml:
+        features:
+          target: demand_count
+          lag_hours:
+          - 24
+          - 168
+          same_hour_mean_days: 7
+          drop_incomplete_history: true
+          numeric_base:
+          - sin_hour
+          - cos_hour
+          - sin_dayofweek
+          - cos_dayofweek
+          - latitude
+          - longitude
+          - capacity
+          binary:
+          - is_weekend
+          - is_holiday
+          categorical:
+          - Origen_Id
+        seed: 42
+    outs:
+    - path: data/processed/mibici_hourly_demand.csv
+      hash: md5
+      md5: 36edcf456ac2307329ac03dafa358d39
+      size: 495441249
+  train:
+    cmd: python -m src.modeling.train
+    deps:
+    - path: data/processed/mibici_hourly_demand.csv
+      hash: md5
+      md5: 36edcf456ac2307329ac03dafa358d39
+      size: 495441249
+    - path: src/features.py
+      hash: md5
+      md5: 70ad690204faf0172e2d101a97092944
+      size: 10773
+    - path: src/modeling/pipeline.py
+      hash: md5
+      md5: f758b98d130703853b363d6348888b06
+      size: 3629
+    - path: src/modeling/train.py
+      hash: md5
+      md5: b46a91c452687cbbf0d4389036e490b2
+      size: 14525
+    - path: src/tracking.py
+      hash: md5
+      md5: 000fe64713ae8645e0e37c00fd3e6c14
+      size: 3454
+    params:
+      config.yaml:
+        mlflow:
+          tracking_uri: sqlite:///mlruns.db
+          artifact_dir: mlartifacts
+          data_experiment: MiBici_Datos
+          training_experiment: MiBici_Fase2_Modelos
+          registered_model_name: mibici-demand-forecaster
+          champion_alias: champion
+          challenger_alias: challenger
+          log_dataset_artifacts: false
+        models:
+          dummy_mean:
+            enabled: true
+            register: false
+            class: sklearn.dummy.DummyRegressor
+            params:
+              strategy: mean
+          poisson:
+            enabled: true
+            register: true
+            class: sklearn.linear_model.PoissonRegressor
+            params:
+              max_iter: 500
+            search_space:
+              alpha:
+                type: float
+                low: 1e-06
+                high: 1.0
+                log: true
+          hist_gradient_boosting:
+            enabled: true
+            register: true
+            class: sklearn.ensemble.HistGradientBoostingRegressor
+            params:
+              loss: poisson
+              early_stopping: false
+            search_space:
+              learning_rate:
+                type: float
+                low: 0.02
+                high: 0.3
+                log: true
+              max_iter:
+                type: int
+                low: 100
+                high: 500
+              max_leaf_nodes:
+                type: int
+                low: 15
+                high: 127
+              min_samples_leaf:
+                type: int
+                low: 20
+                high: 200
+              l2_regularization:
+                type: float
+                low: 1e-06
+                high: 1.0
+                log: true
+          random_forest:
+            enabled: true
+            register: true
+            class: sklearn.ensemble.RandomForestRegressor
+            params:
+              n_jobs: -1
+              max_samples: 0.1
+            n_trials: 5
+            search_space:
+              n_estimators:
+                type: int
+                low: 30
+                high: 100
+              max_depth:
+                type: int
+                low: 6
+                high: 14
+              min_samples_leaf:
+                type: int
+                low: 20
+                high: 100
+              max_features:
+                type: float
+                low: 0.3
+                high: 1.0
+        seed: 42
+        split:
+          train_size: 0.7
+          val_size: 0.15
+        tuning:
+          metric: val_mae
+          n_trials: 20
+          timeout_seconds:
+          train_sample_rows: 300000
+    outs:
+    - path: reports/figures/06_comparacion_modelos.png
+      hash: md5
+      md5: dcfcfa15360c990dc6d3b8f98d46c812
+      size: 46990
+    - path: reports/model_comparison.csv
+      hash: md5
+      md5: 7b51f76ecd10948c84c6effd80f9a1cf
+      size: 910
+  export:
+    cmd: python -m src.modeling.export
+    deps:
+    - path: data/processed/mibici_hourly_demand.csv
+      hash: md5
+      md5: 36edcf456ac2307329ac03dafa358d39
+      size: 495441249
+    - path: data/raw/nomenclatura_estaciones.csv
+      hash: md5
+      md5: e131a442bd72fd997d73a10a1ecd7317
+      size: 34291
+    - path: reports/model_comparison.csv
+      hash: md5
+      md5: 7b51f76ecd10948c84c6effd80f9a1cf
+      size: 910
+    - path: src/modeling/export.py
+      hash: md5
+      md5: fffcd45ff540d4ac349329cdbca3cbae
+      size: 10886
+    params:
+      config.yaml:
+        seed: 42
+        serving:
+          model_dir: models/champion
+          metadata_file: models/champion_metadata.json
+          reference_predictions_file: models/reference_predictions.csv
+          reference_sample_rows: 500
+          stations_file: stations.csv
+          service_version: 1.0.0
+          max_batch_size: 1000
+          local_utc_offset: -06:00
+          require_sha256_match: true
+          strict_startup: false
+    outs:
+    - path: models/champion
+      hash: md5
+      md5: ebe973e8988acd803be73e17e967a279.dir
+      size: 6188355
+      nfiles: 8
+    - path: models/champion_metadata.json
+      hash: md5
+      md5: e3d26244f1b53fbc8fe17a12a32a29b3
+      size: 2788
+    - path: models/reference_predictions.csv
+      hash: md5
+      md5: 84dfa5800388295007fc5512ae02cc04
+      size: 84116
+  drift:
+    cmd: python -m src.monitoring.drift
+    deps:
+    - path: data/interim/viajes_cleaned.csv
+      hash: md5
+      md5: ed04797a6c969851f2ee4b9dc81020cc
+      size: 436953575
+    - path: data/processed/mibici_hourly_demand.csv
+      hash: md5
+      md5: 36edcf456ac2307329ac03dafa358d39
+      size: 495441249
+    - path: data/raw/nomenclatura_estaciones.csv
+      hash: md5
+      md5: e131a442bd72fd997d73a10a1ecd7317
+      size: 34291
+    - path: models/champion
+      hash: md5
+      md5: ebe973e8988acd803be73e17e967a279.dir
+      size: 6188355
+      nfiles: 8
+    - path: src/features.py
+      hash: md5
+      md5: 70ad690204faf0172e2d101a97092944
+      size: 10773
+    - path: src/modeling/pipeline.py
+      hash: md5
+      md5: f758b98d130703853b363d6348888b06
+      size: 3629
+    - path: src/monitoring
+      hash: md5
+      md5: 7ef4950f8968ac8d80678146349ba64f.dir
+      size: 198262
+      nfiles: 14
+    params:
+      config.yaml:
+        monitoring:
+          experiment_name: MiBici_Monitoreo
+          model_dir: models/champion
+          output_dir: reports/drift
+          reference_split: val
+          baseline_split: test
+          psi_bins: 10
+          psi_epsilon: 0.0001
+          discrete_max_unique: 30
+          ks_sample_rows: 50000
+          window_days: 7
+          informative_variables:
+          - sin_hour
+          - cos_hour
+          - sin_dayofweek
+          - cos_dayofweek
+          - is_weekend
+          - is_holiday
+          thresholds:
+            psi:
+              warning: 0.1
+              alert: 0.25
+            ks_statistic:
+              warning: 0.1
+              alert: 0.2
+            wasserstein_norm:
+              warning: 0.1
+              alert: 0.25
+            missing_rate:
+              warning: 0.01
+              alert: 0.05
+            count_domain_violation_rate:
+              warning: 0.01
+              alert: 0.05
+            unseen_category_rate:
+              warning: 0.01
+              alert: 0.05
+            hour_profile_shift_hours:
+              warning: 1
+              alert: 2
+            mae_degradation:
+              warning: 0.1
+              alert: 0.25
+            wape_degradation:
+              warning: 0.1
+              alert: 0.25
+          scenarios:
+            control:
+              type: control
+              description: Conjunto de prueba sin alteración (valida que los 
+                umbrales no den falsas alarmas).
+            rezagos_faltantes:
+              type: missing_lags
+              fraction: 0.3
+              description: 30 % de las filas sin rezagos (falla de la consulta 
+                histórica; el imputador usa la mediana).
+            rezagos_escala:
+              type: scale_lags
+              factor: 1.5
+              description: Rezagos multiplicados por 1.5 (unidades o agregación 
+                equivocadas en el pipeline).
+            reloj_desfasado:
+              type: clock_shift
+              hours: 6
+              description: Variables de calendario calculadas con 6 h de desfase
+                (UTC en lugar de hora de Guadalajara).
+            aumento_demanda:
+              type: demand_change
+              factor: 1.4
+              description: 40 % más viajes (remuestreo con reemplazo); se 
+                recalculan rezagos y objetivo.
+            caida_demanda:
+              type: demand_change
+              factor: 0.6
+              description: 40 % menos viajes (adelgazamiento binomial); se 
+                recalculan rezagos y objetivo.
+            vacaciones_diciembre:
+              type: time_window
+              start: 2025-12-20 00:00
+              end: 2025-12-31 23:00
+              description: Periodo real de vacaciones y fiestas de fin de año 
+                (20 al 31 de diciembre de 2025).
+            estaciones_nuevas:
+              type: new_stations
+              fraction: 0.15
+              id_offset: 100000
+              description: 15 % de estaciones con Id nuevo que abren al inicio 
+                de la ventana (sin historial ni codificación).
+        seed: 42
+    outs:
+    - path: reports/drift
+      hash: md5
+      md5: ac10ca16182c327aa3867adefbcc3a98.dir
+      size: 121394
+      nfiles: 3
+    - path: reports/figures/07_drift_distribuciones.png
+      hash: md5
+      md5: 08c55e05be63d30cbb5712c6c531b035
+      size: 326924
+    - path: reports/figures/08_drift_psi_por_variable.png
+      hash: md5
+      md5: 6d6cf23e2962eaee8343b62e1c4f226f
+      size: 363097
+    - path: reports/figures/09_drift_desempeno.png
+      hash: md5
+      md5: 370273198293109e059ebce3c8d6849f
+      size: 238675
+    - path: reports/figures/10_drift_ventanas_tiempo.png
+      hash: md5
+      md5: 80cde8f6a1a695cfee859abf9aef0e9f
+      size: 241132

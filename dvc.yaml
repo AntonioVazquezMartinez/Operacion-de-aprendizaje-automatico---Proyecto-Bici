@@ -1,0 +1,123 @@
+# Pipeline reproducible del proyecto MiBici (Equipo 19). Cada etapa declara su comando, sus dependencias
+# (código, datos y parámetros de config.yaml) y sus salidas; dvc.lock guarda el hash de cada archivo, de modo
+# que cualquier cambio en datos, código o parámetros queda detectado por `dvc status`.
+#
+#   dvc repro          # vuelve a ejecutar solo las etapas cuyo código, datos o parámetros cambiaron
+#   dvc status         # indica si los artefactos locales corresponden a dvc.lock
+#   dvc dag            # muestra el grafo de etapas
+#
+# Los CSV mensuales del portal de MiBici no se suben a Git (unos 390 MB): se descargan con las URL de
+# config.yaml y su hash queda fijado en dvc.lock.
+stages:
+  data:
+    desc: Une los 12 meses de 2025, aplica las reglas de limpieza y registra las versiones raw e interim en MLflow
+    cmd: python -m src.dataset
+    deps:
+      - src/dataset.py
+      - src/config.py
+      - src/tracking.py
+      - data/raw/datos_abiertos_2025_01.csv
+      - data/raw/datos_abiertos_2025_02.csv
+      - data/raw/datos_abiertos_2025_03.csv
+      - data/raw/datos_abiertos_2025_04.csv
+      - data/raw/datos_abiertos_2025_05.csv
+      - data/raw/datos_abiertos_2025_06.csv
+      - data/raw/datos_abiertos_2025_07.csv
+      - data/raw/datos_abiertos_2025_08.csv
+      - data/raw/datos_abiertos_2025_09.csv
+      - data/raw/datos_abiertos_2025_10.csv
+      - data/raw/datos_abiertos_2025_11.csv
+      - data/raw/datos_abiertos_2025_12.csv
+      - data/raw/nomenclatura_2026_10.csv
+    params:
+      - config.yaml:
+          - seed
+          - data
+          - cleaning
+    outs:
+      - data/raw/viajes_raw.csv
+      - data/raw/nomenclatura_estaciones.csv
+      - data/interim/viajes_cleaned.csv
+
+  features:
+    desc: Construye la matriz estación-hora con variables de calendario, de estación y rezagos
+    cmd: python -m src.features
+    deps:
+      - src/features.py
+      - src/config.py
+      - data/interim/viajes_cleaned.csv
+      - data/raw/nomenclatura_estaciones.csv
+    params:
+      - config.yaml:
+          - seed
+          - features
+    outs:
+      - data/processed/mibici_hourly_demand.csv
+
+  train:
+    desc: Ajusta hiperparámetros con Optuna, registra en MLflow y asigna los alias champion y challenger
+    cmd: python -m src.modeling.train
+    deps:
+      - src/modeling/train.py
+      - src/modeling/pipeline.py
+      - src/features.py
+      - src/tracking.py
+      - data/processed/mibici_hourly_demand.csv
+    params:
+      - config.yaml:
+          - seed
+          - split
+          - tuning
+          - models
+          - mlflow
+    outs:
+      - reports/model_comparison.csv:
+          cache: false
+      - reports/figures/06_comparacion_modelos.png:
+          cache: false
+
+  export:
+    desc: Exporta el champion del Model Registry a models/champion con metadatos y predicciones de referencia
+    cmd: python -m src.modeling.export
+    deps:
+      - src/modeling/export.py
+      - reports/model_comparison.csv
+      - data/processed/mibici_hourly_demand.csv
+      - data/raw/nomenclatura_estaciones.csv
+    params:
+      - config.yaml:
+          - seed
+          - serving
+    outs:
+      - models/champion
+      - models/champion_metadata.json:
+          cache: false
+      - models/reference_predictions.csv:
+          cache: false
+
+  drift:
+    desc: Simula escenarios de data drift, evalúa umbrales y genera el reporte de monitoreo
+    cmd: python -m src.monitoring.drift
+    deps:
+      - src/monitoring
+      - src/modeling/pipeline.py
+      - src/features.py
+      - models/champion
+      - data/processed/mibici_hourly_demand.csv
+      - data/interim/viajes_cleaned.csv
+      - data/raw/nomenclatura_estaciones.csv
+    params:
+      - config.yaml:
+          - seed
+          - monitoring
+    outs:
+      - reports/drift:
+          cache: false
+      - reports/figures/07_drift_distribuciones.png:
+          cache: false
+      - reports/figures/08_drift_psi_por_variable.png:
+          cache: false
+      - reports/figures/09_drift_desempeno.png:
+          cache: false
+      - reports/figures/10_drift_ventanas_tiempo.png:
+          cache: false
