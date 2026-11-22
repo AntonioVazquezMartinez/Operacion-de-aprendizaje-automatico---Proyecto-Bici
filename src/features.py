@@ -100,7 +100,7 @@ class MiBiciFeatureEngineer:
         grid = grid.copy()
         ts = grid["fecha_hora"]
         grid["hour"] = ts.dt.hour
-        grid["day_of_week"] = ts.dt.dayofweek
+        grid["day_of_week"] = ts.dt.day_of_week
         grid["month"] = ts.dt.month
         grid["is_weekend"] = (grid["day_of_week"] >= 5).astype(int)
         holidays = set().union(*(mexican_holidays(y) for y in ts.dt.year.unique()))

@@ -64,3 +64,8 @@ reports/Fase 1_EquipoXX.*
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Cobertura de pruebas
+.coverage
+htmlcov/
+.pytest_cache/

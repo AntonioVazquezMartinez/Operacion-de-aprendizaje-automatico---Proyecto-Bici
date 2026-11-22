@@ -45,7 +45,7 @@ def plot_hourly_distribution(df_trips: pd.DataFrame, path: Path) -> Path:
 
 
 def plot_weekday_volume(df_trips: pd.DataFrame, path: Path) -> Path:
-    counts = df_trips["Inicio_del_viaje"].dt.dayofweek.value_counts().reindex(range(7), fill_value=0)
+    counts = df_trips["Inicio_del_viaje"].dt.day_of_week.value_counts().reindex(range(7), fill_value=0)
     fig, ax = plt.subplots(figsize=(9, 5))
     bars = ax.bar(DAY_NAMES, counts.values, color=["#2ca02c"] * 5 + ["#d62728"] * 2, edgecolor="black")
     ax.bar_label(bars, fmt="%d")
