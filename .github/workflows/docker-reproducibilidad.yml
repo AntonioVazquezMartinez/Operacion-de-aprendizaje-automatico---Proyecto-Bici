@@ -65,6 +65,19 @@ jobs:
             | tee reports/fase_final/reproducibilidad/github_actions.log
           exit "${PIPESTATUS[0]}"
 
+      # El resultado completo queda como anotación pública del job (además del artefacto), para poder
+      # consultarlo desde la API de GitHub sin descargar el artefacto.
+      - name: Publica el resultado como anotación del job
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json, pathlib
+          path = pathlib.Path("reports/fase_final/reproducibilidad/github_actions.json")
+          if path.exists():
+              data = json.loads(path.read_text(encoding="utf-8"))
+              print("::notice title=reproducibilidad-json::" + json.dumps(data, separators=(",", ":")))
+          PY
+
       - name: Guarda el digest y los logs del contenedor
         if: always()
         run: |
