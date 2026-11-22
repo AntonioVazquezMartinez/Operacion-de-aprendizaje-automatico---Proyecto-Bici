@@ -1,0 +1,128 @@
+# comando: python docker/compare_pipeline.py --work /work --output /work/comparison
+# python: Python 3.13.9 | Linux 6.6.87.2-microsoft-standard-WSL2 x86_64
+# inicio: 2026-11-22T18:59:46+00:00
+                 model                metric     windows       linux     abs_diff     rel_diff  identical
+hist_gradient_boosting               val_mae    0.804170    0.804681 5.109872e-04 6.354218e-04      False
+hist_gradient_boosting              val_rmse    1.535851    1.534953 8.981724e-04 5.848044e-04      False
+hist_gradient_boosting                val_r2    0.673407    0.673789 3.818741e-04 5.670775e-04      False
+hist_gradient_boosting  val_poisson_deviance    0.947575    0.947876 3.011010e-04 3.177595e-04      False
+hist_gradient_boosting              test_mae    0.765131    0.765255 1.243228e-04 1.624856e-04      False
+hist_gradient_boosting             test_rmse    1.301830    1.300881 9.494538e-04 7.293221e-04      False
+hist_gradient_boosting               test_r2    0.693717    0.694163 4.465954e-04 6.437720e-04      False
+hist_gradient_boosting test_poisson_deviance    0.914410    0.914634 2.239632e-04 2.449263e-04      False
+         random_forest               val_mae    0.825527    0.825527 0.000000e+00 0.000000e+00       True
+         random_forest              val_rmse    1.589955    1.589955 0.000000e+00 0.000000e+00       True
+         random_forest                val_r2    0.649992    0.649992 0.000000e+00 0.000000e+00       True
+         random_forest  val_poisson_deviance    0.981565    0.981565 0.000000e+00 0.000000e+00       True
+         random_forest              test_mae    0.783577    0.783577 0.000000e+00 0.000000e+00       True
+         random_forest             test_rmse    1.350976    1.350976 0.000000e+00 0.000000e+00       True
+         random_forest               test_r2    0.670155    0.670155 0.000000e+00 0.000000e+00       True
+         random_forest test_poisson_deviance    0.948809    0.948809 0.000000e+00 0.000000e+00       True
+               poisson               val_mae    1.251156    1.251156 3.685940e-14 2.946027e-14      False
+               poisson              val_rmse   32.148499   32.148499 4.997247e-11 1.554426e-12      False
+               poisson                val_r2 -142.096754 -142.096754 4.448282e-10 3.130460e-12      False
+               poisson  val_poisson_deviance    1.823597    1.823597 5.995204e-15 3.287570e-15      False
+               poisson              test_mae    1.098254    1.098254 3.419487e-14 3.113568e-14      False
+               poisson             test_rmse    3.110151    3.110151 4.396483e-14 1.413591e-14      False
+               poisson               test_r2   -0.748145   -0.748145 4.929390e-14 6.588818e-14      False
+               poisson test_poisson_deviance    1.562475    1.562475 2.442491e-14 1.563219e-14      False
+            dummy_mean               val_mae    1.631591    1.631591 0.000000e+00 0.000000e+00       True
+            dummy_mean              val_rmse    2.688581    2.688581 0.000000e+00 0.000000e+00       True
+            dummy_mean                val_r2   -0.000817   -0.000817 0.000000e+00 0.000000e+00       True
+            dummy_mean  val_poisson_deviance    3.135391    3.135391 0.000000e+00 0.000000e+00       True
+            dummy_mean              test_mae    1.537447    1.537447 0.000000e+00 0.000000e+00       True
+            dummy_mean             test_rmse    2.355160    2.355160 0.000000e+00 0.000000e+00       True
+            dummy_mean               test_r2   -0.002432   -0.002432 0.000000e+00 0.000000e+00       True
+            dummy_mean test_poisson_deviance    2.860883    2.860883 0.000000e+00 0.000000e+00       True
+{
+  "linux_environment": {
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41",
+    "python": "3.13.9",
+    "scikit-learn": "1.9.1",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1"
+  },
+  "windows_environment": {
+    "platform": "Windows-11-10.0.26300-SP0",
+    "python": "3.13.9",
+    "scikit-learn": "1.9.1",
+    "mlflow": "3.18.0",
+    "pandas": "3.1.1",
+    "numpy": "2.5.4"
+  },
+  "dataset_sha256": {
+    "windows": "fec850d2bdbc935a16cc3e439c1debe824647c801aea4652710d59d6a1a597dc",
+    "linux": "354fee1685cebddb550bb8dc43318f0a07e5194f0edb4fa964af71e00b269531",
+    "identical": false
+  },
+  "stations_sha256": {
+    "windows": "350f093dd0fe854d859b8a03d8b927c0ee743677afa7f45d6daa2fadc5ab6647",
+    "linux": "429951fb49a3dafa73384ed2718bd3dd372ae969824b0c6f2bbb0c486bada545",
+    "identical": false
+  },
+  "champion": {
+    "windows": {
+      "algorithm": "hist_gradient_boosting",
+      "version": 1,
+      "hyperparameters": {
+        "loss": "poisson",
+        "early_stopping": false,
+        "learning_rate": 0.054063230854303944,
+        "max_iter": 487,
+        "max_leaf_nodes": 112,
+        "min_samples_leaf": 171,
+        "l2_regularization": 1.5206342407516477e-06
+      }
+    },
+    "linux": {
+      "algorithm": "hist_gradient_boosting",
+      "version": 1,
+      "hyperparameters": {
+        "loss": "poisson",
+        "early_stopping": false,
+        "learning_rate": 0.05514718587869894,
+        "max_iter": 481,
+        "max_leaf_nodes": 97,
+        "min_samples_leaf": 128,
+        "l2_regularization": 8.63200816860254e-06
+      }
+    },
+    "same_algorithm": true,
+    "same_hyperparameters": false
+  },
+  "model_pickle_sha256": {
+    "windows": "ca4331a49948c99b29580463d89e8aa1dc8d14451f866c029588f3de67ce2ed5",
+    "linux": "89839313a56f6289e939f258debbaca1906036e701474b73a006fcdda20f2a69",
+    "identical": false
+  },
+  "reference_sample": {
+    "same_rows_and_inputs": false,
+    "reference_csv_sha256": {
+      "windows": "3bb0832b2656c8d0ffaf6d555929c1af09d2b508631c238a8134ae7ac0859926",
+      "linux": "acb4ec725e6e2987292066383a760e2190ba587d19781031aa5726305812de1c"
+    }
+  },
+  "predictions_on_windows_reference": {
+    "linux_retrained_model": {
+      "rows": 500,
+      "max_abs_diff": 0.98544059733395,
+      "mean_abs_diff": 0.03801234682490281,
+      "rows_bitwise_identical": 0
+    },
+    "windows_model_run_on_linux": {
+      "rows": 500,
+      "max_abs_diff": 8.881784197001252e-16,
+      "mean_abs_diff": 2.4425042067025004e-18,
+      "rows_bitwise_identical": 495
+    }
+  },
+  "metrics_table": {
+    "cells": 32,
+    "identical_cells": 16,
+    "max_abs_diff": 0.0009494537779763945,
+    "max_rel_diff": 0.000729322119730341
+  }
+}
+# fin: 2026-11-22T18:59:48+00:00
+# duracion_segundos: 2
+# codigo_salida: 0

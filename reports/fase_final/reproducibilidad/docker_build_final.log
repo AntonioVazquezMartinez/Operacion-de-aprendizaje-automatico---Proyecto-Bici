@@ -1,0 +1,83 @@
+# comando: docker build -t ml-service:latest .
+# inicio: 2026-11-22T13:03:39-06:00
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 6.38kB done
+#1 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 ...
+
+#3 [auth] docker/dockerfile:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 DONE 1.5s
+
+#4 docker-image://docker.io/docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183
+#4 resolve docker.io/docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183 0.1s done
+#4 CACHED
+
+#5 [internal] load metadata for docker.io/library/python:3.13.9-slim@sha256:326df678c20c78d465db501563f3492d17c42a4afe33a1f2bf5406a1d56b0e86
+#5 DONE 0.2s
+
+#6 [internal] load .dockerignore
+#6 transferring context: 546B done
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 916B done
+#7 DONE 0.1s
+
+#8 [builder 1/4] FROM docker.io/library/python:3.13.9-slim@sha256:326df678c20c78d465db501563f3492d17c42a4afe33a1f2bf5406a1d56b0e86
+#8 resolve docker.io/library/python:3.13.9-slim@sha256:326df678c20c78d465db501563f3492d17c42a4afe33a1f2bf5406a1d56b0e86 0.1s done
+#8 DONE 0.1s
+
+#9 [runtime 4/9] WORKDIR /app
+#9 CACHED
+
+#10 [runtime 6/9] RUN python - <<'EOF'
+#10 CACHED
+
+#11 [runtime 2/9] RUN groupadd --system --gid 10001 app     && useradd --system --uid 10001 --gid app --home-dir /home/app --create-home --shell /usr/sbin/nologin app
+#11 CACHED
+
+#12 [runtime 3/9] COPY --from=builder /opt/venv /opt/venv
+#12 CACHED
+
+#13 [builder 2/4] RUN python -m venv /opt/venv
+#13 CACHED
+
+#14 [builder 3/4] COPY requirements-serve.txt /tmp/requirements-serve.txt
+#14 CACHED
+
+#15 [builder 4/4] RUN pip install --no-cache-dir -r /tmp/requirements-serve.txt     && find /opt/venv -type d -name "__pycache__" -prune -exec rm -rf {} +     && find /opt/venv -type d -name "tests" -path "*/site-packages/*/tests" -prune -exec rm -rf {} +
+#15 CACHED
+
+#16 [runtime 5/9] COPY models/ ./models/
+#16 CACHED
+
+#17 [runtime 7/9] COPY config.yaml ./config.yaml
+#17 CACHED
+
+#18 [runtime 8/9] COPY src/__init__.py src/config.py src/features.py ./src/
+#18 CACHED
+
+#19 [runtime 9/9] COPY src/serving/ ./src/serving/
+#19 CACHED
+
+#20 exporting to image
+#20 exporting layers done
+#20 exporting manifest sha256:724fca62c973f74b4ef50a5c6127dfb68a0ad05c37e5d5537f702e2fcd60d5f3 done
+#20 exporting config sha256:e03668c9c26f086d2e2d5ad87600714f4a9ab56a0a46a4662e8c4b9b62f8fca8 done
+#20 exporting attestation manifest sha256:b7dbc73b136512cb83b41937ffe6652cb46164a96116756f1401fd5a6acf0eff
+#20 exporting attestation manifest sha256:b7dbc73b136512cb83b41937ffe6652cb46164a96116756f1401fd5a6acf0eff 0.2s done
+#20 exporting manifest list sha256:d9244f3d66ec25c5d1676744ae2bd66d8cabc0bece881acde9e16eba1a1f3bd6
+#20 exporting manifest list sha256:d9244f3d66ec25c5d1676744ae2bd66d8cabc0bece881acde9e16eba1a1f3bd6 0.1s done
+#20 naming to docker.io/library/ml-service:latest 0.0s done
+#20 unpacking to docker.io/library/ml-service:latest 0.0s done
+#20 DONE 0.7s
+# fin: 2026-11-22T13:03:44-06:00
+# duracion_segundos: 5
+# codigo_salida: 0

@@ -1,0 +1,19 @@
+# Contexto de build mínimo (lista blanca): se excluye todo y solo se permite lo que copia el Dockerfile.
+# Quedan fuera datos (data/), MLflow (mlruns.db, mlartifacts/), .venv, .git, reportes, notebooks y pruebas.
+*
+
+!requirements-serve.txt
+!config.yaml
+
+!src/__init__.py
+!src/config.py
+!src/features.py
+!src/serving/
+
+!models/champion/
+!models/champion_metadata.json
+!models/reference_predictions.csv
+
+# Nunca bytecode ni cachés aunque estén dentro de carpetas permitidas.
+**/__pycache__
+**/*.py[cod]

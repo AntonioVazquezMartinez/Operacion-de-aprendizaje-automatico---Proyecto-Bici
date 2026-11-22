@@ -1,0 +1,161 @@
+{
+  "linux_environment": {
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41",
+    "python": "3.13.9",
+    "scikit-learn": "1.9.1",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1"
+  },
+  "windows_environment": {
+    "platform": "Windows-11-10.0.26300-SP0",
+    "python": "3.13.9",
+    "scikit-learn": "1.9.1",
+    "mlflow": "3.18.0",
+    "pandas": "3.1.1",
+    "numpy": "2.5.4"
+  },
+  "dataset_sha256": {
+    "windows": "fec850d2bdbc935a16cc3e439c1debe824647c801aea4652710d59d6a1a597dc",
+    "linux": "354fee1685cebddb550bb8dc43318f0a07e5194f0edb4fa964af71e00b269531",
+    "identical": false
+  },
+  "stations_sha256": {
+    "windows": "350f093dd0fe854d859b8a03d8b927c0ee743677afa7f45d6daa2fadc5ab6647",
+    "linux": "429951fb49a3dafa73384ed2718bd3dd372ae969824b0c6f2bbb0c486bada545",
+    "identical": false
+  },
+  "data_period": {
+    "windows": {
+      "start": "2025-01-08 00:00:00",
+      "end": "2025-12-31 23:00:00",
+      "train_val_end": "2025-11-08 06:00:00",
+      "test_start": "2025-11-08 07:00:00",
+      "rows_train": 2225180,
+      "rows_val": 476930,
+      "rows_test": 476930,
+      "months": [
+        "2025-01",
+        "2025-02",
+        "2025-03",
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12"
+      ]
+    },
+    "linux": {
+      "start": "2025-01-08 00:00:00",
+      "end": "2025-12-31 23:00:00",
+      "train_val_end": "2025-11-08 06:00:00",
+      "test_start": "2025-11-08 07:00:00",
+      "rows_train": 2225180,
+      "rows_val": 476930,
+      "rows_test": 476930,
+      "months": [
+        "2025-01",
+        "2025-02",
+        "2025-03",
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12"
+      ]
+    },
+    "identical": true
+  },
+  "champion": {
+    "windows": {
+      "algorithm": "hist_gradient_boosting",
+      "version": 1,
+      "hyperparameters": {
+        "loss": "poisson",
+        "early_stopping": false,
+        "learning_rate": 0.054063230854303944,
+        "max_iter": 487,
+        "max_leaf_nodes": 112,
+        "min_samples_leaf": 171,
+        "l2_regularization": 1.5206342407516477e-06
+      }
+    },
+    "linux": {
+      "algorithm": "hist_gradient_boosting",
+      "version": 1,
+      "hyperparameters": {
+        "loss": "poisson",
+        "early_stopping": false,
+        "learning_rate": 0.05514718587869894,
+        "max_iter": 481,
+        "max_leaf_nodes": 97,
+        "min_samples_leaf": 128,
+        "l2_regularization": 8.63200816860254e-06
+      }
+    },
+    "same_algorithm": true,
+    "same_hyperparameters": false
+  },
+  "champion_metrics": {
+    "windows": {
+      "test_mae": 0.7651310452008431,
+      "test_poisson_deviance": 0.9144103323440165,
+      "test_r2": 0.6937167354678235,
+      "test_rmse": 1.3018304975138348,
+      "val_mae": 0.804170096434065,
+      "val_poisson_deviance": 0.9475748632987894,
+      "val_r2": 0.6734072154301121,
+      "val_rmse": 1.535851050477163
+    },
+    "linux": {
+      "test_mae": 0.7652553680017535,
+      "test_poisson_deviance": 0.9146342955117527,
+      "test_r2": 0.6941633308719144,
+      "test_rmse": 1.3008810437358584,
+      "val_mae": 0.804681083633366,
+      "val_poisson_deviance": 0.9478759642496706,
+      "val_r2": 0.6737890895285792,
+      "val_rmse": 1.5349528780319115
+    },
+    "identical": false
+  },
+  "model_pickle_sha256": {
+    "windows": "ca4331a49948c99b29580463d89e8aa1dc8d14451f866c029588f3de67ce2ed5",
+    "linux": "89839313a56f6289e939f258debbaca1906036e701474b73a006fcdda20f2a69",
+    "identical": false
+  },
+  "reference_sample": {
+    "same_rows_and_inputs": false,
+    "reference_csv_sha256": {
+      "windows": "3bb0832b2656c8d0ffaf6d555929c1af09d2b508631c238a8134ae7ac0859926",
+      "linux": "acb4ec725e6e2987292066383a760e2190ba587d19781031aa5726305812de1c"
+    }
+  },
+  "predictions_on_windows_reference": {
+    "linux_retrained_model": {
+      "rows": 500,
+      "max_abs_diff": 0.98544059733395,
+      "mean_abs_diff": 0.03801234682490281,
+      "rows_bitwise_identical": 0
+    },
+    "windows_model_run_on_linux": {
+      "rows": 500,
+      "max_abs_diff": 8.881784197001252e-16,
+      "mean_abs_diff": 2.4425042067025004e-18,
+      "rows_bitwise_identical": 495
+    }
+  },
+  "metrics_table": {
+    "cells": 32,
+    "identical_cells": 16,
+    "max_abs_diff": 0.0009494537779763945,
+    "max_rel_diff": 0.000729322119730341
+  }
+}

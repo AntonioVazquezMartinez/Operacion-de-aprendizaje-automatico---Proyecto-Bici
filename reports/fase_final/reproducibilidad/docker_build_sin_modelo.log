@@ -1,0 +1,79 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 6.38kB done
+#1 DONE 0.4s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 DONE 0.8s
+
+#3 docker-image://docker.io/docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183
+#3 resolve docker.io/docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183 0.1s done
+#3 CACHED
+
+#4 [internal] load metadata for docker.io/library/python:3.13.9-slim@sha256:326df678c20c78d465db501563f3492d17c42a4afe33a1f2bf5406a1d56b0e86
+#4 DONE 0.1s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 546B done
+#5 DONE 0.2s
+
+#6 [internal] load build context
+#6 transferring context: 152.35kB 0.0s done
+#6 DONE 0.4s
+
+#7 [builder 1/4] FROM docker.io/library/python:3.13.9-slim@sha256:326df678c20c78d465db501563f3492d17c42a4afe33a1f2bf5406a1d56b0e86
+#7 resolve docker.io/library/python:3.13.9-slim@sha256:326df678c20c78d465db501563f3492d17c42a4afe33a1f2bf5406a1d56b0e86 0.3s done
+#7 DONE 0.3s
+
+#8 [builder 4/4] RUN pip install --no-cache-dir -r /tmp/requirements-serve.txt     && find /opt/venv -type d -name "__pycache__" -prune -exec rm -rf {} +     && find /opt/venv -type d -name "tests" -path "*/site-packages/*/tests" -prune -exec rm -rf {} +
+#8 CACHED
+
+#9 [runtime 3/9] COPY --from=builder /opt/venv /opt/venv
+#9 CACHED
+
+#10 [runtime 2/9] RUN groupadd --system --gid 10001 app     && useradd --system --uid 10001 --gid app --home-dir /home/app --create-home --shell /usr/sbin/nologin app
+#10 CACHED
+
+#11 [builder 2/4] RUN python -m venv /opt/venv
+#11 CACHED
+
+#12 [builder 3/4] COPY requirements-serve.txt /tmp/requirements-serve.txt
+#12 CACHED
+
+#13 [runtime 4/9] WORKDIR /app
+#13 CACHED
+
+#14 [runtime 5/9] COPY models/ ./models/
+#14 DONE 0.4s
+
+#15 [runtime 6/9] RUN python - <<'EOF'
+#15 0.489 ERROR: faltan archivos del modelo en el contexto de build: models/champion/MLmodel, models/champion/stations.csv. La carpeta models/champion/ no se versiona en Git: genérala con `python -m src.modeling.export` o descárgala con `dvc pull` antes de `docker build`.
+#15 ERROR: process "/bin/sh -c python - <<'EOF'\nimport hashlib, json, pathlib, sys\nroot = pathlib.Path(\"/app/models\")\nneeded = [root / \"champion\" / \"MLmodel\", root / \"champion\" / \"stations.csv\", root / \"champion_metadata.json\"]\nmissing = [str(p.relative_to(\"/app\")) for p in needed if not p.exists()]\nif missing:\n    sys.exit(\"ERROR: faltan archivos del modelo en el contexto de build: \" + \", \".join(missing) + \". \"\n             \"La carpeta models/champion/ no se versiona en Git: genérala con `python -m src.modeling.export` \"\n             \"o descárgala con `dvc pull` antes de `docker build`.\")\nmeta = json.loads((root / \"champion_metadata.json\").read_text(encoding=\"utf-8\"))\nmodel_file = root / \"champion\" / meta.get(\"model_file\", \"model.pkl\")\ndigest = hashlib.sha256(model_file.read_bytes()).hexdigest()\nif digest != meta.get(\"model_sha256\"):\n    sys.exit(f\"ERROR: SHA-256 de {model_file.name} = {digest}; \"\n             f\"champion_metadata.json espera {meta.get('model_sha256')}.\")\nprint(f\"Modelo verificado: {meta['model_uri']} sha256={digest}\")\nEOF" did not complete successfully: exit code: 1
+------
+ > [runtime 6/9] RUN python - <<'EOF':
+0.489 ERROR: faltan archivos del modelo en el contexto de build: models/champion/MLmodel, models/champion/stations.csv. La carpeta models/champion/ no se versiona en Git: genérala con `python -m src.modeling.export` o descárgala con `dvc pull` antes de `docker build`.
+------
+Dockerfile:90
+--------------------
+  89 |     # coincide con models/champion_metadata.json (solo biblioteca estándar).
+  90 | >>> RUN python - <<'EOF'
+  91 | >>> import hashlib, json, pathlib, sys
+  92 | >>> root = pathlib.Path("/app/models")
+  93 | >>> needed = [root / "champion" / "MLmodel", root / "champion" / "stations.csv", root / "champion_metadata.json"]
+  94 | >>> missing = [str(p.relative_to("/app")) for p in needed if not p.exists()]
+  95 | >>> if missing:
+  96 | >>>     sys.exit("ERROR: faltan archivos del modelo en el contexto de build: " + ", ".join(missing) + ". "
+  97 | >>>              "La carpeta models/champion/ no se versiona en Git: genérala con `python -m src.modeling.export` "
+  98 | >>>              "o descárgala con `dvc pull` antes de `docker build`.")
+  99 | >>> meta = json.loads((root / "champion_metadata.json").read_text(encoding="utf-8"))
+ 100 | >>> model_file = root / "champion" / meta.get("model_file", "model.pkl")
+ 101 | >>> digest = hashlib.sha256(model_file.read_bytes()).hexdigest()
+ 102 | >>> if digest != meta.get("model_sha256"):
+ 103 | >>>     sys.exit(f"ERROR: SHA-256 de {model_file.name} = {digest}; "
+ 104 | >>>              f"champion_metadata.json espera {meta.get('model_sha256')}.")
+ 105 | >>> print(f"Modelo verificado: {meta['model_uri']} sha256={digest}")
+ 106 | >>> EOF
+ 107 |     
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c python - <<'EOF'\nimport hashlib, json, pathlib, sys\nroot = pathlib.Path(\"/app/models\")\nneeded = [root / \"champion\" / \"MLmodel\", root / \"champion\" / \"stations.csv\", root / \"champion_metadata.json\"]\nmissing = [str(p.relative_to(\"/app\")) for p in needed if not p.exists()]\nif missing:\n    sys.exit(\"ERROR: faltan archivos del modelo en el contexto de build: \" + \", \".join(missing) + \". \"\n             \"La carpeta models/champion/ no se versiona en Git: genérala con `python -m src.modeling.export` \"\n             \"o descárgala con `dvc pull` antes de `docker build`.\")\nmeta = json.loads((root / \"champion_metadata.json\").read_text(encoding=\"utf-8\"))\nmodel_file = root / \"champion\" / meta.get(\"model_file\", \"model.pkl\")\ndigest = hashlib.sha256(model_file.read_bytes()).hexdigest()\nif digest != meta.get(\"model_sha256\"):\n    sys.exit(f\"ERROR: SHA-256 de {model_file.name} = {digest}; \"\n             f\"champion_metadata.json espera {meta.get('model_sha256')}.\")\nprint(f\"Modelo verificado: {meta['model_uri']} sha256={digest}\")\nEOF" did not complete successfully: exit code: 1

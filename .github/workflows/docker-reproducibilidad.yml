@@ -1,0 +1,85 @@
+# Reproducibilidad del servicio en un entorno distinto al de entrenamiento (runner Linux de GitHub Actions).
+# models/champion/ no está en Git (se versiona con DVC), así que aquí NO se construye la imagen: se descarga la
+# imagen publicada en DockerHub, se levanta y se verifica contra models/reference_predictions.csv (sí en Git).
+name: docker-reproducibilidad
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag de gusrivasmna/mibici-demand-service a verificar"
+        required: false
+        default: "1.0.0"
+  push:
+    branches: [main, fase-final]
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: gusrivasmna/mibici-demand-service
+  TAG: ${{ github.event.inputs.tag || '1.0.0' }}
+
+jobs:
+  lint-dockerfile:
+    name: Lint del Dockerfile (hadolint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: hadolint
+        run: docker run --rm -i hadolint/hadolint:v2.12.0 hadolint --failure-threshold error - < Dockerfile
+
+  verify-published-image:
+    name: Verifica la imagen publicada contra la referencia
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Descarga la imagen
+        run: |
+          docker pull "$IMAGE:$TAG"
+          docker image inspect "$IMAGE:$TAG" --format 'Id={{.Id}} RepoDigests={{json .RepoDigests}}'
+
+      - name: Levanta el contenedor
+        run: docker run -d --name mibici-api -p 8000:8000 "$IMAGE:$TAG"
+
+      - name: Espera a que el HEALTHCHECK reporte healthy
+        run: |
+          for i in $(seq 1 40); do
+            status=$(docker inspect --format '{{.State.Health.Status}}' mibici-api)
+            echo "intento $i: $status"
+            [ "$status" = "healthy" ] && exit 0
+            sleep 3
+          done
+          docker logs mibici-api
+          exit 1
+
+      - name: Verifica la reproducibilidad (solo biblioteca estándar de Python)
+        run: |
+          python3 --version
+          mkdir -p reports/fase_final/reproducibilidad
+          python3 scripts/verify_reproducibility.py --url http://localhost:8000 \
+            --label "github-actions-${{ runner.os }}-$TAG" \
+            --output reports/fase_final/reproducibilidad/github_actions.json \
+            | tee reports/fase_final/reproducibilidad/github_actions.log
+          exit "${PIPESTATUS[0]}"
+
+      - name: Guarda el digest y los logs del contenedor
+        if: always()
+        run: |
+          docker image inspect "$IMAGE:$TAG" --format '{{json .RepoDigests}}' \
+            > reports/fase_final/reproducibilidad/github_actions_image_digest.json || true
+          docker logs mibici-api > reports/fase_final/reproducibilidad/github_actions_container.log 2>&1 || true
+
+      - name: Sube los resultados como artefacto
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reproducibilidad-github-actions
+          path: reports/fase_final/reproducibilidad/github_actions*
+          if-no-files-found: warn
+
+      - name: Detiene el contenedor
+        if: always()
+        run: docker rm -f mibici-api || true
