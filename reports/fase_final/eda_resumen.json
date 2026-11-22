@@ -1,0 +1,47 @@
+{
+  "source": "data/interim/viajes_cleaned.csv y data/processed/mibici_hourly_demand.csv",
+  "trips": 4412463,
+  "peak_hours": [
+    [
+      18,
+      409538
+    ],
+    [
+      8,
+      348537
+    ]
+  ],
+  "night_trips_1_to_4": 11,
+  "weekday_avg_per_day": 13412.7,
+  "weekend_avg_per_day": 8766.7,
+  "weekend_drop_pct": 34.6,
+  "top_stations": [
+    [
+      51,
+      "(GDL-049) Lopez Cotilla / Penitenciaría",
+      84671
+    ],
+    [
+      35,
+      "(GDL-033) Av. Hidalgo / C. Pedro Loza",
+      76622
+    ],
+    [
+      11,
+      "(GDL-009) Calz. Federalismo/ C. J. Angulo",
+      66953
+    ]
+  ],
+  "duration_median_min": 9.8,
+  "duration_mean_min": 11.4,
+  "gender_share_pct": {
+    "M": 71.7,
+    "F": 27.4,
+    "Desconocido": 0.9
+  },
+  "age_median": 32.0,
+  "age_q1": 26.0,
+  "age_q3": 40.0,
+  "matrix_zero_share_pct": 53.0,
+  "matrix_mean_demand": 1.37
+}
