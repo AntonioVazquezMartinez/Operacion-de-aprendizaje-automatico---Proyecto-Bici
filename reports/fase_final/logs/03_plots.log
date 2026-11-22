@@ -1,0 +1,9 @@
+# comando: python -m src.plots
+# python: Python 3.13.9 (C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\.venv\Scripts\python.exe)
+# inicio: 2026-11-22T12:16:51-06:00
+C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\src\plots.py:48: Pandas4Warning: Series.dt.dayofweek is deprecated and will be removed in a future version. Use Series.dt.day_of_week instead.
+  counts = df_trips["Inicio_del_viaje"].dt.dayofweek.value_counts().reindex(range(7), fill_value=0)
+5 figuras guardadas en C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\reports\figures
+# fin: 2026-11-22T12:16:54-06:00
+# duracion_segundos: 3
+# codigo_salida: 0

@@ -1,0 +1,5 @@
+# Entorno: venv solo con requirements-serve.txt (sin src/, sin mlruns.db), copia de models/ en carpeta temporal
+mlflow 3.18.0 sklearn 1.9.1 python 3.13.9
+tracking_uri sqlite:///C:/Users/Alejandro/AppData/Local/Temp/claude/af0f137f7e129d9e/d744b4cd-2207-4f21-b826-c8071a267eb2/scratchpad/modelcopy/mlflow.db
+filas 500 max_abs_diff 0.000e+00 mae_vs_real 0.752896
+mlruns.db en root: False
