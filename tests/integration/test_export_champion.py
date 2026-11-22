@@ -44,6 +44,27 @@ def test_metadata_hashes_match_files(e2e, exported):
     assert metadata["stations_sha256"] == calculate_sha256(paths["stations"])
     assert metadata["reference_predictions"]["sha256"] == calculate_sha256(paths["reference"])
     assert b"\r\n" not in paths["reference"].read_bytes()      # mismo hash en Windows y Linux
+    assert metadata["feature_store"]["sha256"] == calculate_sha256(paths["feature_store"])
+    assert metadata["feature_store_reference_predictions"]["sha256"] == calculate_sha256(
+        paths["feature_store_reference"])
+    # Metadatos y archivos de texto de la carpeta MLflow con LF (mismo contenido en Windows y Linux).
+    assert b"\r\n" not in paths["metadata"].read_bytes()
+    for name in ("MLmodel", "conda.yaml", "python_env.yaml", "requirements.txt"):
+        assert b"\r\n" not in (paths["model_dir"] / name).read_bytes(), name
+
+
+def test_feature_store_exported(e2e, exported):
+    metadata, paths = exported
+    fs = metadata["feature_store"]
+    store = pd.read_csv(paths["feature_store"], parse_dates=["fecha_hora"])
+    df = load_features(e2e.config)
+    assert store["fecha_hora"].max() == df["fecha_hora"].max() == pd.Timestamp(fs["end"])
+    assert fs["rows"] == len(store) == fs["num_stations"] * fs["hours"]
+    assert fs["predictable_window"]["start"] == (pd.Timestamp(fs["start"]) + pd.Timedelta(hours=168)).isoformat()
+    assert fs["predictable_window"]["end"] == (pd.Timestamp(fs["end"]) + pd.Timedelta(hours=24)).isoformat()
+    reference = pd.read_csv(paths["feature_store_reference"])
+    assert len(reference) == metadata["feature_store_reference_predictions"]["rows"] > 0
+    assert (reference["demand_pred"] >= 0).all()
 
 
 def test_reference_sample(e2e, exported):
@@ -69,6 +90,7 @@ def test_export_main_with_alias(e2e, exported, write_config, monkeypatch, tmp_pa
         "model_dir": str(tmp_path / "challenger"),
         "metadata_file": str(tmp_path / "challenger_metadata.json"),
         "reference_predictions_file": str(tmp_path / "challenger_reference.csv"),
+        "feature_store_reference_file": str(tmp_path / "challenger_feature_store_reference.csv"),
     })
     monkeypatch.setattr("sys.argv", ["export", "--config", str(write_config(cfg)), "--alias", "challenger"])
     export.main()

@@ -101,8 +101,19 @@ serving:
   # Catálogo mínimo de estaciones (id, latitude, longitude, capacity) que se guarda dentro de model_dir
   # para que el servicio derive las variables de estación.
   stations_file: stations.csv
+  # Feature store (idea adaptada de la rama entrega-final): demanda horaria por estación de las últimas
+  # feature_store_hours horas del periodo de datos, dentro de model_dir. Con él /predict calcula los rezagos
+  # cuando el cliente no los envía. Debe superar el rezago más largo (168 h): con 360 h la ventana predecible va
+  # de la hora 168 del feature store hasta 24 h después del último dato.
+  feature_store_file: feature_store.csv.gz
+  feature_store_hours: 360
+  # Muestra fija de (estación, hora) de la ventana predecible con los rezagos y la predicción calculados fuera de
+  # línea (patrón oro de /predict sin rezagos; la usa scripts/verify_reproducibility.py).
+  feature_store_reference_file: models/reference_feature_store_predictions.csv
+  feature_store_reference_rows: 200
   # --- API (src/serving/app.py). MODEL_DIR y MODEL_METADATA (variables de entorno) sobrescriben las rutas.
-  service_version: 1.0.0
+  # 1.1.0: los rezagos de /predict pasan a ser opcionales (feature store); con rezagos responde igual que 1.0.0.
+  service_version: 1.1.0
   # Máximo de instancias por petición en /predict y /predict/raw (la referencia completa tiene 500 filas).
   max_batch_size: 1000
   # Desfase de la hora local de Guadalajara (sin horario de verano desde 2022). Las fechas con zona horaria
@@ -112,6 +123,9 @@ serving:
   require_sha256_match: true
   # true: un error al cargar el modelo detiene el arranque; false: la API arranca y responde 503.
   strict_startup: false
+  # Registro de predicciones (JSONL, una línea por petición a /predict): null = apagado. La variable de entorno
+  # PREDICTION_LOG tiene prioridad (p. ej. PREDICTION_LOG=/app/logs/predicciones.jsonl en el contenedor).
+  prediction_log_file: null
 
 models:
   # class: ruta del estimador de scikit-learn; params: fijos; search_space: lo que ajusta Optuna.

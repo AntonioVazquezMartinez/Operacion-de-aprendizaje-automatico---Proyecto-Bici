@@ -86,7 +86,7 @@ def make_test_config(tmp: Path) -> Config:
 def make_isolated_config(tmp: Path) -> Config:
     """Como `make_test_config`, pero también aísla los artefactos de servicio y fija el ajuste.
 
-    - `serving`: carpeta del modelo, metadatos y referencia dentro de `tmp` (nunca en models/ real).
+    - `serving`: carpeta del modelo, metadatos y referencias dentro de `tmp` (nunca en models/ real).
     - `tuning`: sin corte por tiempo (número de trials fijo) y una muestra pequeña de train para
       ejercitar el muestreo de Optuna con los datos sintéticos.
     """
@@ -96,6 +96,7 @@ def make_isolated_config(tmp: Path) -> Config:
         "model_dir": str(tmp / "models" / "champion"),
         "metadata_file": str(tmp / "models" / "champion_metadata.json"),
         "reference_predictions_file": str(tmp / "models" / "reference_predictions.csv"),
+        "feature_store_reference_file": str(tmp / "models" / "reference_feature_store_predictions.csv"),
     }
     config["tuning"] = {**config["tuning"], "timeout_seconds": None, "train_sample_rows": 600}
     return config

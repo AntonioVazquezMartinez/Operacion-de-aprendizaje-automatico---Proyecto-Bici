@@ -2,7 +2,9 @@
 
 Se entrena un modelo pequeño con los datos sintéticos de tests/conftest_data.py y se exporta a una carpeta
 temporal con el mismo formato que `python -m src.modeling.export` (modelo MLflow + stations.csv + metadatos),
-así que las pruebas no dependen de models/champion. La última prueba usa el modelo real si existe.
+así que las pruebas no dependen de models/champion. Esta carpeta no tiene feature store (como un modelo exportado
+con la versión 1.0.0): /predict exige los tres rezagos. Las pruebas del feature store están en
+tests/test_serving_feature_store.py. Las últimas pruebas usan el modelo real de models/champion (versionado en Git).
 """
 
 from __future__ import annotations
@@ -40,6 +42,7 @@ GDL = timezone(timedelta(hours=-6))
 def _sin_variables_de_entorno(monkeypatch):
     monkeypatch.delenv("MODEL_DIR", raising=False)
     monkeypatch.delenv("MODEL_METADATA", raising=False)
+    monkeypatch.delenv("PREDICTION_LOG", raising=False)
 
 
 @pytest.fixture(scope="module")
@@ -174,6 +177,9 @@ def test_model_info(client, artefactos):
     assert info["num_stations"] == 4 and info["max_batch_size"] == 50
     assert info["metrics"] == {"test_mae": 1.0}
     assert "scikit-learn" in info["runtime_library_versions"]
+    assert info["feature_store"] == {"enabled": False}
+    assert info["optional_request_fields"] == list(LAG_FIELDS)
+    assert info["prediction_log_enabled"] is False
 
 
 @pytest.mark.integration
@@ -205,6 +211,17 @@ def test_predict_una_instancia(client, artefactos):
     assert pred["station_id"] == int(row["Origen_Id"])
     assert pred["datetime"] == pd.Timestamp(row["fecha_hora"]).isoformat()
     assert pred["demand_pred"] >= 0 and math.isfinite(pred["demand_pred"])
+    assert pred["lags_source"] == "request"
+    assert [pred[lag] for lag in LAG_FIELDS] == [float(row[lag]) for lag in LAG_FIELDS]
+
+
+@pytest.mark.integration
+def test_predict_sin_rezagos_y_sin_feature_store_422(client, artefactos):
+    """Modelo sin feature store (formato 1.0.0): una instancia sin rezagos no se puede completar."""
+    row = artefactos["test"].iloc[0]
+    sin_rezagos = {"station_id": int(row["Origen_Id"]), "datetime": pd.Timestamp(row["fecha_hora"]).isoformat()}
+    r = client.post("/predict", json={"instances": [_instancia(row), sin_rezagos]})
+    assert r.status_code == 422 and r.json()["error"] == "feature_store_unavailable"
 
 
 @pytest.mark.integration
@@ -265,7 +282,7 @@ BASE = {"station_id": 1, "datetime": "2024-05-10T08:00:00", "demand_lag_24h": 1.
     ({"demand_lag_24h": -1}, "greater_than_equal"),
     ({"demand_lag_168h": "abc"}, "float_type"),
     ({"demand_same_hour_mean_7d": True}, "float_type"),
-    ({"demand_lag_24h": None}, "float_type"),
+    ({"demand_lag_24h": None}, "lags_incomplete"),
     ({"station_id": "1"}, "int_type"),
     ({"station_id": 1.5}, "int_type"),
     ({"station_id": 0}, "greater_than_equal"),
@@ -284,9 +301,20 @@ def test_predict_422_por_campo(client, cambio, tipo):
 
 @pytest.mark.integration
 def test_predict_422_campo_faltante(client):
+    sin_estacion = {k: v for k, v in BASE.items() if k != "station_id"}
+    r = client.post("/predict", json={"instances": [sin_estacion]})
+    assert r.status_code == 422 and r.json()["details"][0]["type"] == "missing"
+
+
+@pytest.mark.integration
+def test_predict_422_rezagos_incompletos(client):
+    """Los tres rezagos o ninguno: con uno o dos faltantes responde 422 y nombra los que faltan."""
     sin_lag = {k: v for k, v in BASE.items() if k != "demand_lag_168h"}
     r = client.post("/predict", json={"instances": [sin_lag]})
-    assert r.status_code == 422 and r.json()["details"][0]["type"] == "missing"
+    assert r.status_code == 422
+    detail = r.json()["details"][0]
+    assert detail["type"] == "lags_incomplete" and "demand_lag_168h" in detail["msg"]
+    assert detail["loc"] == ["body", "instances", 0]
 
 
 @pytest.mark.integration
@@ -411,3 +439,27 @@ def test_modelo_real_reproduce_la_referencia():
         raw = c.post("/predict/raw", json={"rows": reference[cols].to_dict(orient="records")})
         assert raw.status_code == 200, raw.text
         np.testing.assert_allclose(raw.json()["predictions"], esperado, rtol=0, atol=1e-9)
+        assert {p["lags_source"] for p in r.json()["predictions"]} == {"request"}
+
+
+@pytest.mark.integration
+def test_modelo_real_feature_store_reproduce_su_referencia():
+    """Sin rezagos, /predict reproduce models/reference_feature_store_predictions.csv (calculada fuera de línea)."""
+    config = load_config()
+    model_dir = PROJ_ROOT / config["serving"]["model_dir"]
+    reference_path = PROJ_ROOT / config["serving"]["feature_store_reference_file"]
+    if not (model_dir / config["serving"]["feature_store_file"]).exists() or not reference_path.exists():
+        pytest.skip("No está el feature store exportado en models/champion (python -m src.modeling.export)")
+    reference = pd.read_csv(reference_path)
+    instancias = [{"station_id": int(s), "datetime": t.replace(" ", "T")}
+                  for s, t in zip(reference["Origen_Id"], reference["fecha_hora"])]
+    with TestClient(create_app(config)) as c:
+        info = c.get("/model-info").json()["feature_store"]
+        assert info["enabled"] is True and info["sha256_verified"] is True
+        r = c.post("/predict", json={"instances": instancias})
+        assert r.status_code == 200, r.text
+    preds = r.json()["predictions"]
+    assert {p["lags_source"] for p in preds} == {"feature_store"}
+    for lag in LAG_FIELDS:  # rezagos: mismos valores exactos que el pipeline fuera de línea
+        np.testing.assert_array_equal([p[lag] for p in preds], reference[lag].to_numpy(dtype=float))
+    np.testing.assert_allclose([p["demand_pred"] for p in preds], reference["demand_pred"], rtol=0, atol=1e-9)

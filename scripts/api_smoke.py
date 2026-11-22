@@ -1,8 +1,9 @@
 """Prueba de humo de la API en ejecución: llama a todos los endpoints (peticiones válidas e inválidas) y
 guarda cada petición y respuesta en un log. Solo usa la biblioteca estándar.
 
-Además envía las filas de models/reference_predictions.csv por /predict y /predict/raw y reporta la
-diferencia máxima absoluta contra `demand_pred`.
+Además envía las filas de models/reference_predictions.csv por /predict y /predict/raw, y las de
+models/reference_feature_store_predictions.csv por /predict SIN rezagos (feature store, servicio >= 1.1.0), y
+reporta la diferencia máxima absoluta contra `demand_pred`.
 
 Uso (con el servicio levantado):
     python scripts/api_smoke.py --url http://127.0.0.1:8000 --output reports/fase_final/logs/20_api_smoke.log
@@ -49,9 +50,16 @@ def _short(obj: Any) -> str:
     return text if len(text) <= MAX_BODY_CHARS else text[:MAX_BODY_CHARS] + f"\n... ({len(text)} caracteres en total)"
 
 
+def read_csv(name: str) -> List[Dict[str, str]]:
+    path = PROJ_ROOT / "models" / name
+    if not path.exists():
+        return []
+    with open(path, encoding="utf-8") as f:
+        return list(csv.DictReader(f))
+
+
 def load_reference() -> Tuple[List[Dict[str, str]], List[str]]:
-    with open(PROJ_ROOT / "models" / "reference_predictions.csv", encoding="utf-8") as f:
-        rows = list(csv.DictReader(f))
+    rows = read_csv("reference_predictions.csv")
     metadata = json.loads((PROJ_ROOT / "models" / "champion_metadata.json").read_text(encoding="utf-8"))
     return rows, metadata["input_columns"]
 
@@ -59,6 +67,11 @@ def load_reference() -> Tuple[List[Dict[str, str]], List[str]]:
 def instance(row: Dict[str, str]) -> Dict[str, Any]:
     return {"station_id": int(row["Origen_Id"]), "datetime": row["fecha_hora"].replace(" ", "T"),
             **{lag: float(row[lag]) for lag in LAGS}}
+
+
+def fs_instance(row: Dict[str, str]) -> Dict[str, Any]:
+    """Instancia sin rezagos (los calcula el servicio con su feature store)."""
+    return {"station_id": int(row["Origen_Id"]), "datetime": row["fecha_hora"].replace(" ", "T")}
 
 
 def raw_row(row: Dict[str, str], cols: List[str]) -> Dict[str, Any]:
@@ -100,6 +113,12 @@ def main() -> None:
                  {"instances": [instance(r) for r in rows[:3]]})
         log_case("predict: misma hora con zona horaria UTC (16:30Z = 10:30 local, se trunca a 10:00)", "POST",
                  "/predict", {"instances": [{**first, "datetime": "2025-11-08T16:30:00Z"}]})
+        log_case("predict SIN rezagos: el servicio los calcula con el feature store (31-dic-2025 18:00)", "POST",
+                 "/predict", {"instances": [{"station_id": 24, "datetime": "2025-12-31T18:00:00"}]})
+        log_case("predict SIN rezagos: hora posterior al último dato (1-ene-2026 08:00, dentro de la ventana)",
+                 "POST", "/predict", {"instances": [{"station_id": 24, "datetime": "2026-01-01T08:00:00"}]})
+        log_case("predict: lote mixto (con rezagos y sin rezagos)", "POST", "/predict",
+                 {"instances": [first, {"station_id": 24, "datetime": "2025-12-31T18:00:00"}]})
         log_case("predict/raw: fila 1 de la referencia con las columnas ya construidas", "POST", "/predict/raw",
                  {"rows": [raw_row(rows[0], cols)]})
         log_case("422: rezago negativo", "POST", "/predict", {"instances": [{**first, "demand_lag_24h": -1}]})
@@ -109,8 +128,12 @@ def main() -> None:
         log_case("422: fecha inválida", "POST", "/predict", {"instances": [{**first, "datetime": "2025-13-45T99:00"}]})
         log_case("422: tipo incorrecto en station_id y campo extra", "POST", "/predict",
                  {"instances": [{**first, "station_id": "24", "otro": 1}]})
-        log_case("422: campo faltante", "POST", "/predict",
-                 {"instances": [{k: v for k, v in first.items() if k != "demand_lag_168h"}]})
+        log_case("422: campo faltante (station_id)", "POST", "/predict",
+                 {"instances": [{k: v for k, v in first.items() if k != "station_id"}]})
+        log_case("422: rezagos incompletos (solo demand_lag_24h)", "POST", "/predict",
+                 {"instances": [{"station_id": 24, "datetime": "2025-12-31T18:00:00", "demand_lag_24h": 1.0}]})
+        log_case("422: sin rezagos fuera de la ventana del feature store (8-nov-2025)", "POST", "/predict",
+                 {"instances": [{"station_id": 24, "datetime": "2025-11-08T10:00:00"}]})
         log_case("422: lote vacío", "POST", "/predict", {"instances": []})
         log_case("422: lote mayor que serving.max_batch_size (1001 instancias)", "POST", "/predict",
                  {"instances": [first] * 1001}, show_request=False)
@@ -122,20 +145,27 @@ def main() -> None:
         log_case("404: ruta inexistente", "GET", "/no-existe")
         log_case("405: método no permitido", "GET", "/predict")
 
-        expected = [float(r["demand_pred"]) for r in rows]
-        for path, body, getter in (
-            ("/predict", {"instances": [instance(r) for r in rows]},
+        fs_rows = read_csv("reference_feature_store_predictions.csv")
+        cases = [
+            ("/predict", "reference_predictions.csv", rows, {"instances": [instance(r) for r in rows]},
              lambda b: [p["demand_pred"] for p in b["predictions"]]),
-            ("/predict/raw", {"rows": [raw_row(r, cols) for r in rows]}, lambda b: b["predictions"]),
-        ):
-            status, resp = log_case(f"reproducibilidad: {len(rows)} filas de la referencia por {path}", "POST", path,
+            ("/predict/raw", "reference_predictions.csv", rows, {"rows": [raw_row(r, cols) for r in rows]},
+             lambda b: b["predictions"]),
+        ]
+        if fs_rows:
+            cases.append(("/predict", "reference_feature_store_predictions.csv (sin rezagos)", fs_rows,
+                          {"instances": [fs_instance(r) for r in fs_rows]},
+                          lambda b: [p["demand_pred"] for p in b["predictions"]]))
+        for path, name, ref_rows, body, getter in cases:
+            expected = [float(r["demand_pred"]) for r in ref_rows]
+            status, resp = log_case(f"reproducibilidad: {len(ref_rows)} filas de {name} por {path}", "POST", path,
                                     body, show_request=False)
             if status == 200:
                 preds = getter(resp)
                 diffs = [abs(a - b) for a, b in zip(preds, expected)]
                 exact = sum(a == b for a, b in zip(preds, expected))
-                lines.append(f"*** {path}: {len(preds)} predicciones; diferencia máxima absoluta = {max(diffs)!r}; "
-                             f"iguales bit a bit = {exact}/{len(expected)}")
+                lines.append(f"*** {path} [{name}]: {len(preds)} predicciones; diferencia máxima absoluta = "
+                             f"{max(diffs)!r}; iguales bit a bit = {exact}/{len(expected)}")
                 print(lines[-1])
 
     text = "\n".join(lines) + "\n"

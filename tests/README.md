@@ -15,7 +15,10 @@ pytest -q --cov=src --cov-report=term-missing  # con cobertura por módulo (la q
 ```
 
 La configuración está en `pyproject.toml` (`[tool.pytest.ini_options]` y `[tool.coverage.*]`).
-CI (`.github/workflows/tests.yml`) corre `pytest -q --cov=src --cov-report=term-missing` con Python 3.13.
+CI (`.github/workflows/tests.yml`) corre `pytest -q --cov=src --cov-report=term-missing` con Python 3.13 y, en el
+job `docker`, construye la imagen desde el repositorio y la verifica. Como `models/champion/` está en Git desde la
+versión 1.1.0, en CI (Linux) también corren las pruebas con el modelo real, su feature store y el binario de la
+Fase 2 (tolerancia 1e-9: en Linux el `exp()` final puede variar 1 ulp, ver `docs/docker.md`).
 
 ## Aislamiento
 
@@ -24,8 +27,10 @@ CI (`.github/workflows/tests.yml`) corre `pytest -q --cov=src --cov-report=term-
   (`tmp_path` / `tmp_path_factory`).
 - MLflow usa una base SQLite temporal por configuración: se migra una sola vez por sesión
   (`mlflow_db_template`) y se copia. `MLFLOW_TRACKING_URI` apunta a una base temporal durante la sesión.
-- La única lectura de archivos reales es la de `models/champion_metadata.json` y
-  `models/reference_predictions.csv` (artefactos versionados) en `test_versioned_artifacts.py`.
+- Las únicas lecturas de archivos reales son las de los artefactos versionados en `models/` (solo lectura):
+  `champion_metadata.json`, las dos referencias y `champion/` en `integration/test_versioned_artifacts.py` y en las
+  dos últimas pruebas de `test_serving.py`, y `fase2_original/` en `integration/test_fase2_binary.py`. Cada una se
+  omite si falta su archivo.
 
 ## Archivos
 
@@ -44,8 +49,11 @@ CI (`.github/workflows/tests.yml`) corre `pytest -q --cov=src --cov-report=term-
 | `unit/test_plots.py` | Figuras del EDA y de evaluación (PNG válidos) |
 | `integration/test_pipeline_e2e.py` | Carga → limpieza → características → Optuna → Model Registry temporal → recarga del champion → predicción → métricas |
 | `integration/test_export_champion.py` | Exportación del champion del Registry temporal: metadatos, hashes y referencia reproducida exactamente |
-| `test_serving*.py`, `test_drift*.py` | API de FastAPI y simulación de data drift (paquetes de serving y monitoreo; usan las mismas fixtures) |
-| `integration/test_versioned_artifacts.py` | Coherencia de los artefactos versionados en `models/`; si `models/champion/` existe localmente, que reproduce la referencia (en CI se omite) |
+| `test_serving.py` | API de FastAPI con un modelo exportado sin feature store (formato 1.0.0): esquemas, errores 404/422/503/500, zona horaria, rezagos incompletos, compatibilidad con rezagos y, con el modelo real, las dos referencias |
+| `test_serving_feature_store.py` | Feature store (1.1.0): ventana predecible, determinismo del `.gz` (mtime=0), rezagos iguales a `add_lag_features`, **coherencia servicio-pipeline** (`/predict` sin rezagos = pipeline fuera de línea, adaptada de `test_served_predictions_match_offline_pipeline` de la rama `entrega-final`), `lags_source`, lote mixto, rezagos incompletos y fuera de ventana (422), SHA-256 alterado (503) y `PREDICTION_LOG` |
+| `test_drift.py` | Simulación de data drift (paquete de monitoreo) |
+| `integration/test_versioned_artifacts.py` | Coherencia de los artefactos versionados en `models/` (hashes, feature store, fin de línea LF) y que `models/champion/` reproduce la referencia |
+| `integration/test_fase2_binary.py` | Binario original de la Fase 2 (`models/fase2_original/`): SHA-256 contra su ficha, reproduce sus 1,000 predicciones y se compara con el champion reentrenado |
 
 ## Marcadores
 

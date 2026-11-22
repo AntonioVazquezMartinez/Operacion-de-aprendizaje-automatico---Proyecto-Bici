@@ -2,7 +2,9 @@
 
 El modelo se carga desde una carpeta MLflow autocontenida (`serving.model_dir`, por defecto
 `models/champion`) con `mlflow.sklearn.load_model`, sin la base `mlruns.db`. Las variables de calendario
-y de estación se derivan con las mismas funciones de `src.features` que se usaron en el entrenamiento.
+y de estación se derivan con las mismas funciones de `src.features` que se usaron en el entrenamiento. Si el
+cliente no envía los rezagos, se calculan con el feature store del modelo (`src.serving.feature_store`, con
+`MiBiciFeatureEngineer.add_lag_features`) para las horas de su ventana predecible.
 
 Uso:
     uvicorn src.serving.app:app --host 0.0.0.0 --port 8000
@@ -12,6 +14,8 @@ Variables de entorno (tienen prioridad sobre config.yaml; una ruta relativa se r
 carpeta de trabajo):
     MODEL_DIR        carpeta del modelo MLflow (con stations.csv dentro).
     MODEL_METADATA   archivo champion_metadata.json.
+    PREDICTION_LOG   archivo JSONL donde se agrega una línea por petición a /predict (apagado por omisión;
+                     también `serving.prediction_log_file`). Idea adaptada de la rama entrega-final.
 """
 
 from __future__ import annotations
@@ -21,6 +25,7 @@ import json
 import logging
 import os
 import platform
+import threading
 import time
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
@@ -38,6 +43,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from src.config import PROJ_ROOT, Config, load_config
 from src.features import MiBiciFeatureEngineer, lag_columns
+from src.serving.feature_store import FeatureStore
 from src.serving.schemas import (
     LAG_FIELDS,
     ErrorResponse,
@@ -61,7 +67,8 @@ TAGS = [
 
 ERROR_RESPONSES: Dict[int | str, Dict[str, Any]] = {
     422: {"model": ErrorResponse,
-          "description": "Entrada inválida (tipos, negativos, NaN/inf, fechas, tamaño del lote)."},
+          "description": "Entrada inválida (tipos, negativos, NaN/inf, fechas, tamaño del lote, rezagos incompletos) "
+                         "o, sin rezagos, una hora fuera de la ventana del feature store."},
     503: {"model": ErrorResponse, "description": "El modelo no está cargado."},
     500: {"model": ErrorResponse, "description": "Error interno (sin detalles de la traza)."},
 }
@@ -138,6 +145,8 @@ class ModelState:
     model_sha256: Optional[str] = None
     model_sha256_verified: Optional[bool] = None
     stations_sha256_verified: Optional[bool] = None
+    feature_store: Optional[FeatureStore] = None
+    feature_store_sha256_verified: Optional[bool] = None
     loaded_at: Optional[str] = None
     error: Optional[str] = None
 
@@ -263,6 +272,7 @@ def load_model_state(config: Config) -> ModelState:
             raise ValueError(f"Al catálogo de estaciones le faltan columnas: {sorted(missing)}")
         state.stations = stations[["id", *STATION_FEATURES]]
         state.station_ids = {int(i) for i in stations["id"]}
+        load_feature_store(state, config)
 
         sig = _signature_types(mlmodel)
         if sig:
@@ -282,11 +292,41 @@ def load_model_state(config: Config) -> ModelState:
         state.loaded_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
         logger.info("Modelo cargado: %s (SHA-256 verificado: %s, %d estaciones)",
                     state.metadata.get("model_uri"), state.model_sha256_verified, len(state.station_ids))
+        if state.feature_store is not None:
+            window = state.feature_store.window()
+            logger.info("Feature store: %s a %s (SHA-256 verificado: %s); ventana predecible sin rezagos %s a %s",
+                        state.feature_store.start, state.feature_store.end, state.feature_store_sha256_verified,
+                        window["start"], window["end"])
     except Exception as exc:  # el servicio arranca y responde 503 con el motivo
         state.model = None
         state.error = f"{type(exc).__name__}: {exc}"
         logger.error("No se pudo cargar el modelo: %s", state.error)
     return state
+
+
+def load_feature_store(state: ModelState, config: Config) -> None:
+    """Carga el feature store declarado en los metadatos (sección `feature_store`) y verifica su SHA-256.
+
+    Un modelo exportado sin feature store (versión 1.0.0) sigue funcionando: /predict exige entonces los tres
+    rezagos. Si los metadatos lo declaran, el archivo debe existir y su hash coincidir (o el modelo no se carga).
+    """
+    declared = state.metadata.get("feature_store")
+    if not declared:
+        logger.warning("Los metadatos no declaran feature store: /predict requiere los tres rezagos.")
+        return
+    path = state.model_dir / declared.get("file", config["serving"]["feature_store_file"])
+    if not path.exists():
+        raise FileNotFoundError(f"No existe el feature store {path.name} en {state.model_dir_label}")
+    state.feature_store_sha256_verified = sha256_file(path) == declared.get("sha256")
+    if not state.feature_store_sha256_verified:
+        msg = f"El SHA-256 del feature store {path.name} no coincide con los metadatos."
+        if config["serving"].get("require_sha256_match", True):
+            raise ValueError(msg)
+        logger.warning(msg)
+    state.feature_store = FeatureStore.load(path, config)
+    unknown = state.station_ids - set(state.feature_store.table.index.get_level_values(0))
+    if unknown:
+        logger.warning("Estaciones del catálogo sin historial en el feature store: %s", sorted(unknown))
 
 
 # --------------------------------------------------------------------------- variables de entrada
@@ -304,15 +344,59 @@ def to_local_hour(value: datetime, local_tz: timezone) -> datetime:
     return value.replace(minute=0, second=0, microsecond=0)
 
 
+def resolve_lags(instances: Sequence[PredictionInstance], hours: Sequence[datetime],
+                 state: ModelState) -> tuple[np.ndarray, List[str]]:
+    """Rezagos de cada instancia (en el orden de LAG_FIELDS) y su origen: `request` o `feature_store`.
+
+    Las instancias con sus tres rezagos los usan tal cual (mismo resultado que la versión 1.0.0). Las que no traen
+    rezagos los toman del feature store; si alguna hora no tiene historial suficiente responde 422 con la ventana
+    predecible.
+    """
+    lags = np.full((len(instances), len(LAG_FIELDS)), np.nan, dtype=np.float64)
+    pending: List[int] = []
+    for i, inst in enumerate(instances):
+        if inst.has_lags:
+            lags[i] = [getattr(inst, lag) for lag in LAG_FIELDS]
+        else:
+            pending.append(i)
+    pending_set = set(pending)
+    sources = ["feature_store" if i in pending_set else "request" for i in range(len(instances))]
+    if not pending:
+        return lags, sources
+    store = state.feature_store
+    if store is None:
+        raise ServingError(422, "feature_store_unavailable",
+                           "El modelo cargado no tiene feature store: envía los tres rezagos de cada instancia.")
+    lags[pending] = store.lookup([instances[i].station_id for i in pending], [hours[i] for i in pending])
+    outside = [i for i in pending if np.isnan(lags[i]).any()]
+    if outside:
+        window = store.window()
+        raise ServingError(
+            422, "outside_feature_store_window",
+            f"Sin rezagos solo se pueden predecir las horas del {window['start']} al {window['end']} (hora local; "
+            f"feature store del {store.start.isoformat()} al {store.end.isoformat()}). Fuera de esa ventana envía "
+            "los tres rezagos.",
+            predictable_window=window,
+            details=[{"loc": ["body", "instances", i, "datetime"], "type": "outside_feature_store_window",
+                      "msg": f"{hours[i].isoformat()} (estación {instances[i].station_id}) está fuera de la ventana "
+                             f"{window['start']} a {window['end']}."} for i in outside])
+    return lags, sources
+
+
 def build_model_inputs(instances: Sequence[PredictionInstance], state: ModelState, local_tz: timezone,
-                       station_key: str) -> tuple[pd.DataFrame, List[datetime]]:
-    """Construye las columnas del modelo con las funciones de src.features (mismo cálculo que en entrenamiento)."""
+                       station_key: str, lags: Optional[np.ndarray] = None) -> tuple[pd.DataFrame, List[datetime]]:
+    """Construye las columnas del modelo con las funciones de src.features (mismo cálculo que en entrenamiento).
+
+    `lags` (n x 3, en el orden de LAG_FIELDS) viene de `resolve_lags`; si se omite se calcula aquí.
+    """
     hours = [to_local_hour(inst.datetime, local_tz) for inst in instances]
+    if lags is None:
+        lags, _ = resolve_lags(instances, hours, state)
     frame = pd.DataFrame({
         "_row": np.arange(len(instances)),
         station_key: np.array([inst.station_id for inst in instances], dtype=np.int64),
         "fecha_hora": pd.to_datetime(hours),
-        **{lag: np.array([getattr(inst, lag) for inst in instances], dtype=np.float64) for lag in LAG_FIELDS},
+        **{lag: np.ascontiguousarray(lags[:, j], dtype=np.float64) for j, lag in enumerate(LAG_FIELDS)},
     })
     frame = MiBiciFeatureEngineer.add_calendar_features(frame)
     frame = MiBiciFeatureEngineer.add_station_features(frame, state.stations)
@@ -328,6 +412,27 @@ def cast_inputs(X: pd.DataFrame, int_columns: Set[str]) -> pd.DataFrame:
 def predict_clipped(model: Any, X: pd.DataFrame) -> np.ndarray:
     """Predicción con el mismo posprocesamiento del entrenamiento y la exportación (sin negativos)."""
     return np.clip(np.asarray(model.predict(X), dtype=float), 0, None)
+
+
+# --------------------------------------------------------------------------- registro de predicciones
+_PREDICTION_LOG_LOCK = threading.Lock()
+
+
+def prediction_log_path(serving: Dict[str, Any]) -> Optional[str]:
+    """Archivo JSONL del registro de predicciones: PREDICTION_LOG o serving.prediction_log_file (None = apagado)."""
+    return os.environ.get("PREDICTION_LOG") or serving.get("prediction_log_file") or None
+
+
+def append_prediction_log(path: str, record: Dict[str, Any]) -> bool:
+    """Agrega una línea JSON al registro. Un fallo de escritura solo se reporta en el log: no tumba la petición."""
+    try:
+        line = json.dumps(record, ensure_ascii=False, allow_nan=False) + "\n"
+        with _PREDICTION_LOG_LOCK, open(path, "a", encoding="utf-8", newline="\n") as f:
+            f.write(line)
+        return True
+    except Exception as exc:  # disco lleno, permisos, ruta inválida, valor no serializable...
+        logger.warning("No se pudo escribir el registro de predicciones %s: %s: %s", path, type(exc).__name__, exc)
+        return False
 
 
 # --------------------------------------------------------------------------- aplicación
@@ -378,10 +483,13 @@ def create_app(config: Optional[Config] = None) -> FastAPI:
             "Predice cuántos viajes saldrán de una estación de MiBici (Guadalajara) en una hora dada, con el "
             "modelo champion del MLflow Model Registry (`models:/mibici-demand-forecaster/<versión>`, alias "
             "`champion`), exportado a `models/champion`.\n\n"
-            "El cliente envía la estación, la hora (hora local de Guadalajara) y tres rezagos de demanda; el "
-            "servicio deriva las variables de calendario (seno/coseno de hora y día, fin de semana, festivo) y "
-            "de estación (latitud, longitud, capacidad) con las mismas funciones de `src/features.py` usadas en "
-            f"el entrenamiento. Máximo {max_batch} instancias por petición. Equipo 19."
+            "El cliente envía la estación y la hora (hora local de Guadalajara) y, opcionalmente, los tres rezagos "
+            "de demanda. Sin rezagos, el servicio los calcula con el feature store del modelo (demanda reciente "
+            "por estación) para las horas de su ventana predecible (ver `/model-info`); con rezagos, la "
+            "predicción es la misma que en la versión 1.0.0. El servicio deriva las variables de calendario "
+            "(seno/coseno de hora y día, fin de semana, festivo) y de estación (latitud, longitud, capacidad) con "
+            f"las mismas funciones de `src/features.py` usadas en el entrenamiento. Máximo {max_batch} instancias "
+            "por petición. Equipo 19."
         ),
         openapi_tags=TAGS,
         lifespan=lifespan,
@@ -460,6 +568,12 @@ def create_app(config: Optional[Config] = None) -> FastAPI:
     def model_info(request: Request) -> Dict[str, Any]:
         state = _ready_state(request)
         md = state.metadata
+        store = state.feature_store
+        feature_store: Dict[str, Any] = {"enabled": store is not None}
+        if store is not None:
+            declared = md.get("feature_store") or {}
+            feature_store.update({"file": declared.get("file"), "sha256": declared.get("sha256"),
+                                  "sha256_verified": state.feature_store_sha256_verified, **store.info()})
         return {
             "model": state.model_ref(),
             "alias_uri": md.get("alias_uri"),
@@ -478,6 +592,8 @@ def create_app(config: Optional[Config] = None) -> FastAPI:
             "metrics": md.get("metrics"),
             "input_columns": state.input_columns,
             "request_fields": ["station_id", "datetime", *LAG_FIELDS],
+            "optional_request_fields": list(LAG_FIELDS),
+            "feature_store": feature_store,
             "target": md.get("target"),
             "prediction_postprocessing": md.get("prediction_postprocessing"),
             "data_period": md.get("data_period"),
@@ -488,28 +604,63 @@ def create_app(config: Optional[Config] = None) -> FastAPI:
             "service_version": service_version,
             "local_utc_offset": serving.get("local_utc_offset", "-06:00"),
             "max_batch_size": max_batch,
+            "prediction_log_enabled": prediction_log_path(serving) is not None,
         }
 
     @app.post("/predict", tags=["Predicción"], response_model=PredictResponse,
-              summary="Predice la demanda a partir de estación, hora y rezagos",
+              summary="Predice la demanda a partir de estación y hora (rezagos opcionales)",
+              description="Cada instancia trae sus tres rezagos o ninguno. Sin rezagos se calculan con el feature "
+                          "store del modelo (solo para las horas de su ventana predecible, ver `/model-info`); la "
+                          "respuesta indica el origen de los rezagos (`lags_source`) y los valores usados.",
               responses={404: {"model": ErrorResponse, "description": "Estación desconocida para el modelo."},
                          **ERROR_RESPONSES})
     def predict(payload: PredictRequest, request: Request) -> PredictResponse:
         start = time.perf_counter()
         state = _ready_state(request)
-        _check_batch(len(payload.instances), "instances")
-        unknown = sorted({inst.station_id for inst in payload.instances} - state.station_ids)
-        if unknown:
-            raise ServingError(404, "unknown_station",
-                               f"Estaciones desconocidas para el modelo: {unknown}. Consulta /model-info.",
-                               unknown_station_ids=unknown)
-        X, hours = build_model_inputs(payload.instances, state, local_tz, station_key)
-        preds = predict_clipped(state.model, X)
-        logger.info("predict: %d instancias en %.2f ms", len(preds), (time.perf_counter() - start) * 1000)
-        return PredictResponse(
-            predictions=[{"station_id": inst.station_id, "datetime": h.isoformat(), "demand_pred": float(p)}
-                         for inst, h, p in zip(payload.instances, hours, preds)],
-            model=state.model_ref(), n_instances=len(preds))
+        log_path = prediction_log_path(serving)
+        try:
+            _check_batch(len(payload.instances), "instances")
+            unknown = sorted({inst.station_id for inst in payload.instances} - state.station_ids)
+            if unknown:
+                raise ServingError(404, "unknown_station",
+                                   f"Estaciones desconocidas para el modelo: {unknown}. Consulta /model-info.",
+                                   unknown_station_ids=unknown)
+            hours = [to_local_hour(inst.datetime, local_tz) for inst in payload.instances]
+            lags, sources = resolve_lags(payload.instances, hours, state)
+            X, _ = build_model_inputs(payload.instances, state, local_tz, station_key, lags=lags)
+            preds = predict_clipped(state.model, X)
+        except ServingError as exc:
+            if log_path:
+                append_prediction_log(log_path, _log_record(state, payload, start, exc.status_code, error=exc.body()))
+            raise
+        predictions = [{"station_id": inst.station_id, "datetime": h.isoformat(), "demand_pred": float(p),
+                        "lags_source": src, **{lag: float(v) for lag, v in zip(LAG_FIELDS, row)}}
+                       for inst, h, p, src, row in zip(payload.instances, hours, preds, sources, lags)]
+        logger.info("predict: %d instancias (%d con feature store) en %.2f ms", len(preds),
+                    sources.count("feature_store"), (time.perf_counter() - start) * 1000)
+        if log_path:
+            append_prediction_log(log_path, _log_record(state, payload, start, 200, outputs=predictions))
+        return PredictResponse(predictions=predictions, model=state.model_ref(), n_instances=len(preds))
+
+    def _log_record(state: ModelState, payload: PredictRequest, start: float, status_code: int,
+                    outputs: Optional[List[Dict[str, Any]]] = None,
+                    error: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Línea del registro de predicciones: entradas, salidas (o error), versión del modelo y latencia."""
+        record: Dict[str, Any] = {
+            "timestamp": datetime.now(timezone.utc).isoformat(timespec="milliseconds"),
+            "service_version": service_version,
+            "model_uri": state.metadata.get("model_uri"),
+            "model_version": state.metadata.get("version"),
+            "status_code": status_code,
+            "n_instances": len(payload.instances),
+            "latency_ms": round((time.perf_counter() - start) * 1000, 3),
+            "inputs": [inst.model_dump(mode="json") for inst in payload.instances],
+        }
+        if outputs is not None:
+            record["outputs"] = outputs
+        if error is not None:
+            record["error"] = error
+        return record
 
     @app.post("/predict/raw", tags=["Predicción"], response_model=RawPredictResponse,
               summary="Predice a partir de las columnas del modelo ya construidas",
