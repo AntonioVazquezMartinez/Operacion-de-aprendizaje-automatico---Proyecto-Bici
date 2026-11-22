@@ -88,41 +88,6 @@ def member_section(key: str, section: str) -> str | None:
 
 
 # --------------------------------------------------------------------------------- figuras derivadas
-def commits_figure(D, path: Path) -> Path | None:
-    git = D["git"]
-    if not git.get("available"):
-        return None
-    import matplotlib
-
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-
-    phases = [p for p, _, _ in rd.PHASES]
-    colors = ["#9db4d3", "#4f7cb8", "#1f3f73"]
-    fig, ax = plt.subplots(figsize=(8, 4.0))
-    names = [m["short"] for m in rd.MEMBERS]
-    left = [0] * len(names)
-    for phase, color in zip(phases, colors):
-        vals = [sum(git["table"][m["key"]][phase]) for m in rd.MEMBERS]
-        ax.barh(names, vals, left=left, color=color, label=phase, edgecolor="white")
-        for i, v in enumerate(vals):
-            if v:
-                ax.text(left[i] + v / 2, i, str(v), ha="center", va="center", color="white", fontsize=9,
-                        fontweight="bold")
-        left = [a + b for a, b in zip(left, vals)]
-    for i, total in enumerate(left):
-        ax.text(total + 0.2, i, f"{total}", va="center", fontsize=9)
-    ax.invert_yaxis()
-    ax.set_xlabel("Commits en todas las ramas (incluye merges)")
-    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.22), ncol=3, frameon=False, fontsize=9)
-    ax.spines[["top", "right"]].set_visible(False)
-    ax.set_title("Actividad en GitHub por integrante y fase (git log --all)", fontsize=11)
-    fig.tight_layout()
-    fig.savefig(path, dpi=200)
-    plt.close(fig)
-    return path
-
-
 def fase2_image(name: str, tmp: Path) -> Path | None:
     """Extrae una imagen del reporte de la Fase 2 (capturas de MLflow que no están como archivo en el repo)."""
     src = ROOT / "reports" / "Fase2_Equipo19.docx"
@@ -689,29 +654,18 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
               f"separadas (entrega-final, con su pull request #5, y fase-final) y se integraron con un merge en "
               f"fase-final ({merge_ref}) que conserva el historial de ambas.")
     heading(ctx, "3.5 Evidencia de actividad en GitHub", 2)
-    gtab = []
-    if gh.get("available"):
-        for m in rd.MEMBERS:
-            row = [m["name"]]
-            tot = 0
-            for ph, _, _ in rd.PHASES:
-                c, mg = gh["table"][m["key"]][ph]
-                tot += c + mg
-                row.append(f"{c}" + (f" (+{mg} merge)" if mg else ""))
-            if sum(gh["table"][m["key"]]["Fase final"]) == 0:
-                row[-1] = [row[-1], " ", Pend(f"commit de {m['key']}.md")]
-            row.append(str(tot))
-            gtab.append(row)
-    table(ctx, "t:git", "Commits por integrante y fase en todas las ramas del repositorio",
-          ["Integrante", "Fase 1", "Fase 2", "Fase final", "Total"], gtab, widths=[2.3, 0.8, 1.0, 1.7, 0.6],
-          size=9, align=["l", "c", "c", "c", "c"],
-          note=["calculado con git log --all al generar este reporte (fases por fecha: hasta el 25-oct, 26-oct al "
-                "8-nov y desde el 9-nov de 2026). Los alias de Git de cada integrante están en reports/report_data.py. "
-                "El conteo mide actividad registrada, no esfuerzo: un commit puede integrar trabajo de varios roles y "
-                "el análisis de cada rol se registra en su propio archivo."])
-    cf = commits_figure(D, FIG / "11_actividad_github.png")
-    figure(ctx, "f:git", cf, "Commits por integrante y fase", ["generada por reports/build_report.py a partir de "
-                                                               "git log --all."], width=5.6)
+    para(ctx, "La actividad de los cuatro integrantes queda registrada en el repositorio de GitHub: el historial de "
+              "commits de cada rama, los pull requests de cada fase con su revisión e integración continua, y los "
+              "archivos donde cada integrante documenta las actividades y el análisis de su rol en la Fase 2 y en la "
+              "fase final. Las ligas son:", keep=True)
+    for lab, url in (("Historial de commits de la rama de la entrega final", f"{rd.REPO_URL}/commits/fase-final"),
+                     ("Pull requests del proyecto", f"{rd.REPO_URL}/pulls?q=is%3Apr"),
+                     ("Análisis por integrante en la fase final (reports/fase_final/)",
+                      f"{rd.REPO_URL}/tree/fase-final/reports/fase_final"),
+                     ("Roles y reflexiones por integrante en la Fase 2 (reports/fase2/)",
+                      f"{rd.REPO_URL}/tree/fase-final/reports/fase2")):
+        bullet(ctx, f"{lab}: ", Link(url, url)).alignment = WD_ALIGN_PARAGRAPH.LEFT
+    para(ctx, "La Tabla ", ctx.ref("t:prs"), " resume los pull requests de cada fase.", keep=True)
     prs = [[f"#{num}", Link(f"{rd.REPO_URL}/pull/{num}", f"{rd.REPO_URL}/pull/{num}"), branch, desc]
            for num, branch, desc in rd.PULL_REQUESTS]
     prs = [[a, [Link(f"pull/{a[1:]}", b.url)], c, d] for a, b, c, d in prs]

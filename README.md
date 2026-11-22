@@ -99,7 +99,7 @@ dos ramas); las piezas de `entrega-final` se adaptaron al código de `fase-final
 │   ├── Entrega_Final_Equipo19.docx, Fase 1_Equipo19.*, Fase2_Equipo19.docx
 │   ├── drift/             <- drift_report.md / .json, drift_summary.csv
 │   ├── fase2/, fase_final/ <- Archivos por integrante, comparación con Fase 2, logs y reproducibilidad (v1.0.0/ = historial)
-│   ├── figures/           <- 00/00b arquitectura y ciclo MLOps, 01-05 EDA, 06 modelos, 07-10 drift, 11 GitHub,
+│   ├── figures/           <- 00/00b arquitectura y ciclo MLOps, 01-05 EDA, 06 modelos, 07-10 drift,
 │   │                         12-16 capturas (Swagger, esquema, respuesta, DockerHub, GitHub Actions)
 │   ├── ML_Canvas_MiBici.md, roles_mlops.md, declaracion_ia.md, model_comparison.csv
 ├── scripts/               <- api_smoke.py, verify_reproducibility.py, compare_fase2_binary.py, export_openapi.py,
