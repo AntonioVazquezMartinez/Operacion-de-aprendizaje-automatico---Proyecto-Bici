@@ -1,0 +1,95 @@
+{
+  "info": {
+    "name": "MiBici - API de demanda horaria (Equipo 19)",
+    "description": "Peticiones de ejemplo para la API de src/serving/app.py. Levanta el servicio con `uvicorn src.serving.app:app --host 0.0.0.0 --port 8000` y ajusta la variable baseUrl si hace falta. Los ejemplos usan filas reales de models/reference_predictions.csv (modelo models:/mibici-demand-forecaster/1).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:8000"}
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {"method": "GET", "header": [], "url": {"raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"]}},
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('200 y modelo cargado', function () {",
+        "  pm.response.to.have.status(200);",
+        "  pm.expect(pm.response.json().model_loaded).to.eql(true);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "Model info",
+      "request": {"method": "GET", "header": [], "url": {"raw": "{{baseUrl}}/model-info", "host": ["{{baseUrl}}"], "path": ["model-info"]}},
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('URI del modelo y SHA-256 verificado', function () {",
+        "  const body = pm.response.json();",
+        "  pm.expect(body.model.uri).to.match(/^models:\\/mibici-demand-forecaster\\/\\d+$/);",
+        "  pm.expect(body.model_sha256_verified).to.eql(true);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "Predict - lote válido",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\n  \"instances\": [\n    {\"station_id\": 24, \"datetime\": \"2025-11-08T10:00:00\", \"demand_lag_24h\": 5.0, \"demand_lag_168h\": 0.0, \"demand_same_hour_mean_7d\": 3.5714285714285716},\n    {\"station_id\": 80, \"datetime\": \"2025-11-08T11:00:00\", \"demand_lag_24h\": 1.0, \"demand_lag_168h\": 2.0, \"demand_same_hour_mean_7d\": 1.4285714285714286}\n  ]\n}"},
+        "url": {"raw": "{{baseUrl}}/predict", "host": ["{{baseUrl}}"], "path": ["predict"]}
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('200 con una predicción no negativa por instancia', function () {",
+        "  pm.response.to.have.status(200);",
+        "  const body = pm.response.json();",
+        "  pm.expect(body.n_instances).to.eql(2);",
+        "  body.predictions.forEach(p => pm.expect(p.demand_pred).to.be.at.least(0));",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "Predict raw - fila de la referencia",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\n  \"rows\": [\n    {\"sin_hour\": 0.49999999999999994, \"cos_hour\": -0.8660254037844387, \"sin_dayofweek\": -0.9749279121818236, \"cos_dayofweek\": -0.2225209339563146, \"latitude\": 20.679389, \"longitude\": -103.35913, \"capacity\": 15, \"demand_lag_24h\": 5.0, \"demand_lag_168h\": 0.0, \"demand_same_hour_mean_7d\": 3.5714285714285716, \"Origen_Id\": 24, \"is_weekend\": 1, \"is_holiday\": 0}\n  ]\n}"},
+        "url": {"raw": "{{baseUrl}}/predict/raw", "host": ["{{baseUrl}}"], "path": ["predict", "raw"]}
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Reproduce demand_pred de la referencia', function () {",
+        "  pm.response.to.have.status(200);",
+        "  pm.expect(pm.response.json().predictions[0]).to.eql(2.6064224732591033);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "Predict - error de validación (422)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\n  \"instances\": [\n    {\"station_id\": 24, \"datetime\": \"2025-13-45T99:00\", \"demand_lag_24h\": -1, \"demand_lag_168h\": 0.0, \"demand_same_hour_mean_7d\": 3.5714285714285716}\n  ]\n}"},
+        "url": {"raw": "{{baseUrl}}/predict", "host": ["{{baseUrl}}"], "path": ["predict"]}
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('422 validation_error', function () {",
+        "  pm.response.to.have.status(422);",
+        "  pm.expect(pm.response.json().error).to.eql('validation_error');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "Predict - estación desconocida (404)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\n  \"instances\": [\n    {\"station_id\": 99999, \"datetime\": \"2025-11-08T10:00:00\", \"demand_lag_24h\": 5.0, \"demand_lag_168h\": 0.0, \"demand_same_hour_mean_7d\": 3.5714285714285716}\n  ]\n}"},
+        "url": {"raw": "{{baseUrl}}/predict", "host": ["{{baseUrl}}"], "path": ["predict"]}
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('404 con la lista de estaciones desconocidas', function () {",
+        "  pm.response.to.have.status(404);",
+        "  pm.expect(pm.response.json().unknown_station_ids).to.eql([99999]);",
+        "});"
+      ]}}]
+    }
+  ]
+}

@@ -1,0 +1,681 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "MiBici - API de demanda horaria por estación",
+    "description": "Predice cuántos viajes saldrán de una estación de MiBici (Guadalajara) en una hora dada, con el modelo champion del MLflow Model Registry (`models:/mibici-demand-forecaster/<versión>`, alias `champion`), exportado a `models/champion`.\n\nEl cliente envía la estación, la hora (hora local de Guadalajara) y tres rezagos de demanda; el servicio deriva las variables de calendario (seno/coseno de hora y día, fin de semana, festivo) y de estación (latitud, longitud, capacidad) con las mismas funciones de `src/features.py` usadas en el entrenamiento. Máximo 1000 instancias por petición. Equipo 19.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "tags": [
+          "Operación"
+        ],
+        "summary": "Resumen del servicio",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Root  Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "Operación"
+        ],
+        "summary": "Estado del servicio",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El modelo no está cargado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/model-info": {
+      "get": {
+        "tags": [
+          "Operación"
+        ],
+        "summary": "Metadatos del modelo cargado",
+        "operationId": "model_info_model_info_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Model Info Model Info Get"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El modelo no está cargado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/predict": {
+      "post": {
+        "tags": [
+          "Predicción"
+        ],
+        "summary": "Predice la demanda a partir de estación, hora y rezagos",
+        "operationId": "predict_predict_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PredictRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PredictResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Estación desconocida para el modelo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida (tipos, negativos, NaN/inf, fechas, tamaño del lote).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El modelo no está cargado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno (sin detalles de la traza).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/predict/raw": {
+      "post": {
+        "tags": [
+          "Predicción"
+        ],
+        "summary": "Predice a partir de las columnas del modelo ya construidas",
+        "description": "Recibe filas con exactamente las columnas `input_columns` del modelo (las de `models/reference_predictions.csv`) y regresa la predicción sin derivar variables. Sirve para verificar la reproducibilidad contra la referencia.",
+        "operationId": "predict_raw_predict_raw_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RawPredictRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RawPredictResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida (tipos, negativos, NaN/inf, fechas, tamaño del lote).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El modelo no está cargado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno (sin detalles de la traza).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ErrorDetail": {
+        "properties": {
+          "loc": {
+            "items": {},
+            "type": "array",
+            "title": "Loc",
+            "description": "Ubicación del campo con error (p. ej. `[body, instances, 0, ...]`)."
+          },
+          "msg": {
+            "type": "string",
+            "title": "Msg",
+            "description": "Descripción del error."
+          },
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "description": "Tipo de error de Pydantic o del servicio."
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ErrorDetail",
+        "description": "Un error de validación concreto."
+      },
+      "ErrorResponse": {
+        "properties": {
+          "error": {
+            "type": "string",
+            "title": "Error",
+            "description": "Código corto: validation_error, unknown_station, model_unavailable, not_found, internal_error, ..."
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Mensaje legible en español."
+          },
+          "details": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details",
+            "description": "Errores de validación (solo en 422)."
+          },
+          "unknown_station_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unknown Station Ids",
+            "description": "Estaciones desconocidas (solo en 404)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
+        "title": "ErrorResponse",
+        "description": "Cuerpo común de todos los errores del servicio."
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "`ok` si el modelo está cargado; `unavailable` en otro caso."
+          },
+          "model_loaded": {
+            "type": "boolean",
+            "title": "Model Loaded",
+            "description": "Indica si el modelo está listo para predecir."
+          },
+          "model_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Uri",
+            "description": "URI del modelo cargado."
+          },
+          "model_sha256_verified": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Sha256 Verified",
+            "description": "True si el SHA-256 del archivo del modelo coincide con los metadatos."
+          },
+          "service_version": {
+            "type": "string",
+            "title": "Service Version",
+            "description": "Versión del servicio (`serving.service_version`)."
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail",
+            "description": "Motivo por el que el modelo no está cargado, si aplica."
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "model_loaded",
+          "service_version"
+        ],
+        "title": "HealthResponse",
+        "description": "Estado del servicio."
+      },
+      "ModelRef": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Nombre del modelo registrado en el MLflow Model Registry."
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version",
+            "description": "Versión registrada del modelo."
+          },
+          "uri": {
+            "type": "string",
+            "title": "Uri",
+            "description": "URI del artefacto en el Registry (`models:/<nombre>/<versión>`)."
+          },
+          "alias": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alias",
+            "description": "Alias con el que se exportó (p. ej. `champion`)."
+          },
+          "algorithm": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Algorithm",
+            "description": "Algoritmo del modelo."
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "version",
+          "uri"
+        ],
+        "title": "ModelRef",
+        "description": "Versión del modelo del Model Registry que generó las predicciones.",
+        "example": {
+          "algorithm": "hist_gradient_boosting",
+          "alias": "champion",
+          "name": "mibici-demand-forecaster",
+          "uri": "models:/mibici-demand-forecaster/1",
+          "version": 1
+        }
+      },
+      "PredictRequest": {
+        "properties": {
+          "instances": {
+            "items": {
+              "$ref": "#/components/schemas/PredictionInstance"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Instances",
+            "description": "Instancias a predecir (al menos una)."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "instances"
+        ],
+        "title": "PredictRequest",
+        "description": "Lote de instancias a predecir (el límite superior está en `serving.max_batch_size`).",
+        "example": {
+          "instances": [
+            {
+              "datetime": "2025-11-08T10:00:00",
+              "demand_lag_168h": 0.0,
+              "demand_lag_24h": 5.0,
+              "demand_same_hour_mean_7d": 3.5714285714285716,
+              "station_id": 24
+            }
+          ]
+        }
+      },
+      "PredictResponse": {
+        "properties": {
+          "predictions": {
+            "items": {
+              "$ref": "#/components/schemas/Prediction"
+            },
+            "type": "array",
+            "title": "Predictions"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ModelRef"
+          },
+          "n_instances": {
+            "type": "integer",
+            "title": "N Instances",
+            "description": "Número de instancias predichas."
+          }
+        },
+        "type": "object",
+        "required": [
+          "predictions",
+          "model",
+          "n_instances"
+        ],
+        "title": "PredictResponse",
+        "description": "Respuesta de /predict: una predicción por instancia, en el mismo orden de la petición.",
+        "example": {
+          "model": {
+            "algorithm": "hist_gradient_boosting",
+            "alias": "champion",
+            "name": "mibici-demand-forecaster",
+            "uri": "models:/mibici-demand-forecaster/1",
+            "version": 1
+          },
+          "n_instances": 1,
+          "predictions": [
+            {
+              "datetime": "2025-11-08T10:00:00",
+              "demand_pred": 2.6064224732591033,
+              "station_id": 24
+            }
+          ]
+        }
+      },
+      "Prediction": {
+        "properties": {
+          "station_id": {
+            "type": "integer",
+            "title": "Station Id",
+            "description": "Identificador de la estación."
+          },
+          "datetime": {
+            "type": "string",
+            "title": "Datetime",
+            "description": "Hora local predicha, truncada a la hora (ISO-8601 sin zona horaria)."
+          },
+          "demand_pred": {
+            "type": "number",
+            "title": "Demand Pred",
+            "description": "Viajes esperados que salen de la estación en esa hora (>= 0)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "station_id",
+          "datetime",
+          "demand_pred"
+        ],
+        "title": "Prediction",
+        "description": "Predicción para una instancia."
+      },
+      "PredictionInstance": {
+        "properties": {
+          "station_id": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Station Id",
+            "description": "Identificador de la estación de MiBici (`Origen_Id`); debe ser una de las estaciones conocidas por el modelo (ver /model-info, `num_stations`)."
+          },
+          "datetime": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Datetime",
+            "description": "Hora a predecir en ISO-8601, en hora local de Guadalajara. Sin zona horaria se interpreta como hora local; con zona horaria (p. ej. `Z` o `-06:00`) se convierte a la hora local (UTC-06:00, sin horario de verano). Se trunca a la hora: 10:45 predice el bloque 10:00-10:59."
+          },
+          "demand_lag_24h": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Demand Lag 24H",
+            "description": "Viajes que salieron de la estación en la misma hora del día anterior (t - 24 h)."
+          },
+          "demand_lag_168h": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Demand Lag 168H",
+            "description": "Viajes que salieron de la estación en la misma hora de la semana anterior (t - 168 h)."
+          },
+          "demand_same_hour_mean_7d": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Demand Same Hour Mean 7D",
+            "description": "Promedio de viajes a la misma hora en los 7 días previos (t - 24 h, ..., t - 168 h)."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "station_id",
+          "datetime",
+          "demand_lag_24h",
+          "demand_lag_168h",
+          "demand_same_hour_mean_7d"
+        ],
+        "title": "PredictionInstance",
+        "description": "Una estación y la hora a predecir, con la demanda histórica que el cliente ya conoce.",
+        "example": {
+          "datetime": "2025-11-08T10:00:00",
+          "demand_lag_168h": 0.0,
+          "demand_lag_24h": 5.0,
+          "demand_same_hour_mean_7d": 3.5714285714285716,
+          "station_id": 24
+        }
+      },
+      "RawPredictRequest": {
+        "properties": {
+          "rows": {
+            "items": {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Rows",
+            "description": "Cada fila trae exactamente las columnas `input_columns` de /model-info. Las columnas enteras (`capacity`, `Origen_Id`, `is_weekend`, `is_holiday`) deben ser valores enteros."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "rows"
+        ],
+        "title": "RawPredictRequest",
+        "description": "Filas con las columnas de entrada del modelo ya construidas (mismo formato que el entrenamiento).",
+        "example": {
+          "rows": [
+            {
+              "Origen_Id": 24,
+              "capacity": 15,
+              "cos_dayofweek": -0.2225209339563146,
+              "cos_hour": -0.8660254037844387,
+              "demand_lag_168h": 0.0,
+              "demand_lag_24h": 5.0,
+              "demand_same_hour_mean_7d": 3.5714285714285716,
+              "is_holiday": 0,
+              "is_weekend": 1,
+              "latitude": 20.679389,
+              "longitude": -103.35913,
+              "sin_dayofweek": -0.9749279121818236,
+              "sin_hour": 0.49999999999999994
+            }
+          ]
+        }
+      },
+      "RawPredictResponse": {
+        "properties": {
+          "predictions": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Predictions",
+            "description": "Viajes esperados por fila (>= 0)."
+          },
+          "model": {
+            "$ref": "#/components/schemas/ModelRef"
+          },
+          "n_instances": {
+            "type": "integer",
+            "title": "N Instances",
+            "description": "Número de filas predichas."
+          }
+        },
+        "type": "object",
+        "required": [
+          "predictions",
+          "model",
+          "n_instances"
+        ],
+        "title": "RawPredictResponse",
+        "description": "Respuesta de /predict/raw: una predicción por fila, en el mismo orden de la petición.",
+        "example": {
+          "model": {
+            "algorithm": "hist_gradient_boosting",
+            "alias": "champion",
+            "name": "mibici-demand-forecaster",
+            "uri": "models:/mibici-demand-forecaster/1",
+            "version": 1
+          },
+          "n_instances": 1,
+          "predictions": [
+            2.6064224732591033
+          ]
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Predicción",
+      "description": "Predicción de la demanda horaria (viajes que salen de una estación)."
+    },
+    {
+      "name": "Operación",
+      "description": "Estado del servicio y metadatos del modelo cargado."
+    }
+  ]
+}
