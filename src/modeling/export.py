@@ -3,11 +3,19 @@
 Genera (rutas en la sección `serving` de config.yaml):
     - models/champion/                  carpeta de modelo MLflow (MLmodel + modelo serializado) que se
                                         carga con `mlflow.sklearn.load_model` sin la base mlruns.db;
-                                        incluye el catálogo mínimo de estaciones que usa el servicio.
+                                        incluye el catálogo mínimo de estaciones que usa el servicio y el
+                                        feature store (feature_store.csv.gz: demanda de las últimas
+                                        `serving.feature_store_hours` horas por estación).
     - models/champion_metadata.json     versión registrada, URI, hiperparámetros, hashes, métricas,
                                         columnas de entrada y versiones de librerías.
     - models/reference_predictions.csv  muestra fija del conjunto de prueba con la predicción de
                                         referencia (patrón oro para verificar la reproducibilidad).
+    - models/reference_feature_store_predictions.csv
+                                        muestra fija de (estación, hora) de la ventana predecible del
+                                        feature store con los rezagos y la predicción calculados fuera
+                                        de línea (patrón oro de /predict sin rezagos).
+
+La carpeta models/champion/ se versiona en Git (unos 6 MB), así que `docker build` funciona en un clon limpio.
 
 Uso:
     python -m src.modeling.export                 # exporta el alias champion
@@ -34,7 +42,16 @@ import sklearn
 import yaml
 
 from src.config import PROJ_ROOT, Config, base_arg_parser, load_config, set_global_seeds
-from src.features import load_features, model_input_columns, temporal_split
+from src.features import MiBiciFeatureEngineer, lag_columns, load_features, model_input_columns, temporal_split
+from src.serving.feature_store import (
+    STATION_KEY,
+    TIME_KEY,
+    FeatureStore,
+    build_feature_store,
+    compute_lags,
+    lag_offsets_hours,
+    write_feature_store,
+)
 from src.tracking import calculate_sha256
 
 # Los CSV se escriben con el formato por omisión de pandas (repr más corto que reproduce exactamente
@@ -56,6 +73,8 @@ def serving_paths(config: Config) -> Dict[str, Path]:
         "metadata": _resolve(serving["metadata_file"]),
         "reference": _resolve(serving["reference_predictions_file"]),
         "stations": model_dir / serving.get("stations_file", "stations.csv"),
+        "feature_store": model_dir / serving["feature_store_file"],
+        "feature_store_reference": _resolve(serving["feature_store_reference_file"]),
     }
 
 
@@ -76,6 +95,91 @@ def _pickled_model_file(model_dir: Path) -> Path:
     with open(model_dir / "MLmodel", encoding="utf-8") as f:
         mlmodel = yaml.safe_load(f)
     return model_dir / mlmodel["flavors"]["sklearn"]["pickled_model"]
+
+
+def normalize_text_files(model_dir: Path, skip: Path) -> List[str]:
+    """Convierte CRLF -> LF en los archivos de texto de la carpeta MLflow (MLmodel, YAML, JSON, requirements).
+
+    MLflow los escribe con el fin de línea de la plataforma (CRLF en Windows). La carpeta se versiona en Git con
+    `eol=lf` (.gitattributes) y DVC guarda su hash en dvc.lock: con LF el contenido es el mismo byte a byte en
+    Windows y en Linux. El modelo serializado (`skip`) no se toca. Regresa los archivos modificados.
+    """
+    changed = []
+    for path in sorted(p for p in model_dir.rglob("*") if p.is_file() and p != skip):
+        data = path.read_bytes()
+        try:
+            data.decode("utf-8")
+        except UnicodeDecodeError:
+            continue  # binario
+        if b"\r\n" in data:
+            path.write_bytes(data.replace(b"\r\n", b"\n"))
+            changed.append(path.relative_to(model_dir).as_posix())
+    return changed
+
+
+def feature_store_reference(config: Config, model: Any, df: pd.DataFrame, df_stations: pd.DataFrame,
+                            store: FeatureStore) -> pd.DataFrame:
+    """Muestra fija de (estación, hora) de la ventana predecible con rezagos y predicción fuera de línea.
+
+    - Horas dentro del periodo de datos: la fila de la matriz procesada (pipeline de entrenamiento, rezagos de
+      `add_lag_features` sobre el historial completo), sin pasar por el feature store.
+    - Horas posteriores al último dato (hasta +24 h): las mismas funciones del pipeline (calendario, estación y
+      `add_lag_features`) sobre la serie de la matriz procesada, con la demanda futura desconocida.
+    """
+    target = config["features"]["target"]
+    inputs = model_input_columns(config)
+    times = pd.to_datetime(df[TIME_KEY])
+    in_data = df.loc[(times >= store.window_start) & (times <= store.window_end)].copy()
+    in_data["in_data_period"] = 1
+
+    end = times.max()
+    since = end - pd.Timedelta(hours=max(lag_offsets_hours(config)))
+    future = compute_lags(df.loc[times >= since, [STATION_KEY, TIME_KEY, target]], config, store.window_end)
+    future = future[future[TIME_KEY] > end].reset_index(drop=True)
+    future = MiBiciFeatureEngineer.add_calendar_features(future)
+    future = MiBiciFeatureEngineer.add_station_features(future, df_stations)
+    future[target] = np.nan
+    future["in_data_period"] = 0
+
+    keep = [*inputs, TIME_KEY, target, "in_data_period"]
+    candidates = pd.concat([in_data[keep], future[keep]], ignore_index=True)
+    n_rows = min(int(config["serving"]["feature_store_reference_rows"]), len(candidates))
+    sample = candidates.sample(n=n_rows, random_state=config["seed"]).sort_values([TIME_KEY, STATION_KEY])
+    sample = sample.reset_index(drop=True)
+    sample["demand_pred"] = predict_clipped(model, sample[inputs])
+    sample[target] = sample[target].astype("Int64")  # vacío en las horas posteriores al último dato
+    return sample[[STATION_KEY, TIME_KEY, *lag_columns(config), target, "in_data_period", "demand_pred"]]
+
+
+def export_feature_store(config: Config, model: Any, df: pd.DataFrame, df_stations: pd.DataFrame,
+                         paths: Dict[str, Path]) -> Dict[str, Any]:
+    """Escribe feature_store.csv.gz y su predicción de referencia; regresa sus entradas de los metadatos."""
+    hours = int(config["serving"]["feature_store_hours"])
+    store_df = build_feature_store(df, config, hours)
+    write_feature_store(store_df, paths["feature_store"])
+    store = FeatureStore(store_df, config)
+
+    reference = feature_store_reference(config, model, df, df_stations, store)
+    paths["feature_store_reference"].parent.mkdir(parents=True, exist_ok=True)
+    reference.to_csv(paths["feature_store_reference"], index=False, lineterminator="\n")
+    info = store.info()
+    return {
+        "feature_store": {
+            "file": paths["feature_store"].relative_to(paths["model_dir"]).as_posix(),
+            "sha256": calculate_sha256(paths["feature_store"]),
+            **info,
+            "lag_columns": store.lag_names,
+            "lag_offsets_hours": sorted(set(lag_offsets_hours(config))),
+        },
+        "feature_store_reference_predictions": {
+            "file": paths["feature_store_reference"].name,
+            "rows": int(len(reference)),
+            "rows_in_data_period": int(reference["in_data_period"].sum()),
+            "rows_after_data_period": int((reference["in_data_period"] == 0).sum()),
+            "seed": int(config["seed"]),
+            "sha256": calculate_sha256(paths["feature_store_reference"]),
+        },
+    }
 
 
 def _library_versions() -> Dict[str, str]:
@@ -110,12 +214,16 @@ def export_champion(config: Config, alias: Optional[str] = None) -> Dict[str, An
             shutil.rmtree(model_dir)
         model_dir.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(local, model_dir)
+    normalized = normalize_text_files(model_dir, _pickled_model_file(model_dir))
+    if normalized:
+        print(f"Fin de línea LF en: {', '.join(normalized)}")
 
     # 2. Catálogo mínimo de estaciones conocidas por el modelo (las que aparecen en la matriz procesada).
     df = load_features(config)
-    stations = pd.read_csv(config.file("raw_dir", "stations_file"))
+    raw_stations = pd.read_csv(config.file("raw_dir", "stations_file"))
     known = set(df["Origen_Id"].unique())
-    stations = stations.loc[stations["id"].isin(known), STATION_COLUMNS].sort_values("id").reset_index(drop=True)
+    stations = raw_stations.loc[raw_stations["id"].isin(known), STATION_COLUMNS]
+    stations = stations.sort_values("id").reset_index(drop=True)
     # Fin de línea fijo "\n": con el de la plataforma (CRLF en Windows) el SHA-256 de los metadatos no
     # coincide con el archivo que Git entrega en Linux (core.autocrlf normaliza a LF).
     stations.to_csv(paths["stations"], index=False, lineterminator="\n")
@@ -133,7 +241,10 @@ def export_champion(config: Config, alias: Optional[str] = None) -> Dict[str, An
     paths["reference"].parent.mkdir(parents=True, exist_ok=True)
     reference.to_csv(paths["reference"], index=False, lineterminator="\n")
 
-    # 4. Metadatos.
+    # 4. Feature store (últimas horas de demanda por estación) y su predicción de referencia.
+    feature_store_md = export_feature_store(config, model, df, raw_stations, paths)
+
+    # 5. Metadatos.
     run = client.get_run(mv.run_id)
     run_params, run_metrics = run.data.params, run.data.metrics
     data_path = config.file("processed_dir", "features_file")
@@ -183,14 +294,23 @@ def export_champion(config: Config, alias: Optional[str] = None) -> Dict[str, An
             "seed": int(config["seed"]),
             "sha256": calculate_sha256(paths["reference"]),
         },
+        **feature_store_md,
         "library_versions": _library_versions(),
         "platform": platform.platform(),
         "exported_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
-    paths["metadata"].write_text(json.dumps(metadata, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    # newline="\n": el mismo archivo (y el mismo hash en dvc.lock) en Windows y en Linux.
+    with open(paths["metadata"], "w", encoding="utf-8", newline="\n") as f:
+        f.write(json.dumps(metadata, indent=2, ensure_ascii=False) + "\n")
+    fs = metadata["feature_store"]
     print(f"Modelo: {model_dir} (SHA-256 {metadata['model_sha256']})")
     print(f"Metadatos: {paths['metadata']}")
     print(f"Referencia: {paths['reference']} ({len(reference)} filas)")
+    print(f"Feature store: {fs['file']} {fs['start']} a {fs['end']} ({fs['hours']} h, {fs['num_stations']} "
+          f"estaciones, SHA-256 {fs['sha256']}); ventana predecible {fs['predictable_window']['start']} a "
+          f"{fs['predictable_window']['end']}")
+    print(f"Referencia del feature store: {paths['feature_store_reference']} "
+          f"({metadata['feature_store_reference_predictions']['rows']} filas)")
     return metadata
 
 

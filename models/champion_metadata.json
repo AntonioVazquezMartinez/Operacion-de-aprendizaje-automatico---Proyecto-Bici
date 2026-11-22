@@ -83,6 +83,41 @@
     "seed": 42,
     "sha256": "bf5254b3d738b7c7b689a038428d908846c00c76642703fce62eafb1333d3ca7"
   },
+  "feature_store": {
+    "file": "feature_store.csv.gz",
+    "sha256": "aa1a39cd1cc8e354728ba835496573ea125925293792bf0a42d203000bf05ee6",
+    "start": "2025-12-17T00:00:00",
+    "end": "2025-12-31T23:00:00",
+    "hours": 360,
+    "num_stations": 370,
+    "rows": 133200,
+    "predictable_window": {
+      "start": "2025-12-24T00:00:00",
+      "end": "2026-01-01T23:00:00"
+    },
+    "lag_columns": [
+      "demand_lag_24h",
+      "demand_lag_168h",
+      "demand_same_hour_mean_7d"
+    ],
+    "lag_offsets_hours": [
+      24,
+      48,
+      72,
+      96,
+      120,
+      144,
+      168
+    ]
+  },
+  "feature_store_reference_predictions": {
+    "file": "reference_feature_store_predictions.csv",
+    "rows": 200,
+    "rows_in_data_period": 179,
+    "rows_after_data_period": 21,
+    "seed": 42,
+    "sha256": "4a978a2be7c0d0706acccb40d4599d659b401e3b2544dc163b060d9318d71c11"
+  },
   "library_versions": {
     "python": "3.13.9",
     "scikit-learn": "1.9.1",
@@ -91,5 +126,5 @@
     "numpy": "2.5.4"
   },
   "platform": "Windows-11-10.0.26300-SP0",
-  "exported_at": "2026-11-22T19:11:20+00:00"
+  "exported_at": "2026-11-22T20:08:23+00:00"
 }

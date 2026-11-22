@@ -326,8 +326,12 @@ stages:
       size: 910
     - path: src/modeling/export.py
       hash: md5
-      md5: fffcd45ff540d4ac349329cdbca3cbae
-      size: 10886
+      md5: e5341432fdc38e6b1732fb31cb4f7140
+      size: 17465
+    - path: src/serving/feature_store.py
+      hash: md5
+      md5: 1c75085118d3976e64e61ab638c21148
+      size: 8054
     params:
       config.yaml:
         seed: 42
@@ -337,21 +341,31 @@ stages:
           reference_predictions_file: models/reference_predictions.csv
           reference_sample_rows: 500
           stations_file: stations.csv
-          service_version: 1.0.0
+          feature_store_file: feature_store.csv.gz
+          feature_store_hours: 360
+          feature_store_reference_file: 
+            models/reference_feature_store_predictions.csv
+          feature_store_reference_rows: 200
+          service_version: 1.1.0
           max_batch_size: 1000
           local_utc_offset: -06:00
           require_sha256_match: true
           strict_startup: false
+          prediction_log_file:
     outs:
     - path: models/champion
       hash: md5
-      md5: ebe973e8988acd803be73e17e967a279.dir
-      size: 6188355
-      nfiles: 8
+      md5: fff063ecdd05f6d426b917205df07334.dir
+      size: 6560156
+      nfiles: 9
     - path: models/champion_metadata.json
       hash: md5
-      md5: e3d26244f1b53fbc8fe17a12a32a29b3
-      size: 2788
+      md5: ef68ffcc9196fa6463f7dda9a774871c
+      size: 3576
+    - path: models/reference_feature_store_predictions.csv
+      hash: md5
+      md5: 1d358bc3ba1b3edbac56294656788917
+      size: 13932
     - path: models/reference_predictions.csv
       hash: md5
       md5: 84dfa5800388295007fc5512ae02cc04
@@ -373,9 +387,9 @@ stages:
       size: 34291
     - path: models/champion
       hash: md5
-      md5: ebe973e8988acd803be73e17e967a279.dir
-      size: 6188355
-      nfiles: 8
+      md5: fff063ecdd05f6d426b917205df07334.dir
+      size: 6560156
+      nfiles: 9
     - path: src/features.py
       hash: md5
       md5: 70ad690204faf0172e2d101a97092944

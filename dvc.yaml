@@ -77,10 +77,12 @@ stages:
           cache: false
 
   export:
-    desc: Exporta el champion del Model Registry a models/champion con metadatos y predicciones de referencia
+    desc: Exporta el champion del Model Registry a models/champion (modelo, estaciones y feature store) con metadatos
+      y predicciones de referencia
     cmd: python -m src.modeling.export
     deps:
       - src/modeling/export.py
+      - src/serving/feature_store.py
       - reports/model_comparison.csv
       - data/processed/mibici_hourly_demand.csv
       - data/raw/nomenclatura_estaciones.csv
@@ -88,11 +90,17 @@ stages:
       - config.yaml:
           - seed
           - serving
+    # Desde la versión 1.1.0 models/champion/ se versiona en Git (docker build en un clon limpio): un archivo
+    # rastreado por Git no puede estar además en la caché de DVC, así que todas las salidas usan cache: false
+    # (DVC solo guarda su hash en dvc.lock y `dvc status` detecta cualquier cambio).
     outs:
-      - models/champion
+      - models/champion:
+          cache: false
       - models/champion_metadata.json:
           cache: false
       - models/reference_predictions.csv:
+          cache: false
+      - models/reference_feature_store_predictions.csv:
           cache: false
 
   drift:
