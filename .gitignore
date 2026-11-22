@@ -54,6 +54,10 @@ data/processed/*
 data/external/*
 !data/external/.gitkeep
 
+# Modelo exportado: la carpeta binaria se versiona con DVC; los metadatos y la
+# muestra de referencia (models/champion_metadata.json, models/reference_predictions.csv) sí van en Git.
+models/champion/
+
 # Generic team files
 reports/Fase 1_EquipoXX.*
 
