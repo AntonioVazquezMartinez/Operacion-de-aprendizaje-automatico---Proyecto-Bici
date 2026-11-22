@@ -1,0 +1,13 @@
+# Dependencias mínimas para servir el modelo exportado (models/champion) en python:3.13-slim.
+# Mismas versiones exactas que requirements.txt. mlflow-skinny basta para mlflow.sklearn.load_model
+# sin el servidor ni la base de MLflow; cloudpickle es el formato de serialización del modelo.
+fastapi==0.165.0
+uvicorn==0.54.0
+pydantic==2.14.4
+scikit-learn==1.9.1
+scipy==1.18.1
+pandas==3.1.1
+numpy==2.5.4
+PyYAML==6.0.4
+mlflow-skinny==3.18.0
+cloudpickle==3.1.3

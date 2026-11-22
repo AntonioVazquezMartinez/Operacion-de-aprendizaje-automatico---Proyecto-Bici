@@ -1,12 +1,33 @@
-# Dependencias del proyecto MiBici (Fase 2). Instalar con: pip install -r requirements.txt
-pandas>=2.2.0
-numpy>=1.26.0
-scikit-learn>=1.4.0
-mlflow>=3.1.0
-optuna>=3.6.0
-matplotlib>=3.8.0
-PyYAML>=6.0.1
-requests>=2.31.0
-pytest>=8.0.0
-jupyter>=1.0.0
-python-docx>=1.1.0
+# Dependencias del proyecto MiBici con versiones exactas (verificadas con Python 3.13 en Windows 11).
+# Instalar con: pip install -r requirements.txt && pip install -e .
+# requirements-lock.txt contiene el entorno completo (pip freeze, incluidas dependencias transitivas).
+
+# Datos, modelado y seguimiento
+pandas==3.1.1
+numpy==2.5.4
+scipy==1.18.1
+scikit-learn==1.9.1
+mlflow==3.18.0
+cloudpickle==3.1.3
+optuna==5.0.0
+matplotlib==3.11.2
+PyYAML==6.0.4
+requests==2.34.2
+
+# Servicio del modelo (FastAPI)
+fastapi==0.165.0
+uvicorn[standard]==0.54.0
+pydantic==2.14.4
+httpx==0.28.1
+
+# Versionado de datos y modelos
+dvc==3.67.1
+
+# Pruebas
+pytest==9.2.0
+pytest-cov==7.1.0
+
+# Reporte y notebooks. Se usa ipykernel (kernel para VS Code o cualquier cliente Jupyter) en lugar del
+# metapaquete jupyter: jupyterlab falla al instalarse en Windows con rutas de más de 260 caracteres.
+python-docx==1.2.0
+ipykernel==7.4.0

@@ -2,7 +2,8 @@ name: mibici_mlops
 channels:
   - conda-forge
 dependencies:
-  - python=3.11
+  # Misma versión de Python que el venv de entrenamiento y la imagen python:3.13-slim.
+  - python=3.13
   - pip
   - pip:
       - -r requirements.txt
