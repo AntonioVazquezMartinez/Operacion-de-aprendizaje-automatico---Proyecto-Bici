@@ -1,0 +1,131 @@
+{
+  "label": "imagen-dockerhub",
+  "url": "http://localhost:8000",
+  "started_at": "2026-11-22T19:18:16+00:00",
+  "tolerance": 1e-09,
+  "client_environment": {
+    "python": "3.13.9",
+    "implementation": "CPython",
+    "system": "Windows",
+    "release": "11",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "machine": "AMD64"
+  },
+  "reference": {
+    "file": "models/reference_predictions.csv",
+    "sha256": "bf5254b3d738b7c7b689a038428d908846c00c76642703fce62eafb1333d3ca7"
+  },
+  "checks": {
+    "health": true,
+    "model_sha256_verified_by_server": true,
+    "model_sha256_matches_metadata": true,
+    "predict_raw_predictions": true,
+    "predict_raw_metrics": true,
+    "predict_predictions": true,
+    "predict_metrics": true
+  },
+  "health": {
+    "ready": true,
+    "attempts": 1,
+    "last": {
+      "status_code": 200,
+      "body": {
+        "status": "ok",
+        "model_loaded": true,
+        "model_uri": "models:/mibici-demand-forecaster/1",
+        "model_sha256_verified": true,
+        "service_version": "1.0.0",
+        "detail": null
+      }
+    }
+  },
+  "server_environment": {
+    "service_version": "1.0.0",
+    "model": {
+      "name": "mibici-demand-forecaster",
+      "version": 1,
+      "uri": "models:/mibici-demand-forecaster/1",
+      "alias": "champion",
+      "algorithm": "hist_gradient_boosting"
+    },
+    "run_id": "9ef2f57d97374770bf956469ba97a02d",
+    "model_sha256_computed": "ca4331a49948c99b29580463d89e8aa1dc8d14451f866c029588f3de67ce2ed5",
+    "model_sha256_verified": true,
+    "runtime_library_versions": {
+      "python": "3.13.9",
+      "scikit-learn": "1.9.1",
+      "pandas": "3.1.1",
+      "numpy": "2.5.4",
+      "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41",
+      "mlflow": "3.18.0"
+    },
+    "training_library_versions": {
+      "python": "3.13.9",
+      "scikit-learn": "1.9.1",
+      "mlflow": "3.18.0",
+      "pandas": "3.1.1",
+      "numpy": "2.5.4"
+    },
+    "max_batch_size": 1000
+  },
+  "model_sha256": {
+    "expected_from_metadata": "ca4331a49948c99b29580463d89e8aa1dc8d14451f866c029588f3de67ce2ed5",
+    "served": "ca4331a49948c99b29580463d89e8aa1dc8d14451f866c029588f3de67ce2ed5",
+    "metadata_file": "models/champion_metadata.json"
+  },
+  "reference_sha256_matches_metadata": true,
+  "reference_metrics": {
+    "mae": 0.752896241060654,
+    "rmse": 1.1785947698217105
+  },
+  "endpoints": {
+    "predict_raw": {
+      "rows": 500,
+      "max_abs_diff": 8.881784197001252e-16,
+      "mean_abs_diff": 2.4425042067025004e-18,
+      "rows_bitwise_identical": 495,
+      "rows_within_tolerance": 500,
+      "worst_row_index": 88,
+      "worst_row": {
+        "pred": 7.826232514469566,
+        "reference": 7.826232514469565
+      },
+      "pass": true,
+      "path": "/predict/raw",
+      "elapsed_ms": 56.19,
+      "metrics": {
+        "mae": 0.752896241060654,
+        "rmse": 1.1785947698217105
+      },
+      "metrics_abs_diff_vs_reference": {
+        "mae": 0.0,
+        "rmse": 0.0
+      }
+    },
+    "predict": {
+      "rows": 500,
+      "max_abs_diff": 8.881784197001252e-16,
+      "mean_abs_diff": 2.4425042067025004e-18,
+      "rows_bitwise_identical": 495,
+      "rows_within_tolerance": 500,
+      "worst_row_index": 88,
+      "worst_row": {
+        "pred": 7.826232514469566,
+        "reference": 7.826232514469565
+      },
+      "pass": true,
+      "path": "/predict",
+      "elapsed_ms": 32.94,
+      "metrics": {
+        "mae": 0.752896241060654,
+        "rmse": 1.1785947698217105
+      },
+      "metrics_abs_diff_vs_reference": {
+        "mae": 0.0,
+        "rmse": 0.0
+      }
+    }
+  },
+  "finished_at": "2026-11-22T19:18:16+00:00",
+  "verdict": "PASS"
+}

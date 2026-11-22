@@ -60,10 +60,9 @@ documentan: `docker image inspect gusrivasmna/mibici-demand-service:1.0.0 --form
 | Variables fijas | `PYTHONUNBUFFERED=1`, `PYTHONDONTWRITEBYTECODE=1`, `PYTHONHASHSEED=42`, `MLFLOW_DISABLE_AGENT_HINT=1` |
 | Puerto / comando | `EXPOSE 8000`; `uvicorn src.serving.app:app --host 0.0.0.0 --port 8000` (forma exec) |
 | HEALTHCHECK | `GET /health` con `urllib` de Python cada 15 s (503 sin modelo → `unhealthy`) |
-| Tamaño | 558 MB en disco (127 MB comprimido); 293 MB son el venv; contexto de build 6.3 MB |
+| Tamaño | 555 MB en disco (127 MB comprimido en DockerHub); contexto de build 6.3 MB |
 | Tiempo de build | 72 s sin caché de capas (base ya descargada); 5 s con caché |
-| ID local | `sha256:d9244f3d66ec25c5d1676744ae2bd66d8cabc0bece881acde9e16eba1a1f3bd6` |
-| Digest publicado en DockerHub | PENDIENTE (se llena después del `docker push`) |
+| Digest publicado en DockerHub | `sha256:c28158a1fa7f6f1e6dfe6bf482e00e5ddd60ee882ff4b21942e1bd98bb081fb6` (los tres tags apuntan al mismo digest; publicada el 22 de noviembre de 2026) |
 
 Variables de entorno opcionales (`docker run -e ...`): `MODEL_DIR` (carpeta del modelo MLflow con
 `stations.csv`) y `MODEL_METADATA` (archivo de metadatos). Sin ellas se usan `serving.model_dir` y
@@ -71,10 +70,9 @@ Variables de entorno opcionales (`docker run -e ...`): `MODEL_DIR` (carpeta del 
 probar otro modelo sin reconstruir: `docker run -v /ruta/modelo:/modelo:ro -e MODEL_DIR=/modelo -e
 MODEL_METADATA=/modelo/metadata.json -p 8000:8000 ml-service:latest`.
 
-Las dependencias de `requirements-serve.txt` están fijadas con `==`; la única dependencia transitiva que quedó
-distinta del entorno de entrenamiento es `python-dateutil` (4.0.0 en la imagen vs 2.9.0.post0 en
-`requirements-lock.txt`; ver `reports/fase_final/reproducibilidad/imagen_pip_freeze.txt`). No cambia ninguna
-predicción.
+Las dependencias de `requirements-serve.txt` están fijadas con `==`, incluida la transitiva `python-dateutil`
+(2.9.0.post0, igual que en `requirements-lock.txt`). El `pip freeze` de la imagen publicada está en
+`reports/fase_final/reproducibilidad/imagen_pip_freeze.txt`.
 
 ## Verificación de reproducibilidad
 
@@ -99,6 +97,7 @@ Referencia: MAE 0.752896241060654 y RMSE 1.1785947698217105 sobre las 500 filas.
 |---|---|---|---|---|---|---|---|
 | Windows 11, venv de entrenamiento | Python 3.13.9, uvicorn local | 0.0 | 0.0 | 500/500 | iguales a la referencia | PASS | `reproducibilidad/windows_venv.json` |
 | Contenedor Linux local (Docker Desktop, WSL2) | `ml-service:latest` | 8.881784197001252e-16 | 8.881784197001252e-16 | 495/500 | iguales a la referencia (dif. 0.0) | PASS | `reproducibilidad/contenedor_local.json` |
+| Imagen descargada de DockerHub (`docker pull`) | `gusrivasmna/mibici-demand-service:1.0.0` | 8.881784197001252e-16 | 8.881784197001252e-16 | 495/500 | iguales a la referencia (dif. 0.0) | PASS | `reproducibilidad/imagen_dockerhub.json` |
 | GitHub Actions (`ubuntu-latest`) | `gusrivasmna/mibici-demand-service:1.0.0` | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | artefacto `reproducibilidad-github-actions` del flujo `docker-reproducibilidad` |
 
 Las rutas de evidencia son relativas a `reports/fase_final/`. Las 5 filas que difieren en Linux lo hacen en
