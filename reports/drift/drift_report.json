@@ -1,0 +1,2742 @@
+{
+  "generated_at": "2026-11-22T18:48:14+00:00",
+  "model_dir": "models/champion",
+  "seed": 42,
+  "reference": {
+    "split": "val",
+    "rows": 476930,
+    "start": "2025-09-15 14:00:00",
+    "end": "2025-11-08 06:00:00",
+    "performance_final_model": {
+      "mae": 0.7916179806321444,
+      "rmse": 1.4755516912800821,
+      "r2": 0.698548642526647,
+      "poisson_deviance": 0.9091097150075661,
+      "wape": 0.5462803434167754,
+      "bias": -0.019731353374353167,
+      "mean_demand": 1.4491057387876627,
+      "mean_prediction": 1.4205129213788403
+    }
+  },
+  "baseline": {
+    "split": "test",
+    "rows": 476930,
+    "start": "2025-11-08 07:00:00",
+    "end": "2025-12-31 23:00:00",
+    "performance": {
+      "mae": 0.765131045200843,
+      "rmse": 1.3018304975138348,
+      "r2": 0.6937167354678235,
+      "poisson_deviance": 0.9144103323440165,
+      "wape": 0.6025381081912297,
+      "bias": 0.046200351843544096,
+      "mean_demand": 1.2698467280313672,
+      "mean_prediction": 1.3285140936537898
+    }
+  },
+  "settings": {
+    "psi_bins": 10,
+    "psi_epsilon": 0.0001,
+    "discrete_max_unique": 30,
+    "ks_sample_rows": 50000,
+    "window_days": 7,
+    "informative_variables": [
+      "sin_hour",
+      "cos_hour",
+      "sin_dayofweek",
+      "cos_dayofweek",
+      "is_weekend",
+      "is_holiday"
+    ]
+  },
+  "thresholds": {
+    "psi": {
+      "warning": 0.1,
+      "alert": 0.25
+    },
+    "ks_statistic": {
+      "warning": 0.1,
+      "alert": 0.2
+    },
+    "wasserstein_norm": {
+      "warning": 0.1,
+      "alert": 0.25
+    },
+    "missing_rate": {
+      "warning": 0.01,
+      "alert": 0.05
+    },
+    "count_domain_violation_rate": {
+      "warning": 0.01,
+      "alert": 0.05
+    },
+    "unseen_category_rate": {
+      "warning": 0.01,
+      "alert": 0.05
+    },
+    "hour_profile_shift_hours": {
+      "warning": 1,
+      "alert": 2
+    },
+    "mae_degradation": {
+      "warning": 0.1,
+      "alert": 0.25
+    },
+    "wape_degradation": {
+      "warning": 0.1,
+      "alert": 0.25
+    }
+  },
+  "rules": {
+    "R1_pipeline": "Revisar el pipeline de variables y la calidad de datos (faltantes, unidades, zona horaria, esquema) antes de reentrenar: reentrenar con entradas corruptas solo aprendería el error.",
+    "R2_catalogo": "Actualizar el catálogo de estaciones y verificar el alta de las estaciones nuevas; reentrenar cuando acumulen historial (>= 7 días para los rezagos) y vigilar su error aparte.",
+    "R3_reentrenar": "Reentrenar con datos recientes, evaluar el challenger contra el champion en la misma ventana y, si mejora, promoverlo moviendo el alias challenger -> champion en el Registry.",
+    "R4_programar": "Programar reentrenamiento con datos recientes y aumentar la frecuencia de monitoreo; promover el challenger solo si supera al champion.",
+    "R5_concepto": "Posible concept drift (cambia la relación entradas-demanda sin drift claro en las entradas): revisar las etiquetas y el calendario (vacaciones, eventos) y reentrenar incorporándolos.",
+    "R6_vigilar": "Drift en entradas sin degradación del desempeño: vigilar, aumentar la frecuencia de monitoreo y confirmar con las etiquetas en cuanto lleguen.",
+    "R7_sin_etiquetas": "Drift fuerte en entradas y aún sin valor real: preparar un reentrenamiento (challenger) y evaluarlo con las primeras etiquetas disponibles; no promover sin evidencia de desempeño.",
+    "R0_ok": "Sin acción: continuar con el monitoreo programado."
+  },
+  "reconstruction_check": {
+    "rows_baseline": 476930,
+    "rows_rebuilt": 476930,
+    "columns": [
+      "demand_count",
+      "demand_lag_24h",
+      "demand_lag_168h",
+      "demand_same_hour_mean_7d",
+      "sin_hour",
+      "cos_hour",
+      "is_weekend",
+      "is_holiday",
+      "capacity"
+    ],
+    "max_abs_diff": 0.0,
+    "ok": true
+  },
+  "scenarios": [
+    {
+      "name": "control",
+      "type": "control",
+      "family": "control",
+      "description": "Conjunto de prueba sin alteración (valida que los umbrales no den falsas alarmas).",
+      "params": {},
+      "rows": 476930,
+      "period": {
+        "start": "2025-11-08 07:00:00",
+        "end": "2025-12-31 23:00:00"
+      },
+      "variables": {
+        "sin_hour": {
+          "psi": 0.00011601013506378434,
+          "ks_statistic": 0.0043199999999999905,
+          "ks_pvalue": 0.7375112015123291,
+          "wasserstein_norm": 0.0013801098939858036,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -0.0023576865874787236,
+          "mean": -0.003334272347837537,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "cos_hour": {
+          "psi": 0.00018844870556280354,
+          "ks_statistic": 0.009580000000000033,
+          "ks_pvalue": 0.02019919667986264,
+          "wasserstein_norm": 0.010498279173534669,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.00408363295783675,
+          "mean": -0.003334272347837613,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "sin_dayofweek": {
+          "psi": 0.00871212124500658,
+          "ks_statistic": 0.023799999999999988,
+          "ks_pvalue": 9.831284556024547e-13,
+          "wasserstein_norm": 0.0313878282537094,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.02741484102895554,
+          "mean": 0.005294410694548294,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "cos_dayofweek": {
+          "psi": 0.00871212124500658,
+          "ks_statistic": 0.035119999999999985,
+          "ks_pvalue": 3.1658960845481127e-27,
+          "wasserstein_norm": 0.07661499125764823,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -0.01953522061082411,
+          "mean": 0.0347588457695968,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "latitude": {
+          "psi": 0.0,
+          "ks_statistic": 0.0028800000000000006,
+          "ks_pvalue": 0.9852862572943253,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 20.67939257054054,
+          "mean": 20.679392570540543,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "longitude": {
+          "psi": 0.0,
+          "ks_statistic": 0.007419999999999982,
+          "ks_pvalue": 0.12683301084807008,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -103.36271632486485,
+          "mean": -103.36271632486486,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "capacity": {
+          "psi": 0.0,
+          "ks_statistic": 0.0040000000000000036,
+          "ks_pvalue": 0.8170622524647269,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 16.89189189189189,
+          "mean": 16.89189189189189,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "demand_lag_24h": {
+          "psi": 0.0043188815215274914,
+          "ks_statistic": 0.030319999999999903,
+          "ks_pvalue": 2.1181091980149844e-20,
+          "wasserstein_norm": 0.05856373683347466,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4393600738053802,
+          "mean": 1.2826662193613318,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "demand_lag_168h": {
+          "psi": 0.0012399831694098486,
+          "ks_statistic": 0.017899999999999916,
+          "ks_pvalue": 2.1766997660746972e-07,
+          "wasserstein_norm": 0.032132487419564974,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4384207326022687,
+          "mean": 1.353475352777137,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "demand_same_hour_mean_7d": {
+          "psi": 0.003928016907484643,
+          "ks_statistic": 0.02856000000000003,
+          "ks_pvalue": 3.7807443960638934e-18,
+          "wasserstein_norm": 0.05233556789012801,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.429385264683946,
+          "mean": 1.3176129470931643,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "is_weekend": {
+          "psi": 0.003458486310959655,
+          "ks_statistic": 0.023800000000000043,
+          "ks_pvalue": 9.831284556023246e-13,
+          "wasserstein_norm": 0.059687898549597024,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.2660977501939488,
+          "mean": 0.2924747866563227,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "is_holiday": {
+          "psi": 0.013262407382782783,
+          "ks_statistic": 0.019479999999999942,
+          "ks_pvalue": 1.1341552707014754e-08,
+          "wasserstein_norm": 0.13774008863003634,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.018619084561675717,
+          "mean": 0.037238169123351435,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "prediccion": {
+          "psi": 0.003028815604052713,
+          "ks_statistic": 0.02298,
+          "ks_pvalue": 6.699019100409908e-12,
+          "wasserstein_norm": 0.04244190069704761,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4205129213788403,
+          "mean": 1.3285140936537898,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        }
+      },
+      "drifted_variables": [],
+      "drifted_informative_variables": [],
+      "quality": {
+        "missing": "OK",
+        "unseen": "OK",
+        "hour_shift": "OK",
+        "domain": "OK",
+        "level": "OK",
+        "max_missing_increase": 0.0,
+        "unseen_category_rate": 0.0,
+        "count_domain_violation_rate": 0.0,
+        "unseen_stations": 0,
+        "hour_profile": {
+          "shift_hours": 0.0,
+          "corr_at_zero": 0.9948660633378056,
+          "corr_best": 0.9948660633378056
+        }
+      },
+      "performance": {
+        "mae": 0.765131045200843,
+        "rmse": 1.3018304975138348,
+        "r2": 0.6937167354678235,
+        "poisson_deviance": 0.9144103323440165,
+        "wape": 0.6025381081912297,
+        "bias": 0.046200351843544096,
+        "mean_demand": 1.2698467280313672,
+        "mean_prediction": 1.3285140936537898
+      },
+      "degradation": {
+        "mae": 0.0,
+        "wape": 0.0
+      },
+      "levels": {
+        "quality": "OK",
+        "drift": "OK",
+        "performance": "OK"
+      },
+      "decision": {
+        "level": "OK",
+        "rule": "R0_ok",
+        "action": "Sin acción: continuar con el monitoreo programado."
+      },
+      "decision_without_labels": {
+        "level": "OK",
+        "rule": "R0_ok",
+        "action": "Sin acción: continuar con el monitoreo programado."
+      }
+    },
+    {
+      "name": "rezagos_faltantes",
+      "type": "missing_lags",
+      "family": "corrupcion_entradas",
+      "description": "30 % de las filas sin rezagos (falla de la consulta histórica; el imputador usa la mediana).",
+      "params": {
+        "fraction": 0.3
+      },
+      "rows": 476930,
+      "period": {
+        "start": "2025-11-08 07:00:00",
+        "end": "2025-12-31 23:00:00"
+      },
+      "variables": {
+        "sin_hour": {
+          "psi": 0.00011601013506378434,
+          "ks_statistic": 0.0043199999999999905,
+          "ks_pvalue": 0.7375112015123291,
+          "wasserstein_norm": 0.0013801098939858036,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -0.0023576865874787236,
+          "mean": -0.003334272347837537,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "cos_hour": {
+          "psi": 0.00018844870556280354,
+          "ks_statistic": 0.009580000000000033,
+          "ks_pvalue": 0.02019919667986264,
+          "wasserstein_norm": 0.010498279173534669,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.00408363295783675,
+          "mean": -0.003334272347837613,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "sin_dayofweek": {
+          "psi": 0.00871212124500658,
+          "ks_statistic": 0.023799999999999988,
+          "ks_pvalue": 9.831284556024547e-13,
+          "wasserstein_norm": 0.0313878282537094,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.02741484102895554,
+          "mean": 0.005294410694548294,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "cos_dayofweek": {
+          "psi": 0.00871212124500658,
+          "ks_statistic": 0.035119999999999985,
+          "ks_pvalue": 3.1658960845481127e-27,
+          "wasserstein_norm": 0.07661499125764823,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -0.01953522061082411,
+          "mean": 0.0347588457695968,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "latitude": {
+          "psi": 0.0,
+          "ks_statistic": 0.0028800000000000006,
+          "ks_pvalue": 0.9852862572943253,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 20.67939257054054,
+          "mean": 20.679392570540543,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "longitude": {
+          "psi": 0.0,
+          "ks_statistic": 0.007419999999999982,
+          "ks_pvalue": 0.12683301084807008,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -103.36271632486485,
+          "mean": -103.36271632486486,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "capacity": {
+          "psi": 0.0,
+          "ks_statistic": 0.0040000000000000036,
+          "ks_pvalue": 0.8170622524647269,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 16.89189189189189,
+          "mean": 16.89189189189189,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "demand_lag_24h": {
+          "psi": 2.5174023780216785,
+          "ks_statistic": 0.02847999999999995,
+          "ks_pvalue": 4.750333379675637e-18,
+          "wasserstein_norm": 0.059439177934199276,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.30056402407061833,
+          "mean_reference": 1.4393600738053802,
+          "mean": 1.2803238783867235,
+          "discrete": false,
+          "missing_increase": 0.30056402407061833,
+          "level": "ALERTA",
+          "informative": false
+        },
+        "demand_lag_168h": {
+          "psi": 2.5147028906227593,
+          "ks_statistic": 0.017220000000000013,
+          "ks_pvalue": 7.188600128242082e-07,
+          "wasserstein_norm": 0.0327551698204401,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.30056402407061833,
+          "mean_reference": 1.4384207326022687,
+          "mean": 1.3518415262214387,
+          "discrete": false,
+          "missing_increase": 0.30056402407061833,
+          "level": "ALERTA",
+          "informative": false
+        },
+        "demand_same_hour_mean_7d": {
+          "psi": 2.51710008939049,
+          "ks_statistic": 0.028859999999999997,
+          "ks_pvalue": 1.5969773398254793e-18,
+          "wasserstein_norm": 0.05375878860632844,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.30056402407061833,
+          "mean_reference": 1.429385264683946,
+          "mean": 1.314549346187744,
+          "discrete": false,
+          "missing_increase": 0.30056402407061833,
+          "level": "ALERTA",
+          "informative": false
+        },
+        "is_weekend": {
+          "psi": 0.003458486310959655,
+          "ks_statistic": 0.023800000000000043,
+          "ks_pvalue": 9.831284556023246e-13,
+          "wasserstein_norm": 0.059687898549597024,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.2660977501939488,
+          "mean": 0.2924747866563227,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "is_holiday": {
+          "psi": 0.013262407382782783,
+          "ks_statistic": 0.019479999999999942,
+          "ks_pvalue": 1.1341552707014754e-08,
+          "wasserstein_norm": 0.13774008863003634,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.018619084561675717,
+          "mean": 0.037238169123351435,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "prediccion": {
+          "psi": 0.0448077869358191,
+          "ks_statistic": 0.06008000000000002,
+          "ks_pvalue": 6.913725333388715e-79,
+          "wasserstein_norm": 0.11681991038512922,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4205129213788403,
+          "mean": 1.1792068880475148,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "AVISO",
+          "informative": false
+        }
+      },
+      "drifted_variables": [
+        "demand_lag_24h",
+        "demand_lag_168h",
+        "demand_same_hour_mean_7d",
+        "prediccion"
+      ],
+      "drifted_informative_variables": [],
+      "quality": {
+        "missing": "ALERTA",
+        "unseen": "OK",
+        "hour_shift": "OK",
+        "domain": "OK",
+        "level": "ALERTA",
+        "max_missing_increase": 0.30056402407061833,
+        "unseen_category_rate": 0.0,
+        "count_domain_violation_rate": 0.0,
+        "unseen_stations": 0,
+        "hour_profile": {
+          "shift_hours": 0.0,
+          "corr_at_zero": 0.9949824071477188,
+          "corr_best": 0.9949824071477188
+        }
+      },
+      "performance": {
+        "mae": 0.8221662809115179,
+        "rmse": 1.5299587250009816,
+        "r2": 0.5769674220400274,
+        "poisson_deviance": 1.0789089865942636,
+        "wape": 0.6474531632538955,
+        "bias": -0.07137856717902524,
+        "mean_demand": 1.2698467280313672,
+        "mean_prediction": 1.1792068880475148
+      },
+      "degradation": {
+        "mae": 0.07454309437372708,
+        "wape": 0.07454309437372708
+      },
+      "levels": {
+        "quality": "ALERTA",
+        "drift": "ALERTA",
+        "performance": "OK"
+      },
+      "decision": {
+        "level": "ALERTA",
+        "rule": "R1_pipeline",
+        "action": "Revisar el pipeline de variables y la calidad de datos (faltantes, unidades, zona horaria, esquema) antes de reentrenar: reentrenar con entradas corruptas solo aprendería el error."
+      },
+      "decision_without_labels": {
+        "level": "ALERTA",
+        "rule": "R1_pipeline",
+        "action": "Revisar el pipeline de variables y la calidad de datos (faltantes, unidades, zona horaria, esquema) antes de reentrenar: reentrenar con entradas corruptas solo aprendería el error."
+      }
+    },
+    {
+      "name": "rezagos_escala",
+      "type": "scale_lags",
+      "family": "corrupcion_entradas",
+      "description": "Rezagos multiplicados por 1.5 (unidades o agregación equivocadas en el pipeline).",
+      "params": {
+        "factor": 1.5
+      },
+      "rows": 476930,
+      "period": {
+        "start": "2025-11-08 07:00:00",
+        "end": "2025-12-31 23:00:00"
+      },
+      "variables": {
+        "sin_hour": {
+          "psi": 0.00011601013506378434,
+          "ks_statistic": 0.0043199999999999905,
+          "ks_pvalue": 0.7375112015123291,
+          "wasserstein_norm": 0.0013801098939858036,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -0.0023576865874787236,
+          "mean": -0.003334272347837537,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "cos_hour": {
+          "psi": 0.00018844870556280354,
+          "ks_statistic": 0.009580000000000033,
+          "ks_pvalue": 0.02019919667986264,
+          "wasserstein_norm": 0.010498279173534669,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.00408363295783675,
+          "mean": -0.003334272347837613,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "sin_dayofweek": {
+          "psi": 0.00871212124500658,
+          "ks_statistic": 0.023799999999999988,
+          "ks_pvalue": 9.831284556024547e-13,
+          "wasserstein_norm": 0.0313878282537094,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.02741484102895554,
+          "mean": 0.005294410694548294,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "cos_dayofweek": {
+          "psi": 0.00871212124500658,
+          "ks_statistic": 0.035119999999999985,
+          "ks_pvalue": 3.1658960845481127e-27,
+          "wasserstein_norm": 0.07661499125764823,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -0.01953522061082411,
+          "mean": 0.0347588457695968,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "latitude": {
+          "psi": 0.0,
+          "ks_statistic": 0.0028800000000000006,
+          "ks_pvalue": 0.9852862572943253,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 20.67939257054054,
+          "mean": 20.679392570540543,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "longitude": {
+          "psi": 0.0,
+          "ks_statistic": 0.007419999999999982,
+          "ks_pvalue": 0.12683301084807008,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -103.36271632486485,
+          "mean": -103.36271632486486,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "capacity": {
+          "psi": 0.0,
+          "ks_statistic": 0.0040000000000000036,
+          "ks_pvalue": 0.8170622524647269,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 16.89189189189189,
+          "mean": 16.89189189189189,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "demand_lag_24h": {
+          "psi": 1.4481198821761099,
+          "ks_statistic": 0.1550600000000001,
+          "ks_pvalue": 0.0,
+          "wasserstein_norm": 0.20955037896057246,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4393600738053802,
+          "mean": 1.9239993290419979,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "ALERTA",
+          "informative": false
+        },
+        "demand_lag_168h": {
+          "psi": 1.4610420839281784,
+          "ks_statistic": 0.16292000000000006,
+          "ks_pvalue": 0.0,
+          "wasserstein_norm": 0.23806776158579337,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4384207326022687,
+          "mean": 2.0302130291657057,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "ALERTA",
+          "informative": false
+        },
+        "demand_same_hour_mean_7d": {
+          "psi": 0.47829313694978515,
+          "ks_statistic": 0.09421999999999997,
+          "ks_pvalue": 1.3268455270868356e-193,
+          "wasserstein_norm": 0.25705280907577677,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.429385264683946,
+          "mean": 1.9764194206397465,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "ALERTA",
+          "informative": false
+        },
+        "is_weekend": {
+          "psi": 0.003458486310959655,
+          "ks_statistic": 0.023800000000000043,
+          "ks_pvalue": 9.831284556023246e-13,
+          "wasserstein_norm": 0.059687898549597024,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.2660977501939488,
+          "mean": 0.2924747866563227,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "is_holiday": {
+          "psi": 0.013262407382782783,
+          "ks_statistic": 0.019479999999999942,
+          "ks_pvalue": 1.1341552707014754e-08,
+          "wasserstein_norm": 0.13774008863003634,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.018619084561675717,
+          "mean": 0.037238169123351435,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "prediccion": {
+          "psi": 0.010993952814865876,
+          "ks_statistic": 0.03328000000000009,
+          "ks_pvalue": 1.7193212383027734e-24,
+          "wasserstein_norm": 0.10963932826370779,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4205129213788403,
+          "mean": 1.6608106385944743,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "AVISO",
+          "informative": false
+        }
+      },
+      "drifted_variables": [
+        "demand_lag_24h",
+        "demand_lag_168h",
+        "demand_same_hour_mean_7d",
+        "prediccion"
+      ],
+      "drifted_informative_variables": [],
+      "quality": {
+        "missing": "OK",
+        "unseen": "OK",
+        "hour_shift": "OK",
+        "domain": "ALERTA",
+        "level": "ALERTA",
+        "max_missing_increase": 0.0,
+        "unseen_category_rate": 0.0,
+        "count_domain_violation_rate": 0.46145555951607153,
+        "unseen_stations": 0,
+        "hour_profile": {
+          "shift_hours": 0.0,
+          "corr_at_zero": 0.9948660633378056,
+          "corr_best": 0.9948660633378056
+        }
+      },
+      "performance": {
+        "mae": 0.884284415396704,
+        "rmse": 1.5700667015503487,
+        "r2": 0.5544970432810226,
+        "poisson_deviance": 1.0273523201664516,
+        "wape": 0.6963709838963028,
+        "bias": 0.30788275618839056,
+        "mean_demand": 1.2698467280313672,
+        "mean_prediction": 1.6608106385944743
+      },
+      "degradation": {
+        "mae": 0.15572936288918182,
+        "wape": 0.15572936288918182
+      },
+      "levels": {
+        "quality": "ALERTA",
+        "drift": "ALERTA",
+        "performance": "AVISO"
+      },
+      "decision": {
+        "level": "ALERTA",
+        "rule": "R1_pipeline",
+        "action": "Revisar el pipeline de variables y la calidad de datos (faltantes, unidades, zona horaria, esquema) antes de reentrenar: reentrenar con entradas corruptas solo aprendería el error."
+      },
+      "decision_without_labels": {
+        "level": "ALERTA",
+        "rule": "R1_pipeline",
+        "action": "Revisar el pipeline de variables y la calidad de datos (faltantes, unidades, zona horaria, esquema) antes de reentrenar: reentrenar con entradas corruptas solo aprendería el error."
+      }
+    },
+    {
+      "name": "reloj_desfasado",
+      "type": "clock_shift",
+      "family": "corrupcion_entradas",
+      "description": "Variables de calendario calculadas con 6 h de desfase (UTC en lugar de hora de Guadalajara).",
+      "params": {
+        "hours": 6
+      },
+      "rows": 476930,
+      "period": {
+        "start": "2025-11-08 07:00:00",
+        "end": "2025-12-31 23:00:00"
+      },
+      "variables": {
+        "sin_hour": {
+          "psi": 2.9002533765946086e-05,
+          "ks_statistic": 0.008619999999999961,
+          "ks_pvalue": 0.048419042750971086,
+          "wasserstein_norm": 0.0013801098939858042,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -0.0023576865874787236,
+          "mean": -0.0033342723478375284,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "cos_hour": {
+          "psi": 2.9002533765946086e-05,
+          "ks_statistic": 0.006040000000000045,
+          "ks_pvalue": 0.32010154301775495,
+          "wasserstein_norm": 0.0010605415627784698,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.00408363295783675,
+          "mean": 0.0033342723478374434,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "sin_dayofweek": {
+          "psi": 0.0072395601152710175,
+          "ks_statistic": 0.017479999999999996,
+          "ks_pvalue": 4.577562788114966e-07,
+          "wasserstein_norm": 0.02208277284001834,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.02741484102895554,
+          "mean": 0.011852106511302588,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "cos_dayofweek": {
+          "psi": 0.007239560115271017,
+          "ks_statistic": 0.03131999999999996,
+          "ks_pvalue": 9.696370995856412e-22,
+          "wasserstein_norm": 0.07215867254105088,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -0.01953522061082411,
+          "mean": 0.03160082590638761,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "latitude": {
+          "psi": 0.0,
+          "ks_statistic": 0.0028800000000000006,
+          "ks_pvalue": 0.9852862572943253,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 20.67939257054054,
+          "mean": 20.679392570540543,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "longitude": {
+          "psi": 0.0,
+          "ks_statistic": 0.007419999999999982,
+          "ks_pvalue": 0.12683301084807008,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -103.36271632486485,
+          "mean": -103.36271632486486,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "capacity": {
+          "psi": 0.0,
+          "ks_statistic": 0.0040000000000000036,
+          "ks_pvalue": 0.8170622524647269,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 16.89189189189189,
+          "mean": 16.89189189189189,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "demand_lag_24h": {
+          "psi": 0.0043188815215274914,
+          "ks_statistic": 0.030319999999999903,
+          "ks_pvalue": 2.1181091980149844e-20,
+          "wasserstein_norm": 0.05856373683347466,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4393600738053802,
+          "mean": 1.2826662193613318,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "demand_lag_168h": {
+          "psi": 0.0012399831694098486,
+          "ks_statistic": 0.017899999999999916,
+          "ks_pvalue": 2.1766997660746972e-07,
+          "wasserstein_norm": 0.032132487419564974,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4384207326022687,
+          "mean": 1.353475352777137,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "demand_same_hour_mean_7d": {
+          "psi": 0.003928016907484643,
+          "ks_statistic": 0.02856000000000003,
+          "ks_pvalue": 3.7807443960638934e-18,
+          "wasserstein_norm": 0.05233556789012801,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.429385264683946,
+          "mean": 1.3176129470931643,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "is_weekend": {
+          "psi": 0.002357230588394661,
+          "ks_statistic": 0.01748000000000005,
+          "ks_pvalue": 4.577562788114522e-07,
+          "wasserstein_norm": 0.04915473998202091,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.2660977501939488,
+          "mean": 0.2878200155159038,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "is_holiday": {
+          "psi": 0.019432072187336034,
+          "ks_statistic": 0.024859999999999993,
+          "ks_pvalue": 7.447001165260619e-14,
+          "wasserstein_norm": 0.17217511078754524,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.018619084561675717,
+          "mean": 0.04189294026377036,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "prediccion": {
+          "psi": 0.33172964190164367,
+          "ks_statistic": 0.15076000000000003,
+          "ks_pvalue": 0.0,
+          "wasserstein_norm": 0.17452717107139434,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4205129213788403,
+          "mean": 1.0687922762970168,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "ALERTA",
+          "informative": false
+        }
+      },
+      "drifted_variables": [
+        "prediccion"
+      ],
+      "drifted_informative_variables": [],
+      "quality": {
+        "missing": "OK",
+        "unseen": "OK",
+        "hour_shift": "ALERTA",
+        "domain": "OK",
+        "level": "ALERTA",
+        "max_missing_increase": 0.0,
+        "unseen_category_rate": 0.0,
+        "count_domain_violation_rate": 0.0,
+        "unseen_stations": 0,
+        "hour_profile": {
+          "shift_hours": 6.0,
+          "corr_at_zero": -0.1487376793318879,
+          "corr_best": 0.9948660633378056
+        }
+      },
+      "performance": {
+        "mae": 1.0499449624849908,
+        "rmse": 1.8860420766869586,
+        "r2": 0.35713891130512765,
+        "poisson_deviance": 2.4772456332619486,
+        "wape": 0.8268281039812668,
+        "bias": -0.1583297001883398,
+        "mean_demand": 1.2698467280313672,
+        "mean_prediction": 1.0687922762970168
+      },
+      "degradation": {
+        "mae": 0.37224200883050784,
+        "wape": 0.37224200883050784
+      },
+      "levels": {
+        "quality": "ALERTA",
+        "drift": "ALERTA",
+        "performance": "ALERTA"
+      },
+      "decision": {
+        "level": "ALERTA",
+        "rule": "R1_pipeline",
+        "action": "Revisar el pipeline de variables y la calidad de datos (faltantes, unidades, zona horaria, esquema) antes de reentrenar: reentrenar con entradas corruptas solo aprendería el error."
+      },
+      "decision_without_labels": {
+        "level": "ALERTA",
+        "rule": "R1_pipeline",
+        "action": "Revisar el pipeline de variables y la calidad de datos (faltantes, unidades, zona horaria, esquema) antes de reentrenar: reentrenar con entradas corruptas solo aprendería el error."
+      }
+    },
+    {
+      "name": "aumento_demanda",
+      "type": "demand_change",
+      "family": "cambio_real",
+      "description": "40 % más viajes (remuestreo con reemplazo); se recalculan rezagos y objetivo.",
+      "params": {
+        "factor": 1.4
+      },
+      "rows": 476930,
+      "period": {
+        "start": "2025-11-08 07:00:00",
+        "end": "2025-12-31 23:00:00"
+      },
+      "variables": {
+        "sin_hour": {
+          "psi": 0.00011601013506378434,
+          "ks_statistic": 0.0043199999999999905,
+          "ks_pvalue": 0.7375112015123291,
+          "wasserstein_norm": 0.0013801098939858036,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -0.0023576865874787236,
+          "mean": -0.003334272347837537,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "cos_hour": {
+          "psi": 0.00018844870556280354,
+          "ks_statistic": 0.009580000000000033,
+          "ks_pvalue": 0.02019919667986264,
+          "wasserstein_norm": 0.010498279173534669,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.00408363295783675,
+          "mean": -0.003334272347837613,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "sin_dayofweek": {
+          "psi": 0.00871212124500658,
+          "ks_statistic": 0.023799999999999988,
+          "ks_pvalue": 9.831284556024547e-13,
+          "wasserstein_norm": 0.0313878282537094,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.02741484102895554,
+          "mean": 0.005294410694548294,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "cos_dayofweek": {
+          "psi": 0.00871212124500658,
+          "ks_statistic": 0.035119999999999985,
+          "ks_pvalue": 3.1658960845481127e-27,
+          "wasserstein_norm": 0.07661499125764823,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -0.01953522061082411,
+          "mean": 0.0347588457695968,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "latitude": {
+          "psi": 0.0,
+          "ks_statistic": 0.0028800000000000006,
+          "ks_pvalue": 0.9852862572943253,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 20.67939257054054,
+          "mean": 20.679392570540543,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "longitude": {
+          "psi": 0.0,
+          "ks_statistic": 0.007419999999999982,
+          "ks_pvalue": 0.12683301084807008,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -103.36271632486485,
+          "mean": -103.36271632486486,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "capacity": {
+          "psi": 0.0,
+          "ks_statistic": 0.0040000000000000036,
+          "ks_pvalue": 0.8170622524647269,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 16.89189189189189,
+          "mean": 16.89189189189189,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "demand_lag_24h": {
+          "psi": 0.040414159235472036,
+          "ks_statistic": 0.043240000000000056,
+          "ks_pvalue": 4.699063843671054e-41,
+          "wasserstein_norm": 0.15141373141380612,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4393600738053802,
+          "mean": 1.7959113496739563,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "AVISO",
+          "informative": false
+        },
+        "demand_lag_168h": {
+          "psi": 0.045851680695048254,
+          "ks_statistic": 0.05688000000000004,
+          "ks_pvalue": 9.553854494596805e-71,
+          "wasserstein_norm": 0.18126583910947197,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4384207326022687,
+          "mean": 1.894579917388296,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "AVISO",
+          "informative": false
+        },
+        "demand_same_hour_mean_7d": {
+          "psi": 0.038373405472568595,
+          "ks_statistic": 0.06101999999999996,
+          "ks_pvalue": 2.3096556333573007e-81,
+          "wasserstein_norm": 0.19467860659627537,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.429385264683946,
+          "mean": 1.8445561043699135,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "AVISO",
+          "informative": false
+        },
+        "is_weekend": {
+          "psi": 0.003458486310959655,
+          "ks_statistic": 0.023800000000000043,
+          "ks_pvalue": 9.831284556023246e-13,
+          "wasserstein_norm": 0.059687898549597024,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.2660977501939488,
+          "mean": 0.2924747866563227,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "is_holiday": {
+          "psi": 0.013262407382782783,
+          "ks_statistic": 0.019479999999999942,
+          "ks_pvalue": 1.1341552707014754e-08,
+          "wasserstein_norm": 0.13774008863003634,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.018619084561675717,
+          "mean": 0.037238169123351435,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "prediccion": {
+          "psi": 0.006418098410103515,
+          "ks_statistic": 0.024720000000000075,
+          "ks_pvalue": 1.0538724964008421e-13,
+          "wasserstein_norm": 0.08328780225142102,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4205129213788403,
+          "mean": 1.6030413224488833,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        }
+      },
+      "drifted_variables": [
+        "demand_lag_24h",
+        "demand_lag_168h",
+        "demand_same_hour_mean_7d"
+      ],
+      "drifted_informative_variables": [],
+      "quality": {
+        "missing": "OK",
+        "unseen": "OK",
+        "hour_shift": "OK",
+        "domain": "OK",
+        "level": "OK",
+        "max_missing_increase": 0.0,
+        "unseen_category_rate": 0.0,
+        "count_domain_violation_rate": 0.0,
+        "unseen_stations": 0,
+        "hour_profile": {
+          "shift_hours": 0.0,
+          "corr_at_zero": 0.9947870517704515,
+          "corr_best": 0.9947870517704515
+        }
+      },
+      "performance": {
+        "mae": 1.111281646617004,
+        "rmse": 2.0022104782109924,
+        "r2": 0.6476645296183494,
+        "poisson_deviance": 1.439329706069286,
+        "wape": 0.6251088693166164,
+        "bias": -0.09827058550424017,
+        "mean_demand": 1.777740968276267,
+        "mean_prediction": 1.6030413224488833
+      },
+      "degradation": {
+        "mae": 0.45240694857087926,
+        "wape": 0.03745947487560963
+      },
+      "levels": {
+        "quality": "OK",
+        "drift": "AVISO",
+        "performance": "ALERTA"
+      },
+      "decision": {
+        "level": "ALERTA",
+        "rule": "R3_reentrenar",
+        "action": "Reentrenar con datos recientes, evaluar el challenger contra el champion en la misma ventana y, si mejora, promoverlo moviendo el alias challenger -> champion en el Registry."
+      },
+      "decision_without_labels": {
+        "level": "AVISO",
+        "rule": "R6_vigilar",
+        "action": "Drift en entradas sin degradación del desempeño: vigilar, aumentar la frecuencia de monitoreo y confirmar con las etiquetas en cuanto lleguen."
+      }
+    },
+    {
+      "name": "caida_demanda",
+      "type": "demand_change",
+      "family": "cambio_real",
+      "description": "40 % menos viajes (adelgazamiento binomial); se recalculan rezagos y objetivo.",
+      "params": {
+        "factor": 0.6
+      },
+      "rows": 476930,
+      "period": {
+        "start": "2025-11-08 07:00:00",
+        "end": "2025-12-31 23:00:00"
+      },
+      "variables": {
+        "sin_hour": {
+          "psi": 0.00011601013506378434,
+          "ks_statistic": 0.0043199999999999905,
+          "ks_pvalue": 0.7375112015123291,
+          "wasserstein_norm": 0.0013801098939858036,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -0.0023576865874787236,
+          "mean": -0.003334272347837537,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "cos_hour": {
+          "psi": 0.00018844870556280354,
+          "ks_statistic": 0.009580000000000033,
+          "ks_pvalue": 0.02019919667986264,
+          "wasserstein_norm": 0.010498279173534669,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.00408363295783675,
+          "mean": -0.003334272347837613,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "sin_dayofweek": {
+          "psi": 0.00871212124500658,
+          "ks_statistic": 0.023799999999999988,
+          "ks_pvalue": 9.831284556024547e-13,
+          "wasserstein_norm": 0.0313878282537094,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.02741484102895554,
+          "mean": 0.005294410694548294,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "cos_dayofweek": {
+          "psi": 0.00871212124500658,
+          "ks_statistic": 0.035119999999999985,
+          "ks_pvalue": 3.1658960845481127e-27,
+          "wasserstein_norm": 0.07661499125764823,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -0.01953522061082411,
+          "mean": 0.0347588457695968,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "latitude": {
+          "psi": 0.0,
+          "ks_statistic": 0.0028800000000000006,
+          "ks_pvalue": 0.9852862572943253,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 20.67939257054054,
+          "mean": 20.679392570540543,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "longitude": {
+          "psi": 0.0,
+          "ks_statistic": 0.007419999999999982,
+          "ks_pvalue": 0.12683301084807008,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -103.36271632486485,
+          "mean": -103.36271632486486,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "capacity": {
+          "psi": 0.0,
+          "ks_statistic": 0.0040000000000000036,
+          "ks_pvalue": 0.8170622524647269,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 16.89189189189189,
+          "mean": 16.89189189189189,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "demand_lag_24h": {
+          "psi": 0.113937189620825,
+          "ks_statistic": 0.12461999999999995,
+          "ks_pvalue": 0.0,
+          "wasserstein_norm": 0.24991541027989267,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4393600738053802,
+          "mean": 0.7706833287903885,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "AVISO",
+          "informative": false
+        },
+        "demand_lag_168h": {
+          "psi": 0.09670859720645321,
+          "ks_statistic": 0.11634,
+          "ks_pvalue": 2.955866317933972e-295,
+          "wasserstein_norm": 0.23664843726428492,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4384207326022687,
+          "mean": 0.8128173945862076,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "AVISO",
+          "informative": false
+        },
+        "demand_same_hour_mean_7d": {
+          "psi": 0.17686850652479222,
+          "ks_statistic": 0.15474,
+          "ks_pvalue": 0.0,
+          "wasserstein_norm": 0.2982245684817504,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.429385264683946,
+          "mean": 0.791399456643832,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "ALERTA",
+          "informative": false
+        },
+        "is_weekend": {
+          "psi": 0.003458486310959655,
+          "ks_statistic": 0.023800000000000043,
+          "ks_pvalue": 9.831284556023246e-13,
+          "wasserstein_norm": 0.059687898549597024,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.2660977501939488,
+          "mean": 0.2924747866563227,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "is_holiday": {
+          "psi": 0.013262407382782783,
+          "ks_statistic": 0.019479999999999942,
+          "ks_pvalue": 1.1341552707014754e-08,
+          "wasserstein_norm": 0.13774008863003634,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.018619084561675717,
+          "mean": 0.037238169123351435,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "prediccion": {
+          "psi": 0.04755694565186613,
+          "ks_statistic": 0.07313999999999998,
+          "ks_pvalue": 9.557158806699599e-117,
+          "wasserstein_norm": 0.16699075619341527,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4205129213788403,
+          "mean": 1.0548517116163292,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "AVISO",
+          "informative": false
+        }
+      },
+      "drifted_variables": [
+        "demand_lag_24h",
+        "demand_lag_168h",
+        "demand_same_hour_mean_7d",
+        "prediccion"
+      ],
+      "drifted_informative_variables": [],
+      "quality": {
+        "missing": "OK",
+        "unseen": "OK",
+        "hour_shift": "OK",
+        "domain": "OK",
+        "level": "OK",
+        "max_missing_increase": 0.0,
+        "unseen_category_rate": 0.0,
+        "count_domain_violation_rate": 0.0,
+        "unseen_stations": 0,
+        "hour_profile": {
+          "shift_hours": 0.0,
+          "corr_at_zero": 0.9949154062889742,
+          "corr_best": 0.9949154062889742
+        }
+      },
+      "performance": {
+        "mae": 0.6610749821880493,
+        "rmse": 1.0792284393573723,
+        "r2": 0.4941526395111089,
+        "poisson_deviance": 0.9037118893313747,
+        "wape": 0.8666097457367085,
+        "bias": 0.3828155628701757,
+        "mean_demand": 0.7628289266768709,
+        "mean_prediction": 1.0548517116163292
+      },
+      "degradation": {
+        "mae": -0.13599770087159324,
+        "wape": 0.4382654540111999
+      },
+      "levels": {
+        "quality": "OK",
+        "drift": "ALERTA",
+        "performance": "ALERTA"
+      },
+      "decision": {
+        "level": "ALERTA",
+        "rule": "R3_reentrenar",
+        "action": "Reentrenar con datos recientes, evaluar el challenger contra el champion en la misma ventana y, si mejora, promoverlo moviendo el alias challenger -> champion en el Registry."
+      },
+      "decision_without_labels": {
+        "level": "ALERTA",
+        "rule": "R7_sin_etiquetas",
+        "action": "Drift fuerte en entradas y aún sin valor real: preparar un reentrenamiento (challenger) y evaluarlo con las primeras etiquetas disponibles; no promover sin evidencia de desempeño."
+      }
+    },
+    {
+      "name": "vacaciones_diciembre",
+      "type": "time_window",
+      "family": "cambio_real",
+      "description": "Periodo real de vacaciones y fiestas de fin de año (20 al 31 de diciembre de 2025).",
+      "params": {
+        "start": "2025-12-20 00:00",
+        "end": "2025-12-31 23:00"
+      },
+      "rows": 106560,
+      "period": {
+        "start": "2025-12-20 00:00:00",
+        "end": "2025-12-31 23:00:00"
+      },
+      "variables": {
+        "sin_hour": {
+          "psi": 5.010786218954487e-05,
+          "ks_statistic": 0.0043400000000000105,
+          "ks_pvalue": 0.7323179467578325,
+          "wasserstein_norm": 0.0033536717928740003,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -0.0023576865874787236,
+          "mean": 0.0,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "cos_hour": {
+          "psi": 6.463736403745393e-05,
+          "ks_statistic": 0.0044399999999999995,
+          "ks_pvalue": 0.706107883985639,
+          "wasserstein_norm": 0.005779410368156556,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.00408363295783675,
+          "mean": -2.5605143630994602e-17,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "sin_dayofweek": {
+          "psi": 0.10084775903107629,
+          "ks_statistic": 0.06539999999999996,
+          "ks_pvalue": 2.0752342141222368e-93,
+          "wasserstein_norm": 0.0835905020886017,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.02741484102895554,
+          "mean": -5.1210287261989203e-17,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "AVISO",
+          "informative": true
+        },
+        "cos_dayofweek": {
+          "psi": 0.1008477590310763,
+          "ks_statistic": 0.13077999999999998,
+          "ks_pvalue": 0.0,
+          "wasserstein_norm": 0.23946099354905656,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -0.01953522061082411,
+          "mean": 0.15016147798373647,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "AVISO",
+          "informative": true
+        },
+        "latitude": {
+          "psi": 0.0,
+          "ks_statistic": 0.0032200000000000006,
+          "ks_pvalue": 0.9570609608946361,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 20.67939257054054,
+          "mean": 20.679392570540543,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "longitude": {
+          "psi": 0.0,
+          "ks_statistic": 0.0019399999999999973,
+          "ks_pvalue": 0.9999820105496978,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -103.36271632486485,
+          "mean": -103.36271632486486,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "capacity": {
+          "psi": 0.0,
+          "ks_statistic": 0.0038799999999999946,
+          "ks_pvalue": 0.8444759423146997,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 16.89189189189189,
+          "mean": 16.89189189189189,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "demand_lag_24h": {
+          "psi": 0.05538787762556581,
+          "ks_statistic": 0.09264000000000006,
+          "ks_pvalue": 3.624954013573598e-187,
+          "wasserstein_norm": 0.1869825767092688,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4393600738053802,
+          "mean": 0.9390671921921921,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "AVISO",
+          "informative": false
+        },
+        "demand_lag_168h": {
+          "psi": 0.01264161192304715,
+          "ks_statistic": 0.04727999999999999,
+          "ks_pvalue": 5.279125208663147e-49,
+          "wasserstein_norm": 0.09942113563033877,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4384207326022687,
+          "mean": 1.1755912162162163,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "demand_same_hour_mean_7d": {
+          "psi": 0.04865927947614178,
+          "ks_statistic": 0.0877,
+          "ks_pvalue": 9.466574997147681e-168,
+          "wasserstein_norm": 0.17423046147803686,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.429385264683946,
+          "mean": 1.0566575504075504,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "AVISO",
+          "informative": false
+        },
+        "is_weekend": {
+          "psi": 0.02160715923060724,
+          "ks_statistic": 0.06540000000000001,
+          "ks_pvalue": 2.075234214121482e-93,
+          "wasserstein_norm": 0.15214562375387458,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.2660977501939488,
+          "mean": 0.3333333333333333,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "is_holiday": {
+          "psi": 0.1013993519726739,
+          "ks_statistic": 0.06657999999999997,
+          "ks_pvalue": 8.480329964999862e-97,
+          "wasserstein_norm": 0.47874246082870314,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.018619084561675717,
+          "mean": 0.08333333333333333,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "AVISO",
+          "informative": true
+        },
+        "prediccion": {
+          "psi": 0.026755641203771725,
+          "ks_statistic": 0.05879999999999996,
+          "ks_pvalue": 1.4109439897871766e-75,
+          "wasserstein_norm": 0.1284013179067754,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4205129213788403,
+          "mean": 1.139284665814998,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "AVISO",
+          "informative": false
+        }
+      },
+      "drifted_variables": [
+        "demand_lag_24h",
+        "demand_same_hour_mean_7d",
+        "prediccion"
+      ],
+      "drifted_informative_variables": [
+        "sin_dayofweek",
+        "cos_dayofweek",
+        "is_holiday"
+      ],
+      "quality": {
+        "missing": "OK",
+        "unseen": "OK",
+        "hour_shift": "OK",
+        "domain": "OK",
+        "level": "OK",
+        "max_missing_increase": 0.0,
+        "unseen_category_rate": 0.0,
+        "count_domain_violation_rate": 0.0,
+        "unseen_stations": 0,
+        "hour_profile": {
+          "shift_hours": 0.0,
+          "corr_at_zero": 0.959579657920579,
+          "corr_best": 0.959579657920579
+        }
+      },
+      "performance": {
+        "mae": 0.7190250466297811,
+        "rmse": 1.21198418785833,
+        "r2": 0.5204422073378985,
+        "poisson_deviance": 0.9567621975864394,
+        "wape": 0.8055439096763862,
+        "bias": 0.27637253839295783,
+        "mean_demand": 0.8925957207207207,
+        "mean_prediction": 1.139284665814998
+      },
+      "degradation": {
+        "mae": -0.060258956763359794,
+        "wape": 0.33691777951532975
+      },
+      "levels": {
+        "quality": "OK",
+        "drift": "AVISO",
+        "performance": "ALERTA"
+      },
+      "decision": {
+        "level": "ALERTA",
+        "rule": "R3_reentrenar",
+        "action": "Reentrenar con datos recientes, evaluar el challenger contra el champion en la misma ventana y, si mejora, promoverlo moviendo el alias challenger -> champion en el Registry."
+      },
+      "decision_without_labels": {
+        "level": "AVISO",
+        "rule": "R6_vigilar",
+        "action": "Drift en entradas sin degradación del desempeño: vigilar, aumentar la frecuencia de monitoreo y confirmar con las etiquetas en cuanto lleguen."
+      }
+    },
+    {
+      "name": "estaciones_nuevas",
+      "type": "new_stations",
+      "family": "cambio_real",
+      "description": "15 % de estaciones con Id nuevo que abren al inicio de la ventana (sin historial ni codificación).",
+      "params": {
+        "fraction": 0.15,
+        "id_offset": 100000
+      },
+      "rows": 476930,
+      "period": {
+        "start": "2025-11-08 07:00:00",
+        "end": "2025-12-31 23:00:00"
+      },
+      "variables": {
+        "sin_hour": {
+          "psi": 0.00011601013506378434,
+          "ks_statistic": 0.0043199999999999905,
+          "ks_pvalue": 0.7375112015123291,
+          "wasserstein_norm": 0.0013801098939858036,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -0.0023576865874787236,
+          "mean": -0.003334272347837537,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "cos_hour": {
+          "psi": 0.00018844870556280354,
+          "ks_statistic": 0.009580000000000033,
+          "ks_pvalue": 0.02019919667986264,
+          "wasserstein_norm": 0.010498279173534669,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.00408363295783675,
+          "mean": -0.003334272347837613,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "sin_dayofweek": {
+          "psi": 0.00871212124500658,
+          "ks_statistic": 0.023799999999999988,
+          "ks_pvalue": 9.831284556024547e-13,
+          "wasserstein_norm": 0.0313878282537094,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.02741484102895554,
+          "mean": 0.005294410694548294,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "cos_dayofweek": {
+          "psi": 0.00871212124500658,
+          "ks_statistic": 0.035119999999999985,
+          "ks_pvalue": 3.1658960845481127e-27,
+          "wasserstein_norm": 0.07661499125764823,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -0.01953522061082411,
+          "mean": 0.0347588457695968,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "latitude": {
+          "psi": 0.0,
+          "ks_statistic": 0.0048599999999999755,
+          "ks_pvalue": 0.5944880167061395,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 20.67939257054054,
+          "mean": 20.67939257054054,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "longitude": {
+          "psi": 0.0,
+          "ks_statistic": 0.0043599999999999195,
+          "ks_pvalue": 0.7271067289207986,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": -103.36271632486485,
+          "mean": -103.36271632486486,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "capacity": {
+          "psi": 0.0,
+          "ks_statistic": 0.0020400000000000418,
+          "ks_pvalue": 0.999940779297758,
+          "wasserstein_norm": 0.0,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 16.89189189189189,
+          "mean": 16.89189189189189,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "demand_lag_24h": {
+          "psi": 0.004635899574107687,
+          "ks_statistic": 0.02969999999999995,
+          "ks_pvalue": 1.3630177924055234e-19,
+          "wasserstein_norm": 0.060433525894180565,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4393600738053802,
+          "mean": 1.27766338875726,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "demand_lag_168h": {
+          "psi": 0.002613405031638597,
+          "ks_statistic": 0.024839999999999973,
+          "ks_pvalue": 7.82667655329471e-14,
+          "wasserstein_norm": 0.044806074082542724,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4384207326022687,
+          "mean": 1.3199714842849055,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "demand_same_hour_mean_7d": {
+          "psi": 0.005261851973217777,
+          "ks_statistic": 0.03198000000000001,
+          "ks_pvalue": 1.1990133497775722e-22,
+          "wasserstein_norm": 0.06176428990039935,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.429385264683946,
+          "mean": 1.297442272151349,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        },
+        "is_weekend": {
+          "psi": 0.003458486310959655,
+          "ks_statistic": 0.023800000000000043,
+          "ks_pvalue": 9.831284556023246e-13,
+          "wasserstein_norm": 0.059687898549597024,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.2660977501939488,
+          "mean": 0.2924747866563227,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "is_holiday": {
+          "psi": 0.013262407382782783,
+          "ks_statistic": 0.019479999999999942,
+          "ks_pvalue": 1.1341552707014754e-08,
+          "wasserstein_norm": 0.13774008863003634,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 0.018619084561675717,
+          "mean": 0.037238169123351435,
+          "discrete": true,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": true
+        },
+        "prediccion": {
+          "psi": 0.007635142326362783,
+          "ks_statistic": 0.025660000000000016,
+          "ks_pvalue": 9.860208605343211e-15,
+          "wasserstein_norm": 0.057330038428091465,
+          "missing_rate_reference": 0.0,
+          "missing_rate": 0.0,
+          "mean_reference": 1.4205129213788403,
+          "mean": 1.2995190345503664,
+          "discrete": false,
+          "missing_increase": 0.0,
+          "level": "OK",
+          "informative": false
+        }
+      },
+      "drifted_variables": [],
+      "drifted_informative_variables": [],
+      "quality": {
+        "missing": "OK",
+        "unseen": "ALERTA",
+        "hour_shift": "OK",
+        "domain": "OK",
+        "level": "ALERTA",
+        "max_missing_increase": 0.0,
+        "unseen_category_rate": 0.15135135135135136,
+        "count_domain_violation_rate": 0.0,
+        "unseen_stations": 56,
+        "hour_profile": {
+          "shift_hours": 0.0,
+          "corr_at_zero": 0.994854959230229,
+          "corr_best": 0.994854959230229
+        }
+      },
+      "performance": {
+        "mae": 0.7892072326236466,
+        "rmse": 1.375328766987095,
+        "r2": 0.6581564116978321,
+        "poisson_deviance": 0.971050431605575,
+        "wape": 0.6214980242908118,
+        "bias": 0.02336684094544217,
+        "mean_demand": 1.2698467280313672,
+        "mean_prediction": 1.2995190345503664
+      },
+      "degradation": {
+        "mae": 0.03146675013883882,
+        "wape": 0.03146675013883904
+      },
+      "levels": {
+        "quality": "ALERTA",
+        "drift": "OK",
+        "performance": "OK"
+      },
+      "decision": {
+        "level": "ALERTA",
+        "rule": "R2_catalogo",
+        "action": "Actualizar el catálogo de estaciones y verificar el alta de las estaciones nuevas; reentrenar cuando acumulen historial (>= 7 días para los rezagos) y vigilar su error aparte."
+      },
+      "decision_without_labels": {
+        "level": "ALERTA",
+        "rule": "R2_catalogo",
+        "action": "Actualizar el catálogo de estaciones y verificar el alta de las estaciones nuevas; reentrenar cuando acumulen historial (>= 7 días para los rezagos) y vigilar su error aparte."
+      }
+    }
+  ],
+  "windows": [
+    {
+      "window": 0,
+      "start": "2025-11-08 07:00:00",
+      "end": "2025-11-15 06:00:00",
+      "rows": 62160,
+      "performance": {
+        "mae": 0.7783542114398626,
+        "rmse": 1.3223846729791717,
+        "r2": 0.7410264681792149,
+        "poisson_deviance": 0.8758902073114341,
+        "wape": 0.5414637992625132,
+        "bias": -0.009988090632554347,
+        "mean_demand": 1.4375,
+        "mean_prediction": 1.423142119715703
+      },
+      "degradation": {
+        "mae": 0.0172822241653372,
+        "wape": -0.10136173645855617
+      },
+      "levels": {
+        "quality": "OK",
+        "drift": "OK",
+        "performance": "OK"
+      },
+      "decision": {
+        "level": "OK",
+        "rule": "R0_ok",
+        "action": "Sin acción: continuar con el monitoreo programado."
+      },
+      "drifted_variables": [],
+      "psi": {
+        "sin_hour": 5.010786218954487e-05,
+        "cos_hour": 6.463736403745393e-05,
+        "sin_dayofweek": 0.002690685712055758,
+        "cos_dayofweek": 0.002690685712055758,
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "capacity": 0.0,
+        "demand_lag_24h": 0.00015249165930105753,
+        "demand_lag_168h": 1.895726851099344e-05,
+        "demand_same_hour_mean_7d": 0.0005599716835124597,
+        "is_weekend": 0.0019267633860230076,
+        "is_holiday": 0.09714497462482503,
+        "prediccion": 0.0002839163008974797
+      },
+      "ks_statistic": {
+        "sin_hour": 0.0033800000000000496,
+        "cos_hour": 0.004860000000000031,
+        "sin_dayofweek": 0.01582,
+        "cos_dayofweek": 0.014140000000000041,
+        "latitude": 0.0036799999999999056,
+        "longitude": 0.0020999999999999908,
+        "capacity": 0.0035600000000000076,
+        "demand_lag_24h": 0.00541999999999998,
+        "demand_lag_168h": 0.0023799999999999377,
+        "demand_same_hour_mean_7d": 0.006460000000000021,
+        "is_weekend": 0.015820000000000056,
+        "is_holiday": 0.018259999999999943,
+        "prediccion": 0.006740000000000079
+      },
+      "wasserstein_norm": {
+        "sin_hour": 0.0033536717928740003,
+        "cos_hour": 0.005779410368156556,
+        "sin_dayofweek": 0.03890034275152183,
+        "cos_dayofweek": 0.02756637798737885,
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "capacity": 0.0,
+        "demand_lag_24h": 0.006539396551636441,
+        "demand_lag_168h": 0.0066961330360061485,
+        "demand_same_hour_mean_7d": 0.00705531874387448,
+        "is_weekend": 0.04438973967764141,
+        "is_holiday": 0.13774008863003634,
+        "prediccion": 0.004875319424663725
+      },
+      "hour_shift": 0.0
+    },
+    {
+      "window": 1,
+      "start": "2025-11-15 07:00:00",
+      "end": "2025-11-22 06:00:00",
+      "rows": 62160,
+      "performance": {
+        "mae": 0.7626048189676092,
+        "rmse": 1.3135896351405316,
+        "r2": 0.7150303375555975,
+        "poisson_deviance": 0.902446045566022,
+        "wape": 0.5725062264133646,
+        "bias": -0.03863215107741946,
+        "mean_demand": 1.332046332046332,
+        "mean_prediction": 1.2805865169045956
+      },
+      "degradation": {
+        "mae": -0.003301690931349688,
+        "wape": -0.04984229440361598
+      },
+      "levels": {
+        "quality": "OK",
+        "drift": "OK",
+        "performance": "OK"
+      },
+      "decision": {
+        "level": "OK",
+        "rule": "R0_ok",
+        "action": "Sin acción: continuar con el monitoreo programado."
+      },
+      "drifted_variables": [],
+      "psi": {
+        "sin_hour": 5.010786218954487e-05,
+        "cos_hour": 6.463736403745393e-05,
+        "sin_dayofweek": 0.002690685712055758,
+        "cos_dayofweek": 0.002690685712055758,
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "capacity": 0.0,
+        "demand_lag_24h": 0.00234999045783715,
+        "demand_lag_168h": 0.00013629369847316134,
+        "demand_same_hour_mean_7d": 0.0011024363712780875,
+        "is_weekend": 0.0019267633860230076,
+        "is_holiday": 0.2699710526296664,
+        "prediccion": 0.006717834176286217
+      },
+      "ks_statistic": {
+        "sin_hour": 0.0033800000000000496,
+        "cos_hour": 0.004860000000000031,
+        "sin_dayofweek": 0.01582,
+        "cos_dayofweek": 0.014140000000000041,
+        "latitude": 0.0036799999999999056,
+        "longitude": 0.0020999999999999908,
+        "capacity": 0.0035600000000000076,
+        "demand_lag_24h": 0.02203999999999995,
+        "demand_lag_168h": 0.00541999999999998,
+        "demand_same_hour_mean_7d": 0.015539999999999998,
+        "is_weekend": 0.015820000000000056,
+        "is_holiday": 0.12459999999999993,
+        "prediccion": 0.03394000000000008
+      },
+      "wasserstein_norm": {
+        "sin_hour": 0.0033536717928740003,
+        "cos_hour": 0.005779410368156556,
+        "sin_dayofweek": 0.03890034275152183,
+        "cos_dayofweek": 0.02756637798737885,
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "capacity": 0.0,
+        "demand_lag_24h": 0.04029449814867511,
+        "demand_lag_168h": 0.006355096929177574,
+        "demand_same_hour_mean_7d": 0.026783092999675847,
+        "is_weekend": 0.04438973967764141,
+        "is_holiday": 0.9190871390135169,
+        "prediccion": 0.06389758093456327
+      },
+      "hour_shift": 0.0
+    },
+    {
+      "window": 2,
+      "start": "2025-11-22 07:00:00",
+      "end": "2025-11-29 06:00:00",
+      "rows": 62160,
+      "performance": {
+        "mae": 0.782962283082995,
+        "rmse": 1.3566670200342597,
+        "r2": 0.73227017148982,
+        "poisson_deviance": 0.8908496736810813,
+        "wape": 0.5454263150299669,
+        "bias": -0.020530671799863454,
+        "mean_demand": 1.435505148005148,
+        "mean_prediction": 1.4060332629444399
+      },
+      "degradation": {
+        "mae": 0.023304815552833036,
+        "wape": -0.09478536275939087
+      },
+      "levels": {
+        "quality": "OK",
+        "drift": "OK",
+        "performance": "OK"
+      },
+      "decision": {
+        "level": "OK",
+        "rule": "R0_ok",
+        "action": "Sin acción: continuar con el monitoreo programado."
+      },
+      "drifted_variables": [],
+      "psi": {
+        "sin_hour": 5.010786218954487e-05,
+        "cos_hour": 6.463736403745393e-05,
+        "sin_dayofweek": 0.002690685712055758,
+        "cos_dayofweek": 0.002690685712055758,
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "capacity": 0.0,
+        "demand_lag_24h": 8.122271504125818e-05,
+        "demand_lag_168h": 0.002422680056044962,
+        "demand_same_hour_mean_7d": 0.00042813923806581436,
+        "is_weekend": 0.0019267633860230076,
+        "is_holiday": 0.09714497462482503,
+        "prediccion": 0.0002311101623728581
+      },
+      "ks_statistic": {
+        "sin_hour": 0.0033800000000000496,
+        "cos_hour": 0.004860000000000031,
+        "sin_dayofweek": 0.01582,
+        "cos_dayofweek": 0.014140000000000041,
+        "latitude": 0.0036799999999999056,
+        "longitude": 0.0020999999999999908,
+        "capacity": 0.0035600000000000076,
+        "demand_lag_24h": 0.0032799999999999496,
+        "demand_lag_168h": 0.022580000000000044,
+        "demand_same_hour_mean_7d": 0.010360000000000036,
+        "is_weekend": 0.015820000000000056,
+        "is_holiday": 0.018259999999999943,
+        "prediccion": 0.009480000000000044
+      },
+      "wasserstein_norm": {
+        "sin_hour": 0.0033536717928740003,
+        "cos_hour": 0.005779410368156556,
+        "sin_dayofweek": 0.03890034275152183,
+        "cos_dayofweek": 0.02756637798737885,
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "capacity": 0.0,
+        "demand_lag_24h": 0.00511106836012355,
+        "demand_lag_168h": 0.04023849319013979,
+        "demand_same_hour_mean_7d": 0.015332988779894448,
+        "is_weekend": 0.04438973967764141,
+        "is_holiday": 0.13774008863003634,
+        "prediccion": 0.007685236845695538
+      },
+      "hour_shift": 0.0
+    },
+    {
+      "window": 3,
+      "start": "2025-11-29 07:00:00",
+      "end": "2025-12-06 06:00:00",
+      "rows": 62160,
+      "performance": {
+        "mae": 0.7903121881593691,
+        "rmse": 1.3426471010755607,
+        "r2": 0.7093872915799626,
+        "poisson_deviance": 0.9208144771836907,
+        "wape": 0.5623632677318832,
+        "bias": 0.00719952986226291,
+        "mean_demand": 1.4053410553410552,
+        "mean_prediction": 1.4154588502356473
+      },
+      "degradation": {
+        "mae": 0.03291088907772166,
+        "wape": -0.06667601586221339
+      },
+      "levels": {
+        "quality": "OK",
+        "drift": "OK",
+        "performance": "OK"
+      },
+      "decision": {
+        "level": "OK",
+        "rule": "R0_ok",
+        "action": "Sin acción: continuar con el monitoreo programado."
+      },
+      "drifted_variables": [],
+      "psi": {
+        "sin_hour": 5.010786218954487e-05,
+        "cos_hour": 6.463736403745393e-05,
+        "sin_dayofweek": 0.002690685712055758,
+        "cos_dayofweek": 0.002690685712055758,
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "capacity": 0.0,
+        "demand_lag_24h": 0.00026349024165955,
+        "demand_lag_168h": 2.646206086436124e-05,
+        "demand_same_hour_mean_7d": 0.0003956187918525174,
+        "is_weekend": 0.0019267633860230076,
+        "is_holiday": 0.09714497462482503,
+        "prediccion": 0.00017435646396256216
+      },
+      "ks_statistic": {
+        "sin_hour": 0.0033800000000000496,
+        "cos_hour": 0.004860000000000031,
+        "sin_dayofweek": 0.01582,
+        "cos_dayofweek": 0.014140000000000041,
+        "latitude": 0.0036799999999999056,
+        "longitude": 0.0020999999999999908,
+        "capacity": 0.0035600000000000076,
+        "demand_lag_24h": 0.007020000000000026,
+        "demand_lag_168h": 0.0046599999999999975,
+        "demand_same_hour_mean_7d": 0.0045000000000000595,
+        "is_weekend": 0.015820000000000056,
+        "is_holiday": 0.018259999999999943,
+        "prediccion": 0.005240000000000022
+      },
+      "wasserstein_norm": {
+        "sin_hour": 0.0033536717928740003,
+        "cos_hour": 0.005779410368156556,
+        "sin_dayofweek": 0.03890034275152183,
+        "cos_dayofweek": 0.02756637798737885,
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "capacity": 0.0,
+        "demand_lag_24h": 0.013823801758971493,
+        "demand_lag_168h": 0.00413628732346495,
+        "demand_same_hour_mean_7d": 0.00687444972060727,
+        "is_weekend": 0.04438973967764141,
+        "is_holiday": 0.13774008863003634,
+        "prediccion": 0.003940704242875792
+      },
+      "hour_shift": 0.0
+    },
+    {
+      "window": 4,
+      "start": "2025-12-06 07:00:00",
+      "end": "2025-12-13 06:00:00",
+      "rows": 62160,
+      "performance": {
+        "mae": 0.7819476562398181,
+        "rmse": 1.3543118284550268,
+        "r2": 0.6718611135010563,
+        "poisson_deviance": 0.9258651250299293,
+        "wape": 0.5970869886599975,
+        "bias": 0.046859172442701436,
+        "mean_demand": 1.309604247104247,
+        "mean_prediction": 1.3709712183509992
+      },
+      "degradation": {
+        "mae": 0.02197873311304588,
+        "wape": -0.00904692907739224
+      },
+      "levels": {
+        "quality": "OK",
+        "drift": "OK",
+        "performance": "OK"
+      },
+      "decision": {
+        "level": "OK",
+        "rule": "R0_ok",
+        "action": "Sin acción: continuar con el monitoreo programado."
+      },
+      "drifted_variables": [],
+      "psi": {
+        "sin_hour": 5.010786218954487e-05,
+        "cos_hour": 6.463736403745393e-05,
+        "sin_dayofweek": 0.002690685712055758,
+        "cos_dayofweek": 0.002690685712055758,
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "capacity": 0.0,
+        "demand_lag_24h": 0.001994832489562472,
+        "demand_lag_168h": 0.00024118620547047834,
+        "demand_same_hour_mean_7d": 0.0013849204857245667,
+        "is_weekend": 0.0019267633860230076,
+        "is_holiday": 0.09714497462482503,
+        "prediccion": 0.0008026707103604928
+      },
+      "ks_statistic": {
+        "sin_hour": 0.0033800000000000496,
+        "cos_hour": 0.004860000000000031,
+        "sin_dayofweek": 0.01582,
+        "cos_dayofweek": 0.014140000000000041,
+        "latitude": 0.0036799999999999056,
+        "longitude": 0.0020999999999999908,
+        "capacity": 0.0035600000000000076,
+        "demand_lag_24h": 0.02079999999999993,
+        "demand_lag_168h": 0.0048799999999999955,
+        "demand_same_hour_mean_7d": 0.014019999999999921,
+        "is_weekend": 0.015820000000000056,
+        "is_holiday": 0.018259999999999943,
+        "prediccion": 0.01096000000000008
+      },
+      "wasserstein_norm": {
+        "sin_hour": 0.0033536717928740003,
+        "cos_hour": 0.005779410368156556,
+        "sin_dayofweek": 0.03890034275152183,
+        "cos_dayofweek": 0.02756637798737885,
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "capacity": 0.0,
+        "demand_lag_24h": 0.043120442912394495,
+        "demand_lag_168h": 0.013876818058677133,
+        "demand_same_hour_mean_7d": 0.02968683687617515,
+        "is_weekend": 0.04438973967764141,
+        "is_holiday": 0.13774008863003634,
+        "prediccion": 0.02305071335688467
+      },
+      "hour_shift": 0.0
+    },
+    {
+      "window": 5,
+      "start": "2025-12-13 07:00:00",
+      "end": "2025-12-20 06:00:00",
+      "rows": 62160,
+      "performance": {
+        "mae": 0.7476893990800204,
+        "rmse": 1.2405834812506398,
+        "r2": 0.7186506081217187,
+        "poisson_deviance": 0.8710324964229197,
+        "wape": 0.5758868587283663,
+        "bias": 0.03935279167175443,
+        "mean_demand": 1.2983268983268983,
+        "mean_prediction": 1.3494196862785917
+      },
+      "degradation": {
+        "mae": -0.022795632500108853,
+        "wape": -0.044231641286338275
+      },
+      "levels": {
+        "quality": "OK",
+        "drift": "OK",
+        "performance": "OK"
+      },
+      "decision": {
+        "level": "OK",
+        "rule": "R0_ok",
+        "action": "Sin acción: continuar con el monitoreo programado."
+      },
+      "drifted_variables": [],
+      "psi": {
+        "sin_hour": 5.010786218954487e-05,
+        "cos_hour": 6.463736403745393e-05,
+        "sin_dayofweek": 0.002690685712055758,
+        "cos_dayofweek": 0.002690685712055758,
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "capacity": 0.0,
+        "demand_lag_24h": 0.0026433420408418385,
+        "demand_lag_168h": 0.002519510644571211,
+        "demand_same_hour_mean_7d": 0.003963862281419315,
+        "is_weekend": 0.0019267633860230076,
+        "is_holiday": 0.09714497462482503,
+        "prediccion": 0.0017394487508623757
+      },
+      "ks_statistic": {
+        "sin_hour": 0.0033800000000000496,
+        "cos_hour": 0.004860000000000031,
+        "sin_dayofweek": 0.01582,
+        "cos_dayofweek": 0.014140000000000041,
+        "latitude": 0.0036799999999999056,
+        "longitude": 0.0020999999999999908,
+        "capacity": 0.0035600000000000076,
+        "demand_lag_24h": 0.021099999999999897,
+        "demand_lag_168h": 0.02195999999999998,
+        "demand_same_hour_mean_7d": 0.02858000000000005,
+        "is_weekend": 0.015820000000000056,
+        "is_holiday": 0.018259999999999943,
+        "prediccion": 0.01641999999999999
+      },
+      "wasserstein_norm": {
+        "sin_hour": 0.0033536717928740003,
+        "cos_hour": 0.005779410368156556,
+        "sin_dayofweek": 0.03890034275152183,
+        "cos_dayofweek": 0.02756637798737885,
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "capacity": 0.0,
+        "demand_lag_24h": 0.04990271034532108,
+        "demand_lag_168h": 0.0487277131283499,
+        "demand_same_hour_mean_7d": 0.05599020612244659,
+        "is_weekend": 0.04438973967764141,
+        "is_holiday": 0.13774008863003634,
+        "prediccion": 0.03273902369699975
+      },
+      "hour_shift": 0.0
+    },
+    {
+      "window": 6,
+      "start": "2025-12-20 07:00:00",
+      "end": "2025-12-27 06:00:00",
+      "rows": 62160,
+      "performance": {
+        "mae": 0.7450573628410406,
+        "rmse": 1.26938773982807,
+        "r2": 0.4804561039513441,
+        "poisson_deviance": 0.990723540871636,
+        "wape": 0.8363177072466744,
+        "bias": 0.3292957776657661,
+        "mean_demand": 0.8908783783783784,
+        "mean_prediction": 1.1842408667921032
+      },
+      "degradation": {
+        "mae": -0.02623561347524872,
+        "wape": 0.3879913915440669
+      },
+      "levels": {
+        "quality": "OK",
+        "drift": "AVISO",
+        "performance": "ALERTA"
+      },
+      "decision": {
+        "level": "ALERTA",
+        "rule": "R3_reentrenar",
+        "action": "Reentrenar con datos recientes, evaluar el challenger contra el champion en la misma ventana y, si mejora, promoverlo moviendo el alias challenger -> champion en el Registry."
+      },
+      "drifted_variables": [
+        "demand_lag_24h",
+        "demand_same_hour_mean_7d",
+        "prediccion"
+      ],
+      "psi": {
+        "sin_hour": 5.010786218954487e-05,
+        "cos_hour": 6.463736403745393e-05,
+        "sin_dayofweek": 0.002690685712055758,
+        "cos_dayofweek": 0.002690685712055758,
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "capacity": 0.0,
+        "demand_lag_24h": 0.052694957995125635,
+        "demand_lag_168h": 0.003230326894553112,
+        "demand_same_hour_mean_7d": 0.01711562095225886,
+        "is_weekend": 0.0019267633860230076,
+        "is_holiday": 0.2699710526296664,
+        "prediccion": 0.018967120108052328
+      },
+      "ks_statistic": {
+        "sin_hour": 0.0033800000000000496,
+        "cos_hour": 0.004860000000000031,
+        "sin_dayofweek": 0.01582,
+        "cos_dayofweek": 0.014140000000000041,
+        "latitude": 0.0036799999999999056,
+        "longitude": 0.0020999999999999908,
+        "capacity": 0.0035600000000000076,
+        "demand_lag_24h": 0.09408000000000005,
+        "demand_lag_168h": 0.024900000000000033,
+        "demand_same_hour_mean_7d": 0.053200000000000025,
+        "is_weekend": 0.015820000000000056,
+        "is_holiday": 0.12492000000000003,
+        "prediccion": 0.049719999999999986
+      },
+      "wasserstein_norm": {
+        "sin_hour": 0.0033536717928740003,
+        "cos_hour": 0.005779410368156556,
+        "sin_dayofweek": 0.03890034275152183,
+        "cos_dayofweek": 0.02756637798737885,
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "capacity": 0.0,
+        "demand_lag_24h": 0.18073794025709913,
+        "demand_lag_168h": 0.05299362221557901,
+        "demand_same_hour_mean_7d": 0.10713629329866774,
+        "is_weekend": 0.04438973967764141,
+        "is_holiday": 0.9190871390135169,
+        "prediccion": 0.10791440649819892
+      },
+      "hour_shift": 0.0
+    },
+    {
+      "window": 7,
+      "start": "2025-12-27 07:00:00",
+      "end": "2025-12-31 23:00:00",
+      "rows": 41810,
+      "performance": {
+        "mae": 0.7160533339441276,
+        "rmse": 1.1575450895050605,
+        "r2": 0.5733863246434214,
+        "poisson_deviance": 0.9489778344445076,
+        "wape": 0.7598525353351263,
+        "bias": 0.20427903469892295,
+        "mean_demand": 0.9423582874910309,
+        "mean_prediction": 1.1348623288002289
+      },
+      "degradation": {
+        "mae": -0.06414288318915706,
+        "wape": 0.26108626990605077
+      },
+      "levels": {
+        "quality": "OK",
+        "drift": "AVISO",
+        "performance": "ALERTA"
+      },
+      "decision": {
+        "level": "ALERTA",
+        "rule": "R3_reentrenar",
+        "action": "Reentrenar con datos recientes, evaluar el challenger contra el champion en la misma ventana y, si mejora, promoverlo moviendo el alias challenger -> champion en el Registry."
+      },
+      "drifted_variables": [
+        "demand_lag_24h",
+        "demand_lag_168h",
+        "demand_same_hour_mean_7d",
+        "prediccion"
+      ],
+      "psi": {
+        "sin_hour": 0.0070005223888349975,
+        "cos_hour": 0.009533832743085197,
+        "sin_dayofweek": 2.2936749557908884,
+        "cos_dayofweek": 2.293674955790889,
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "capacity": 0.0,
+        "demand_lag_24h": 0.04845708353537178,
+        "demand_lag_168h": 0.02858850340898721,
+        "demand_same_hour_mean_7d": 0.11968649217580536,
+        "is_weekend": 0.043667524391552415,
+        "is_holiday": 0.09714497462482503,
+        "prediccion": 0.041229233275871725
+      },
+      "ks_statistic": {
+        "sin_hour": 0.029665663716814117,
+        "cos_hour": 0.03187345132743352,
+        "sin_dayofweek": 0.12973876106194693,
+        "cos_dayofweek": 0.29796,
+        "latitude": 0.0026470270270269047,
+        "longitude": 0.0015562162162163773,
+        "capacity": 0.0025837837837836553,
+        "demand_lag_24h": 0.08470088495575201,
+        "demand_lag_168h": 0.06531040899306373,
+        "demand_same_hour_mean_7d": 0.12489691461372876,
+        "is_weekend": 0.09369185840707972,
+        "is_holiday": 0.018259999999999943,
+        "prediccion": 0.059617019851709974
+      },
+      "wasserstein_norm": {
+        "sin_hour": 0.050418164257800616,
+        "cos_hour": 0.05960792267021263,
+        "sin_dayofweek": 0.17754506870870174,
+        "cos_dayofweek": 0.5870678160880631,
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "capacity": 0.0,
+        "demand_lag_24h": 0.1790034774165237,
+        "demand_lag_168h": 0.14385722189069006,
+        "demand_same_hour_mean_7d": 0.24850092963914894,
+        "is_weekend": 0.2188970563674702,
+        "is_holiday": 0.13774008863003634,
+        "prediccion": 0.1352960972461079
+      },
+      "hour_shift": 0.0
+    }
+  ],
+  "figures": [
+    "07_drift_distribuciones.png",
+    "08_drift_psi_por_variable.png",
+    "09_drift_desempeno.png",
+    "10_drift_ventanas_tiempo.png"
+  ],
+  "runtime_seconds": 35.8
+}

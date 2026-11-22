@@ -1,0 +1,31 @@
+$ python -m src.monitoring.drift   (MLFLOW_DISABLE_AGENT_HINT=1, PYTHONIOENCODING=utf-8, 2026-11-22T12:47:39-06:00)
+=== Monitoreo de drift ===
+Referencia (val): 476930 filas [2025-09-15 14:00:00 - 2025-11-08 06:00:00]
+Línea base (test): 476930 filas [2025-11-08 07:00:00 - 2025-12-31 23:00:00] MAE 0.7651 | WAPE 0.6025
+Reconstrucción desde viajes sin alterar: 476930 filas, diferencia máxima 0 -> OK
+  control                OK      MAE 0.7651 (+0.0%) WAPE 0.6025 (+0.0%) drift=OK calidad=OK -> R0_ok [3.0 s]
+  rezagos_faltantes      ALERTA  MAE 0.8222 (+7.5%) WAPE 0.6475 (+7.5%) drift=ALERTA calidad=ALERTA -> R1_pipeline [2.8 s]
+  rezagos_escala         ALERTA  MAE 0.8843 (+15.6%) WAPE 0.6964 (+15.6%) drift=ALERTA calidad=ALERTA -> R1_pipeline [2.8 s]
+  reloj_desfasado        ALERTA  MAE 1.0499 (+37.2%) WAPE 0.8268 (+37.2%) drift=ALERTA calidad=ALERTA -> R1_pipeline [2.8 s]
+  aumento_demanda        ALERTA  MAE 1.1113 (+45.2%) WAPE 0.6251 (+3.7%) drift=AVISO calidad=OK -> R3_reentrenar [3.1 s]
+  caida_demanda          ALERTA  MAE 0.6611 (-13.6%) WAPE 0.8666 (+43.8%) drift=ALERTA calidad=OK -> R3_reentrenar [3.0 s]
+  vacaciones_diciembre   ALERTA  MAE 0.7190 (-6.0%) WAPE 0.8055 (+33.7%) drift=AVISO calidad=OK -> R3_reentrenar [1.1 s]
+  estaciones_nuevas      ALERTA  MAE 0.7892 (+3.1%) WAPE 0.6215 (+3.1%) drift=OK calidad=ALERTA -> R2_catalogo [3.1 s]
+  ventana 0 2025-11-08: OK      MAE 0.7784 (+1.7%) WAPE (-10.1%) -> R0_ok
+  ventana 1 2025-11-15: OK      MAE 0.7626 (-0.3%) WAPE (-5.0%) -> R0_ok
+  ventana 2 2025-11-22: OK      MAE 0.7830 (+2.3%) WAPE (-9.5%) -> R0_ok
+  ventana 3 2025-11-29: OK      MAE 0.7903 (+3.3%) WAPE (-6.7%) -> R0_ok
+  ventana 4 2025-12-06: OK      MAE 0.7819 (+2.2%) WAPE (-0.9%) -> R0_ok
+  ventana 5 2025-12-13: OK      MAE 0.7477 (-2.3%) WAPE (-4.4%) -> R0_ok
+  ventana 6 2025-12-20: ALERTA  MAE 0.7451 (-2.6%) WAPE (+38.8%) -> R3_reentrenar
+  ventana 7 2025-12-27: ALERTA  MAE 0.7161 (-6.4%) WAPE (+26.1%) -> R3_reentrenar
+Artefacto: C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\reports\drift\drift_report.json
+Artefacto: C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\reports\drift\drift_report.md
+Artefacto: C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\reports\drift\drift_summary.csv
+Artefacto: C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\reports\figures\07_drift_distribuciones.png
+Artefacto: C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\reports\figures\08_drift_psi_por_variable.png
+Artefacto: C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\reports\figures\09_drift_desempeno.png
+Artefacto: C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\reports\figures\10_drift_ventanas_tiempo.png
+Corridas registradas en MLflow (experimento MiBici_Monitoreo).
+Tiempo total: 38.4 s
+exit code: 0
