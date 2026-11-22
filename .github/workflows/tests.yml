@@ -99,7 +99,11 @@ jobs:
           path = pathlib.Path("reports/fase_final/reproducibilidad/github_actions_build.json")
           if path.exists():
               data = json.loads(path.read_text(encoding="utf-8"))
-              print("::notice title=reproducibilidad-build-json::" + json.dumps(data, separators=(",", ":")))
+              text = json.dumps(data, separators=(",", ":"))
+              # GitHub recorta cada anotación a 4096 caracteres: se publica en partes numeradas.
+              parts = [text[i:i + 3500] for i in range(0, len(text), 3500)]
+              for n, part in enumerate(parts, 1):
+                  print(f"::notice title=reproducibilidad-build-json-{n:02d}de{len(parts):02d}::{part}")
           PY
 
       - name: Guarda los logs del contenedor
