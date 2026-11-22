@@ -1,0 +1,36 @@
+{
+  "fuente": "https://hub.docker.com/v2/repositories/gusrivasmna/mibici-demand-service/tags?page_size=20",
+  "consultado": "2026-11-22T20:39:40+00:00",
+  "tags": [
+    {
+      "tag": "latest",
+      "digest": "sha256:00747b9667e5a7f0b160185624920332b4452e16bcc672770c399a5910f3efe2",
+      "full_size_bytes": 127182682,
+      "last_updated": "2026-11-22T20:22:13.949305Z"
+    },
+    {
+      "tag": "1.1.0-model-v1",
+      "digest": "sha256:00747b9667e5a7f0b160185624920332b4452e16bcc672770c399a5910f3efe2",
+      "full_size_bytes": 127182682,
+      "last_updated": "2026-11-22T20:22:10.26253Z"
+    },
+    {
+      "tag": "1.1.0",
+      "digest": "sha256:00747b9667e5a7f0b160185624920332b4452e16bcc672770c399a5910f3efe2",
+      "full_size_bytes": 127182682,
+      "last_updated": "2026-11-22T20:22:07.210694Z"
+    },
+    {
+      "tag": "1.0.0-model-v1",
+      "digest": "sha256:c28158a1fa7f6f1e6dfe6bf482e00e5ddd60ee882ff4b21942e1bd98bb081fb6",
+      "full_size_bytes": 126937001,
+      "last_updated": "2026-11-22T19:02:59.679077Z"
+    },
+    {
+      "tag": "1.0.0",
+      "digest": "sha256:c28158a1fa7f6f1e6dfe6bf482e00e5ddd60ee882ff4b21942e1bd98bb081fb6",
+      "full_size_bytes": 126937001,
+      "last_updated": "2026-11-22T19:02:55.687481Z"
+    }
+  ]
+}

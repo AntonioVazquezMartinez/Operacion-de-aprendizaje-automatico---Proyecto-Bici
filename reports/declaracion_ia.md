@@ -19,10 +19,11 @@ En apego a los lineamientos de la actividad, se declara el uso de herramientas d
 ## Fase final
 
 - Anthropic. (2026). Claude (Fable 5.2 y Opus 5.5) [Modelo de lenguaje grande], utilizado como apoyo en:
-  - la migración de las pruebas a pytest y su configuración de cobertura e integración continua;
-  - el servicio de predicción con FastAPI y Pydantic, y su documentación (OpenAPI y Postman);
-  - el Dockerfile, los scripts de verificación de reproducibilidad entre entornos y la configuración de DVC;
+  - las pruebas con pytest (unitarias, de integración y de coherencia servicio-pipeline), su cobertura y la integración continua;
+  - el servicio de predicción con FastAPI y Pydantic, el feature store, la exportación del modelo champion y su documentación (OpenAPI y Postman);
+  - el Dockerfile, la construcción de las imágenes con Docker y Podman, su publicación en DockerHub, los scripts de verificación de reproducibilidad entre entornos y la configuración de DVC;
   - la simulación de data drift (escenarios, métricas, umbrales y reglas de acción);
+  - la comparación e integración de las dos soluciones desarrolladas en paralelo (ramas `fase-final` y `entrega-final`);
   - el diagrama de la solución, el generador del reporte final en Word y la redacción y revisión de la documentación.
 
-  El equipo revisó, ejecutó y validó el código. Las métricas, tablas y figuras reportadas corresponden a ejecuciones reales registradas en los logs y artefactos del repositorio (`reports/fase_final/`, `reports/drift/`, `models/champion_metadata.json`). https://claude.ai/
+  El equipo revisó, ejecutó y validó el código. Las pruebas, métricas, tablas, figuras y capturas reportadas corresponden a ejecuciones reales sobre los datos abiertos de MiBici en las computadoras de los integrantes, en los contenedores y en GitHub Actions, registradas en los logs y artefactos del repositorio (`reports/fase_final/`, `reports/drift/`, `models/champion_metadata.json`). https://claude.ai/

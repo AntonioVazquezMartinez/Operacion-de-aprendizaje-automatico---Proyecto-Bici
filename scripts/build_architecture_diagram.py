@@ -147,7 +147,7 @@ def architecture(path: Path) -> None:
          ["experimento MiBici_Fase2_Modelos", "mibici-demand-forecaster v1-v3", "alias champion / challenger"], ["MLE"],
          face="#eaf6f6")
     _box(ax, xs[3], y2, W, H, "Exportación del champion",
-         ["src/modeling/export.py", "models/champion + metadatos", "SHA-256 y 500 predicciones ref."],
+         ["src/modeling/export.py", "models/champion (en Git)", "+ feature store y patrones oro"],
          ["MLE", "SRE"])
     row(y2)
     _arrow(ax, (xs[3] + W / 2, y1), (xs[0] + W / 2, y2 + H), color=MUTED, ls="--",
@@ -155,14 +155,14 @@ def architecture(path: Path) -> None:
 
     # --- Carril 3: servicio (de derecha a izquierda)
     y3 = 30.0
-    _box(ax, xs[3], y3, W, H, "API REST FastAPI",
-         ["src/serving: POST /predict, /raw", "GET /health y /model-info", "validación Pydantic v2, OpenAPI"],
+    _box(ax, xs[3], y3, W, H, "API REST FastAPI 1.1.0",
+         ["POST /predict (rezagos opcionales)", "feature store: últimas 360 h", "Pydantic v2, /health, /model-info"],
          ["SWE"], face="#f3eefa")
     _box(ax, xs[2], y3, W, H, "Contenedor Docker",
-         ["Dockerfile multi-etapa, no root", "python:3.13.9-slim, HEALTHCHECK", "docker build / docker push"],
+         ["Dockerfile multi-etapa, no root", "build desde clon limpio (CI)", "Docker o Podman, HEALTHCHECK"],
          ["SRE"], face="#fbf1e8")
     _box(ax, xs[1], y3, W, H, "DockerHub",
-         ["gusrivasmna/mibici-demand-service", "1.0.0, 1.0.0-model-v1, latest", "docker pull / docker run"],
+         ["gusrivasmna/mibici-demand-service", "1.1.0, 1.1.0-model-v1, latest", "docker pull / docker run"],
          ["SRE"], face="#fbf1e8")
     _box(ax, xs[0], y3, W, H, "Consumo operativo",
          ["planeación del rebalanceo", "por estación y hora con 1 a 24 h", "de anticipación"], ["DS"])
@@ -201,11 +201,11 @@ def architecture(path: Path) -> None:
     ax.text(1.8, 4.1, "Transversal", ha="left", va="center", fontsize=9.8, fontweight="bold", color=INK)
     items = [
         ("Git / GitHub", "ramas y pull requests", "SWE"),
-        ("GitHub Actions", "pruebas e imagen", "SRE"),
+        ("GitHub Actions", "pruebas, build e imagen", "SRE"),
         (f"pytest ({facts['tests']} pruebas)", "unitarias + integración", "SWE"),
         ("config.yaml", "parámetros únicos", "SWE"),
         ("Semillas y versiones", "seed 42, deps con ==", "SRE"),
-        ("DVC + MLflow", "datos y modelos", "DE"),
+        ("DVC + MLflow + Git", "datos y modelos", "DE"),
     ]
     x = 13.5
     for title, sub, role in items:

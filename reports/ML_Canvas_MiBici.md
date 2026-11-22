@@ -57,8 +57,8 @@ construimos. Al final de cada bloque, **Cambio** indica qué se modificó respec
 
 ## 7. Modo de Inferencia (Making Predictions)
 - **Frecuencia:** lotes (por ejemplo, cada hora para las siguientes horas); `POST /predict` acepta hasta 1,000 instancias por petición.
-- **Despliegue:** API REST con FastAPI empaquetada en Docker; imagen `gusrivasmna/mibici-demand-service` (tags `1.0.0`, `1.0.0-model-v1`, `latest`).
-- **Cambio:** la Fase 1 mencionaba Podman o Docker; se eligió Docker porque lo pide la entrega (DockerHub) y GitHub Actions lo ejecuta de forma nativa. La latencia objetivo de < 5 s no se midió para toda la red; las latencias por petición están en `reports/fase_final/logs/20_api_smoke.log`.
+- **Despliegue:** API REST con FastAPI (servicio 1.1.0) empaquetada en Docker; imagen `gusrivasmna/mibici-demand-service` (tags `1.1.0`, `1.1.0-model-v1`, `latest`; `1.0.0` sigue publicada). El cliente envía estación y hora; los rezagos son opcionales y, sin ellos, el servicio los calcula con un feature store de las últimas 360 h (ventana predecible 24-dic-2025 a 1-ene-2026).
+- **Cambio:** la Fase 1 mencionaba Podman o Docker. La solución integrada usa Docker porque lo pide la entrega (DockerHub) y GitHub Actions lo ejecuta de forma nativa; la rama `entrega-final` construyó su imagen con Podman y esos comandos quedaron documentados. El feature store (idea de esa rama) evita que el cliente calcule los rezagos. La latencia objetivo de < 5 s no se midió para toda la red; las latencias por petición están en `reports/fase_final/logs/20_api_smoke.log`.
 
 ---
 

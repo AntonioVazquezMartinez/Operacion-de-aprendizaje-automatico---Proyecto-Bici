@@ -82,9 +82,9 @@ docker rm -f mibici-api
 |---|---|---|---|
 | `1.0.0` | Primera versión del servicio: `/predict` exige los tres rezagos | `sha256:c28158a1fa7f6f1e6dfe6bf482e00e5ddd60ee882ff4b21942e1bd98bb081fb6` | No: nunca se vuelve a publicar |
 | `1.0.0-model-v1` | Servicio 1.0.0 + versión 1 del modelo (`models:/mibici-demand-forecaster/1`) | el mismo de `1.0.0` | No |
-| `1.1.0` | Feature store: rezagos opcionales (`lags_source`), `PREDICTION_LOG`; con rezagos responde igual que 1.0.0 | PENDIENTE (se publica después de la auditoría) | No |
-| `1.1.0-model-v1` | Servicio 1.1.0 + versión 1 del modelo (mismo `model.pkl` que 1.0.0) | PENDIENTE (el mismo de `1.1.0`) | No |
-| `latest` | Última imagen publicada (pasará de 1.0.0 a 1.1.0) | PENDIENTE | Sí: se mueve en cada publicación |
+| `1.1.0` | Feature store: rezagos opcionales (`lags_source`), `PREDICTION_LOG`; con rezagos responde igual que 1.0.0 | `sha256:00747b9667e5a7f0b160185624920332b4452e16bcc672770c399a5910f3efe2` | No |
+| `1.1.0-model-v1` | Servicio 1.1.0 + versión 1 del modelo (mismo `model.pkl` que 1.0.0) | el mismo de `1.1.0` | No |
+| `latest` | Última imagen publicada (hoy 1.1.0) | el mismo de `1.1.0` | Sí: se mueve en cada publicación |
 
 Política: un cambio de código o dependencias sube la versión del servicio (SemVer: MAJOR si rompe el esquema de la
 API, MINOR si agrega funcionalidad compatible, PATCH si corrige). 1.1.0 es MINOR porque los rezagos pasan de
@@ -94,8 +94,9 @@ solo agrega campos). Un modelo nuevo promovido a `champion` con el mismo código
 imagen lo documentan: `docker image inspect gusrivasmna/mibici-demand-service:1.1.0 --format '{{json .Config.Labels}}'`
 (`org.opencontainers.image.version`, `mibici.model.version`, `mibici.model.uri`, `org.opencontainers.image.source`).
 
-Imagen 1.1.0 construida localmente (sin publicar): ID `sha256:00747b9667e5a7f0b160185624920332b4452e16bcc672770c399a5910f3efe2`,
-etiquetada como `ml-service:latest`, `gusrivasmna/mibici-demand-service:1.1.0`, `:1.1.0-model-v1` y `:latest`.
+Publicación verificada con la API pública de DockerHub (`reports/fase_final/reproducibilidad/dockerhub_tags.json`):
+`1.1.0`, `1.1.0-model-v1` y `latest` apuntan a `sha256:00747b96…` (127,182,682 bytes comprimida, publicada el
+22-nov-2026); `1.0.0` y `1.0.0-model-v1` siguen publicadas con `sha256:c28158a1…` (126,937,001 bytes).
 
 ## Detalles de la imagen
 
@@ -109,7 +110,7 @@ etiquetada como `ml-service:latest`, `gusrivasmna/mibici-demand-service:1.1.0`, 
 | Variables fijas | `PYTHONUNBUFFERED=1`, `PYTHONDONTWRITEBYTECODE=1`, `PYTHONHASHSEED=42`, `MLFLOW_DISABLE_AGENT_HINT=1` |
 | Puerto / comando | `EXPOSE 8000`; `uvicorn src.serving.app:app --host 0.0.0.0 --port 8000` (forma exec) |
 | HEALTHCHECK | `GET /health` con `urllib` de Python cada 15 s (503 sin modelo → `unhealthy`) |
-| Tamaño | 1.1.0: 556 MB en disco (`docker image ls`); 1.0.0: 555 MB en disco y 127 MB comprimido en DockerHub. El tamaño comprimido de 1.1.0 queda PENDIENTE hasta publicarla |
+| Tamaño | 1.1.0: 556 MB en disco (`docker image ls`) y 127,182,682 bytes (≈127 MB) comprimida en DockerHub; 1.0.0: 555 MB en disco y 126,937,001 bytes comprimida (`reproducibilidad/dockerhub_tags.json`) |
 | Tiempo de build | 1.1.0: 30 s con las capas de dependencias en caché (`docker_build_v1.1.0.log`); 1.0.0: 72 s sin caché |
 | Dependencias | `pip freeze` de la imagen 1.1.0 (`reproducibilidad/imagen_pip_freeze.txt`): 52 paquetes, idéntico al de 1.0.0 |
 
@@ -152,9 +153,9 @@ Referencia con rezagos: MAE 0.752896241060654 y RMSE 1.1785947698217105 sobre la
 | Windows 11, venv de entrenamiento | Python 3.13.9, uvicorn local | 0.0 | 0.0 | 500/500 | 0.0 (200/200) | 200/200 | PASS | `reproducibilidad/windows_venv.json` |
 | Contenedor Linux local (Docker Desktop, WSL2) | `ml-service:latest` (1.1.0) | 8.881784197001252e-16 | 8.881784197001252e-16 | 495/500 | 0.0 (200/200) | 200/200 | PASS | `reproducibilidad/contenedor_local.json` |
 | Clon limpio (solo archivos de Git), contenedor Linux | `ml-service:clon-limpio` (1.1.0, `--no-cache`) | 8.881784197001252e-16 | 8.881784197001252e-16 | 495/500 | 0.0 (200/200) | 200/200 | PASS | `reproducibilidad/clon_limpio.json` |
-| Imagen descargada de DockerHub (`docker pull`) | `gusrivasmna/mibici-demand-service:1.1.0` | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | `reproducibilidad/imagen_dockerhub.json` (tras publicar) |
-| GitHub Actions, imagen construida desde el repo | job `docker` de `tests.yml` | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | artefacto `reproducibilidad-github-actions-build` |
-| GitHub Actions, imagen publicada | flujo `docker-reproducibilidad` (tag `1.1.0`) | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | `reproducibilidad/github_actions.json` (tras publicar) |
+| Imagen descargada de DockerHub (`docker pull`) | `gusrivasmna/mibici-demand-service:1.1.0` | 8.881784197001252e-16 | 8.881784197001252e-16 | 495/500 | 0.0 (200/200) | 200/200 | PASS | `reproducibilidad/imagen_dockerhub.json` |
+| GitHub Actions, imagen construida desde el repo (`ubuntu-latest`) | job `docker` de `tests.yml` | 8.881784197001252e-16 | 8.881784197001252e-16 | 495/500 | 0.0 (200/200) | 200/200 | PASS | `reproducibilidad/github_actions_build.json`, [corrida 45066506318](https://github.com/AntonioVazquezMartinez/Operacion-de-aprendizaje-automatico---Proyecto-Bici/actions/runs/45066506318) |
+| GitHub Actions, imagen publicada (`ubuntu-latest`) | flujo `docker-reproducibilidad` (tag `1.1.0`) | 8.881784197001252e-16 | 8.881784197001252e-16 | 495/500 | 0.0 (200/200) | 200/200 | PASS | `reproducibilidad/github_actions.json`, [corrida 45066506421](https://github.com/AntonioVazquezMartinez/Operacion-de-aprendizaje-automatico---Proyecto-Bici/actions/runs/45066506421) |
 
 Las rutas de evidencia son relativas a `reports/fase_final/`. Las 5 filas que difieren en Linux lo hacen en
 exactamente 1 ulp: la suma de los árboles (escala log) es idéntica bit a bit en ambos sistemas y la diferencia
@@ -185,12 +186,11 @@ comparar métricas con Windows) está en
 - `.github/workflows/tests.yml`, job `docker` (adaptado de la rama `entrega-final`): después de las pruebas, en
   `ubuntu-latest` construye la imagen **desde el repositorio** con `docker build -t ml-service:latest .`, la levanta,
   espera `healthy`, corre `python3 scripts/verify_reproducibility.py` contra el contenedor (los tres caminos), hace
-  una petición real a `/predict` sin rezagos y publica el JSON como anotación (`reproducibilidad-build-json`) y como
+  una petición real a `/predict` sin rezagos y publica el JSON como anotaciones del job (dividido en partes) y como
   artefacto `reproducibilidad-github-actions-build`.
 - `.github/workflows/docker-reproducibilidad.yml` (push a `main`/`fase-final` y ejecución manual con el tag): lint
   del `Dockerfile` con hadolint y verificación de la imagen **publicada** en DockerHub (tag `1.1.0` por omisión);
-  publica el JSON como anotación `reproducibilidad-json` y como artefacto `reproducibilidad-github-actions`.
-  Mientras `1.1.0` no esté publicada, este flujo falla en el `docker pull` (se puede correr a mano con `1.0.0`).
+  publica el JSON como anotaciones del job, dividido en partes (`reproducibilidad-json-01de02`, ...), y como artefacto `reproducibilidad-github-actions`.
 
 ## Publicación (la ejecuta quien tenga la cuenta de DockerHub)
 
