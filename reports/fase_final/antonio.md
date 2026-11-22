@@ -8,7 +8,8 @@
 
 **Roles:** Data Engineer y ML Engineer.
 
-En esta fase la ejecución técnica la hizo Gustavo (SRE) en una sola máquina con los datos, MLflow y Docker.
+En esta fase hubo dos implementaciones técnicas en paralelo: la de Gustavo (SRE) en la rama `fase-final` y la de
+Jesús (DS) en la rama `entrega-final`; se compararon y se fusionaron en `fase-final` (merge `14e4886`).
 Tu responsabilidad como DE/MLE es el **análisis y la revisión** de dos entregables:
 
 1. **Etapa de datos:** ingesta de los 12 meses de 2025, limpieza, hashes SHA-256 y versionado con DVC.
@@ -27,8 +28,10 @@ Además, como dueño del repositorio, haces el merge del pull request final a `m
 | Hash y sistema operativo | El SHA-256 de un CSV cambia entre Windows y Linux solo por el fin de línea (CRLF vs LF) | `reports/fase_final/reproducibilidad/pipeline_linux_vs_windows.md` (sección 1) |
 | Model Registry | `mibici-demand-forecaster` v1 = HistGradientBoosting (`champion`), v2 = RandomForest (`challenger`), v3 = Poisson; misma asignación que en la Fase 2 | `logs/04_train.log` |
 | Exportación | `models:/mibici-demand-forecaster/1` → `models/champion/`, SHA-256 `ca4331a4…`, 500 predicciones de referencia | `models/champion_metadata.json`, `logs/06_export.log` |
-| Modelo → servicio | La API verifica el SHA-256 al arrancar; las 500 predicciones salen idénticas en Windows y con diferencia de 1 ulp (8.9e-16) en Linux | `docs/api.md`, `reports/fase_final/reproducibilidad/*.json` |
-| DVC | `dvc.yaml` + `dvc.lock` sin remoto externo (si aún no está en el repo, revísalo cuando se agregue) | `dvc.yaml`, `dvc.lock` |
+| Modelo → servicio | La API verifica el SHA-256 del modelo y del feature store al arrancar; las 500 predicciones de referencia salen idénticas en Windows y con diferencia de 1 ulp (8.9e-16) en Linux (contenedor, clon limpio e imagen de DockerHub) | `docs/api.md`, `reports/fase_final/reproducibilidad/*.json` |
+| Modelo en Git (desde 1.1.0) | `models/champion/` (unos 6.6 MB, con `feature_store.csv.gz`) está en Git, idea de la rama `entrega-final`: `docker build` funciona en un clon limpio | `reproducibilidad/clon_limpio.json`, `docs/docker.md` |
+| Binario de la Fase 2 | `models/fase2_original/` (el `model.joblib` de la Fase 2, entrenado con Python 3.12) reproduce sus 1,000 predicciones de referencia; frente al reentrenado: mismos hiperparámetros, correlación 0.9989, distintos datos del portal | `reproducibilidad/fase2_binario_vs_reentrenado.md` |
+| DVC | `dvc.yaml` (5 etapas) + `dvc.lock` sin remoto externo; las salidas de `export` van con `cache: false` porque el modelo ya está en Git (un archivo no puede estar en Git y en la caché de DVC a la vez) | `dvc.yaml`, `dvc.lock`, `docs/dvc.md` |
 
 ## Preguntas guía
 
@@ -37,9 +40,11 @@ Además, como dueño del repositorio, haces el merge del pull request final a `m
 2. ¿Por qué el hash de los CSV intermedios no sirve para comparar entre sistemas operativos y qué usamos en su lugar?
 3. ¿Qué gana la operación con el alias `champion` y la exportación con SHA-256 frente a copiar un `.pkl`?
    ¿Cómo se promovería el challenger si el monitoreo aplica la regla R3?
-4. Si llegara enero de 2026, ¿qué pasos del ciclo (datos → Registry → servicio) habría que repetir y cuáles ya están
+4. ¿Qué ventajas y riesgos tiene versionar el modelo en Git (6.6 MB) frente a dejarlo solo en DVC o en un remoto?
+   ¿Por qué el binario de la Fase 2 y el reentrenado no son idénticos aunque tienen los mismos hiperparámetros?
+5. Si llegara enero de 2026, ¿qué pasos del ciclo (datos → Registry → servicio) habría que repetir y cuáles ya están
    automatizados?
-5. ¿Qué mejorarías de la etapa de datos y del ciclo de vida del modelo si el proyecto siguiera?
+6. ¿Qué mejorarías de la etapa de datos y del ciclo de vida del modelo si el proyecto siguiera?
 
 ## Actividades por fase
 

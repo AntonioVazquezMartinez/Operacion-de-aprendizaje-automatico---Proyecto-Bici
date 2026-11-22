@@ -8,7 +8,8 @@
 
 **Rol:** Software Engineer.
 
-En esta fase la ejecución técnica la hizo Gustavo (SRE). Tu responsabilidad como SWE es el **análisis y la
+En esta fase hubo dos implementaciones en paralelo (Gustavo en `fase-final` y Jesús en `entrega-final`), que se
+fusionaron en `fase-final`. Tu responsabilidad como SWE es el **análisis y la
 revisión de la calidad de software**: la suite de pruebas (punto 1 de la entrega), la API (punto 2) y la
 integración continua.
 
@@ -17,13 +18,14 @@ integración continua.
 | Tema | Resultado | Dónde verlo |
 |---|---|---|
 | Migración de pruebas | De `unittest` (21 pruebas heredadas, `logs/09_pytest.log`) a pytest con fixtures, marcador `integration` y `--strict-markers` | `tests/README.md`, `tests/conftest.py`, `pyproject.toml` |
-| Resultado | `pytest -q`: 270 aprobadas, 0 fallidas, 45.6 s | `reports/fase_final/logs/10_pytest_cobertura.log` |
-| Cobertura | 93 % de `src/` (líneas y ramas); el más bajo es `src/monitoring/drift.py` con 74 % | mismo log |
+| Resultado | `pytest -q`: 305 aprobadas, 0 fallidas, 48.1 s | `reports/fase_final/logs/10_pytest_cobertura.log` |
+| Cobertura | 94 % de `src/` (líneas y ramas); el más bajo es `src/monitoring/drift.py` con 74 %; `src/serving/feature_store.py` 95 % | mismo log |
+| Prueba de coherencia (sin training-serving skew) | El servicio recalcula rezagos y predicciones del feature store y deben coincidir con el pipeline (idea de la rama `entrega-final`) | `tests/test_serving_feature_store.py` |
 | Integración | Carga → limpieza → características → Optuna → Model Registry temporal → recarga del champion → predicción → métricas | `tests/integration/test_pipeline_e2e.py` |
-| API | `POST /predict`, `POST /predict/raw`, `GET /health`, `GET /model-info`; Pydantic v2 con `extra_forbidden`; errores 422/404/503 con el mismo cuerpo JSON | `src/serving/`, `docs/api.md`, `docs/openapi.json` |
-| Prueba de humo | 21 peticiones por entorno (9 respuestas 200, 9 de 422, 2 de 404, 1 de 405) y 3 de 503 sin modelo; 500/500 predicciones idénticas en venv completo y en venv solo de servicio | `reports/fase_final/logs/20_api_smoke.log` |
+| API (1.1.0) | `POST /predict` con rezagos opcionales (sin ellos los calcula el feature store y responde `lags_source`), `POST /predict/raw`, `GET /health`, `GET /model-info`; Pydantic v2 con `extra_forbidden`; errores 422/404/503 con el mismo cuerpo JSON | `src/serving/`, `docs/api.md`, `docs/openapi.json` |
+| Prueba de humo | 27 peticiones por entorno (13 respuestas 200, 11 de 422, 2 de 404, 1 de 405) y 3 de 503 sin modelo; venv: 500/500 idénticas con rezagos y 200/200 sin rezagos; contenedor Linux: 495/500 (1 ulp) y 200/200 | `reports/fase_final/logs/20_api_smoke.log` |
 | Pruebas en Linux | Primera corrida en el contenedor Linux con el modelo real: 268 aprobadas y 2 fallidas (dos pruebas exigían igualdad exacta y fallaron por 1 ulp, 8.9e-16, en 5 de 500 filas). Se cambiaron a tolerancia 1e-9 y la corrida vigente da 270 aprobadas | `reproducibilidad/pipeline_linux_pytest.log` (antecedente), `reproducibilidad/pipeline_linux_pytest_v2.log` (vigente), `pipeline_linux_vs_windows.md` |
-| CI | `tests.yml`: Python 3.13, `pytest -q --cov=src` en push a `main`/`fase-final` y en PR; `docker-reproducibilidad.yml`: hadolint y verificación de la imagen publicada | `.github/workflows/` |
+| CI | `tests.yml`: job de pruebas (Python 3.13, `pytest -q --cov=src`; con el modelo en Git también corren las pruebas que lo usan) y job `docker` que construye la imagen desde el repo, la levanta y la verifica (idea de `entrega-final`); `docker-reproducibilidad.yml`: hadolint y verificación de la imagen publicada | `.github/workflows/`, pestaña Actions |
 
 ## Preguntas guía
 
@@ -32,8 +34,9 @@ integración continua.
 2. ¿Qué revela el 74 % de `drift.py` frente al 100 % de `features.py`? ¿Vale la pena perseguir 100 %?
 3. ¿Qué enseñan las dos pruebas que fallaron en Linux por 1 ulp? ¿Cómo deberían escribirse las pruebas de
    reproducibilidad (tolerancia explícita, igual que `scripts/verify_reproducibility.py` con 1e-9)?
-4. ¿Por qué `/predict` recibe solo estación, fecha y rezagos y el servidor deriva el resto con `src/features.py`?
-   ¿Qué riesgo evita (training-serving skew)?
+4. ¿Por qué en la versión 1.1.0 los rezagos son opcionales y el servidor los calcula con el feature store usando
+   `src/features.py`? ¿Qué riesgo evita la prueba de coherencia servicio-pipeline (training-serving skew)? ¿Qué
+   aporta el job `docker` del CI frente a verificar solo la imagen publicada?
 5. Retoma tu propuesta de la Fase 2 (prueba de contrato del esquema de cada CSV y ruff antes de las pruebas): ¿se
    cumplió? ¿Qué agregarías al CI?
 

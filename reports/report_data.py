@@ -31,9 +31,11 @@ DOCKERHUB_URL = "https://hub.docker.com/r/gusrivasmna/mibici-demand-service"
 DOCKER_IMAGE = "gusrivasmna/mibici-demand-service"
 ACTIONS_URL = f"{REPO_URL}/actions"
 # Corrida del flujo docker-reproducibilidad en GitHub Actions (hadolint + verificación de la imagen publicada).
-GHA_RUN_URL = f"{REPO_URL}/actions/runs/45060105120"  # se sustituye por _fuente.run de github_actions.json
-# Corrida del flujo tests (pytest con cobertura, Python 3.13, runner Linux) del mismo push.
-TESTS_RUN_URL = f"{REPO_URL}/actions/runs/45060105154"
+# Corrida que verificó la imagen 1.0.0 (su JSON está en reproducibilidad/v1.0.0/github_actions.json). La de 1.1.0 se
+# toma de _fuente.run de reproducibilidad/github_actions.json cuando existe.
+GHA_RUN_URL = f"{REPO_URL}/actions/runs/45060105120"
+# Corrida del flujo tests (job de pruebas con cobertura y job docker que construye la imagen) del push final.
+TESTS_RUN_URL = f"{REPO_URL}/actions/runs/45066506318"
 
 # Integrantes: nombre, matrícula, rol, archivo de la fase final y alias con los que aparecen en Git.
 MEMBERS = [
@@ -61,7 +63,9 @@ PULL_REQUESTS = [
     (2, "fase1-swe-reproducibilidad", "Fase 1: Makefile, pyproject, CI y notebook de EDA ejecutado"),
     (3, "jesus/declaracion-ia", "Fase 1: declaración de uso de IA"),
     (4, "fase2-modelado", "Fase 2: Cookiecutter v2, config.yaml, Optuna, MLflow Tracking y Model Registry"),
+    (5, "entrega-final", "Fase final en paralelo (Jesús Rincón): feature store, Podman/DockerHub, CI con build; abierto"),
 ]
+REPRO_V1 = REPRO / "v1.0.0"
 
 
 def read_text(path: Path) -> Optional[str]:
@@ -171,27 +175,38 @@ def load_api() -> Dict[str, Any]:
     for sec in sections[1:]:
         title = sec.splitlines()[0].strip()
         codes = Counter(re.findall(r"<<< HTTP (\d+)", sec))
-        repro = re.findall(r"\*\*\* (/predict(?:/raw)?): (\d+) predicciones; diferencia máxima absoluta = ([\d.eE+-]+); "
-                           r"iguales bit a bit = (\d+)/(\d+)", sec)
+        repro = re.findall(r"\*\*\* (/predict(?:/raw)?)(?: \[([^\]]+)\])?: (\d+) predicciones; diferencia máxima "
+                           r"absoluta = ([\d.eE+-]+); iguales bit a bit = (\d+)/(\d+)", sec)
         out["sections"].append({"title": title, "codes": dict(codes), "requests": sum(codes.values()),
                                 "repro": repro})
     m = re.search(r"--- predict: una instancia.*?>>> POST /predict\n(\{.*?\n\})\n<<< HTTP (\d+)[^\n]*\n(\{.*?\n\})\n",
                   text, re.S)
     if m:
         out["example_request"], out["example_status"], out["example_response"] = m.group(1), m.group(2), m.group(3)
+    m = re.search(r"--- predict SIN rezagos: el servicio.*?>>> POST /predict\n(\{.*?\n\})\n<<< HTTP (\d+)[^\n]*\n"
+                  r"(\{.*?\n\})\n", text, re.S)
+    if m:
+        out["fs_request"], out["fs_status"], out["fs_response"] = m.group(1), m.group(2), m.group(3)
     m = re.search(r"--- 422: rezago negativo.*?<<< HTTP (\d+)[^\n]*\n(\{.*?\n\})\n", text, re.S)
     if m:
         out["error_example"] = m.group(2)
     return out
 
 
-def load_repro() -> Dict[str, Any]:
+def _verify_jsons(folder: Path) -> List[Dict[str, Any]]:
+    """JSON de scripts/verify_reproducibility.py (tienen `verdict`) de una carpeta."""
     envs = []
-    for path in sorted(REPRO.glob("*.json")) if REPRO.exists() else []:
+    for path in sorted(folder.glob("*.json")) if folder.exists() else []:
         data = read_json(path)
-        if isinstance(data, dict) and "verdict" in data:
+        if isinstance(data, dict) and "verdict" in data and "endpoints" in data:
             data["_file"] = path.relative_to(ROOT).as_posix()
             envs.append(data)
+    return envs
+
+
+def load_repro() -> Dict[str, Any]:
+    envs = _verify_jsons(REPRO)          # servicio vigente (1.1.0)
+    envs_v1 = _verify_jsons(REPRO_V1)    # historial de la versión 1.0.0
     def pytest_summary(name: str) -> Optional[Dict[str, Any]]:
         text = read_text(REPRO / name)
         m = re.search(r"(?:(\d+) failed, )?(\d+) passed[^\n]*in ([\d.]+)s", text or "")
@@ -215,7 +230,9 @@ def load_repro() -> Dict[str, Any]:
             pipeline_cmp = {"file": f"reports/fase_final/reproducibilidad/{name}", "data": pipeline_cmp}
     pipeline_csv = read_csv(REPRO / "pipeline_linux_vs_windows.csv") if REPRO.exists() else None
     pipeline_md = (REPRO / "pipeline_linux_vs_windows.md").exists() if REPRO.exists() else False
-    return {"envs": envs, "linux_pytest": lin, "linux_pytest_prev": lin_prev, "diag": diag, "pipeline_csv": pipeline_csv, "pipeline_md": pipeline_md,
+    fase2_cmp = {k: read_json(REPRO / f"fase2_binario_vs_reentrenado{s}.json") for k, s in (("windows", ""),
+                                                                                              ("linux", "_linux"))}
+    return {"envs": envs, "envs_v1": envs_v1, "fase2_cmp": fase2_cmp, "linux_pytest": lin, "linux_pytest_prev": lin_prev, "diag": diag, "pipeline_csv": pipeline_csv, "pipeline_md": pipeline_md,
             "standalone_diff": sm.group(1) if sm else None, "verify_diff": vm.group(1) if vm else None,
             "pipeline_cmp": pipeline_cmp}
 
@@ -225,8 +242,16 @@ def load_docker() -> Dict[str, Any]:
     docs = read_text(ROOT / "docs" / "docker.md") or ""
     out["tags_documented"] = sorted(set(re.findall(re.escape(DOCKER_IMAGE) + r":([\w.\-]+)", docs)))
     gha = read_json(REPRO / "github_actions.json") if REPRO.exists() else None
-    out["gha"] = gha
-    out["gha_run_url"] = (gha or {}).get("_fuente", {}).get("run") or GHA_RUN_URL
+    out["gha"] = gha                                         # flujo docker-reproducibilidad, imagen publicada 1.1.0
+    out["gha_run_url"] = (gha or {}).get("_fuente", {}).get("run")
+    gha_v1 = read_json(REPRO_V1 / "github_actions.json")
+    out["gha_v1"] = gha_v1
+    out["gha_v1_run_url"] = (gha_v1 or {}).get("_fuente", {}).get("run") or GHA_RUN_URL
+    gha_build = read_json(REPRO / "github_actions_build.json") if REPRO.exists() else None
+    out["gha_build"] = gha_build                             # job docker de tests.yml (imagen construida del repo)
+    out["gha_build_run_url"] = (gha_build or {}).get("_fuente", {}).get("run")
+    tags = read_json(REPRO / "dockerhub_tags.json") or {}
+    out["hub_tags"] = {t["tag"]: t for t in tags.get("tags", [])}
     digest = read_text(REPRO / "github_actions_image_digest.json") if REPRO.exists() else None
     out["digest"] = digest.strip() if digest else None
     push_logs = [p for p in REPRO.glob("*") if re.search(r"push|dockerhub|publicacion", p.name, re.I)] \
@@ -239,10 +264,10 @@ def load_docker() -> Dict[str, Any]:
     m = re.search(r"Digest publicado[^`]*`(sha256:[0-9a-f]+)`", docs)
     out["published_digest"] = m.group(1) if m else None
     m = re.search(r"\| Tamaño \| ([^|]+) \|", docs)
-    out["size"] = m.group(1).strip() if m else None
+    out["size"] = m.group(1).strip().replace("`", "") if m else None
     m = re.search(r"\| Tiempo de build \| ([^|]+) \|", docs)
-    out["build_time"] = m.group(1).strip() if m else None
-    build = read_text(REPRO / "docker_build.log") or ""
+    out["build_time"] = m.group(1).strip().replace("`", "") if m else None
+    build = read_text(REPRO / "docker_build_v1.1.0.log") or read_text(REPRO_V1 / "docker_build.log") or ""
     m = re.search(r"naming to docker\.io/library/([\w.\-:/]+)", build)
     out["local_build_tag"] = m.group(1) if m else None
     return out

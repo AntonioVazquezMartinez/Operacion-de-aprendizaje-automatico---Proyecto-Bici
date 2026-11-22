@@ -210,6 +210,22 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
     rows_train = val(meta, "data_period", "rows_train")
     pyv = val(meta, "library_versions", "python") or "s/d"
     ref_rows = val(drift, "reference", "rows")
+    fs = meta.get("feature_store") or {}
+    fsw = fs.get("predictable_window") or {}
+    svc_ver = val(cfg, "serving", "service_version") or "s/d"
+    f2c = rep.get("fase2_cmp") or {}
+    f2w, f2l = f2c.get("windows") or {}, f2c.get("linux") or {}
+    f2vs = f2w.get("fase2_vs_retrained_on_reference") or {}
+    hub_tags = dock.get("hub_tags") or {}
+    t110, t100 = hub_tags.get("1.1.0") or {}, hub_tags.get("1.0.0") or {}
+    merge = next((x for x in gh.get("commits", []) if x["merge"] and "entrega-final" in x["subject"]), None)
+    merge_ref = f"merge {merge['hash']}" if merge else "merge de entrega-final"
+    clon = next((e for e in envs if e["_file"].endswith("/clon_limpio.json")), None)
+    envs_v1 = rep.get("envs_v1", [])
+
+    def fs_path(e):
+        """Camino /predict sin rezagos (feature store) de un JSON de verificación."""
+        return val(e, "feature_store", "predict_feature_store") or {}
 
     cover(ctx, D, report_date, tmp)
 
@@ -243,16 +259,20 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
         ["Pruebas automatizadas", f"{n(pt.get('passed'))} pruebas aprobadas con pytest -q; cobertura de "
                                   f"{pt.get('coverage', 's/d')} % de src/" if pt.get("passed") else
          Pend("log de pytest"), "reports/fase_final/logs/10_pytest_cobertura.log"],
-        ["Servicio", "FastAPI: POST /predict, POST /predict/raw, GET /health, GET /model-info; validación con "
-                     "Pydantic v2", "docs/api.md, docs/openapi.json"],
+        ["Servicio", f"FastAPI {svc_ver}: POST /predict (rezagos opcionales: sin ellos los calcula el feature "
+                     "store), POST /predict/raw, GET /health, GET /model-info; validación con Pydantic v2",
+         "docs/api.md, docs/openapi.json"],
         ["Reproducibilidad del artefacto",
-         f"{len(ok_envs)} entorno(s) con veredicto PASS al reproducir las 500 predicciones de referencia"
-         if envs else Pend("verificación entre entornos"), "reports/fase_final/reproducibilidad/*.json"],
-        ["Contenedor", [f"Imagen {rd.DOCKER_IMAGE} (", Link("DockerHub", rd.DOCKERHUB_URL), "), tags 1.0.0, "
-                        "1.0.0-model-v1 y latest" if dock["published_evidence"] else "",
-                        None if dock["published_evidence"] else Pend("evidencia de publicación y verificación "
-                                                                      "con docker pull (GitHub Actions)")],
-         "Dockerfile, docs/docker.md"],
+         f"{len(ok_envs)} entornos con veredicto PASS (500 predicciones con rezagos y 200 sin rezagos), incluido un "
+         "clon limpio y la imagen descargada de DockerHub; el binario de la Fase 2 reproduce sus 1,000 predicciones"
+         if envs else Pend("verificación entre entornos"), "reports/fase_final/reproducibilidad/"],
+        ["Contenedor", [f"Imagen {rd.DOCKER_IMAGE} (", Link("DockerHub", rd.DOCKERHUB_URL), "): ",
+                        ", ".join(sorted(hub_tags)) if hub_tags else Pend("tags publicados"),
+                        "; se construye desde un clon limpio porque el modelo está en Git"],
+         "docs/docker.md, dockerhub_tags.json"],
+        ["Trabajo en equipo", f"Dos soluciones completas en paralelo (ramas fase-final y entrega-final) comparadas "
+                              f"requisito por requisito e integradas en fase-final ({merge_ref})",
+         "sección 2.5, git log"],
         ["Data drift", f"{len(scen)} escenarios y {len(windows)} ventanas semanales; el monitoreo detecta el "
                        f"cambio real de las vacaciones de diciembre", "reports/drift/drift_report.md"],
     ]
@@ -270,7 +290,9 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
               "de scikit-learn con Optuna, MLflow Tracking y Model Registry. La fase final, objeto principal de este "
               "reporte, convierte ese modelo en un servicio operable y verificable: pruebas unitarias y de "
               "integración con pytest, una API con FastAPI, reproducibilidad demostrada en otro entorno, una imagen "
-              "Docker publicada en DockerHub y un estudio de data drift con umbrales, alertas y acciones.")
+              "Docker publicada en DockerHub y un estudio de data drift con umbrales, alertas y acciones. Dos "
+              "integrantes resolvieron la fase final en paralelo, en ramas distintas; las comparamos e integramos lo "
+              "mejor de cada una en una sola solución (sección 2.5).")
     heading(ctx, "1.1 Problemática y Machine Learning Canvas", 2)
     para(ctx, "El problema de negocio no cambió desde la Fase 1: en horas pico (8:00 y 18:00 en días laborales) las "
               "estaciones céntricas se vacían o se saturan, y el rebalanceo con camionetas llega tarde. Si el operador "
@@ -303,8 +325,9 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
          "Se mantiene como regla de uso propuesta; no se dispone de datos de inventario en tiempo real para "
          "validarla (limitación reconocida, sección 6.2)."],
         ["Inferencia", "Lotes cada 60 min; < 5 s para toda la red; FastAPI en Podman/Docker.",
-         "API FastAPI en contenedor Docker (se eligió Docker por ser lo que pide la entrega y lo que ejecuta "
-         "GitHub Actions); latencias registradas en 20_api_smoke.log."],
+         f"API FastAPI {svc_ver} en contenedor Docker (Podman se usó en la rama entrega-final y sus comandos están "
+         "documentados); el cliente puede omitir los rezagos dentro de la ventana del feature store; latencias en "
+         "20_api_smoke.log."],
         ["Evaluación offline", "Partición cronológica 70/15/15; MAE, RMSE, R².",
          "Igual, más devianza de Poisson; el conjunto de prueba se usa una sola vez y se agrega WAPE en el "
          "monitoreo."],
@@ -367,8 +390,9 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
            "corrida de MLflow, sus hiperparámetros y el hash del dataset de entrenamiento.")
     bullet(ctx, ("b", "El modelo debe operar fuera de la máquina de quien entrenó. "), "En la Fase 2 el modelo "
            "champion solo existía en la base local de un integrante. La fase final lo exporta como artefacto "
-           "autocontenido con SHA-256, lo sirve con una API y lo empaqueta en una imagen que cualquiera puede "
-           "descargar y verificar contra 500 predicciones de referencia.")
+           "autocontenido con SHA-256, lo versiona en Git, lo sirve con una API y lo empaqueta en una imagen que "
+           "cualquiera puede construir desde un clon limpio o descargar, y verificar contra las predicciones de "
+           "referencia.")
     para(ctx, "Estos rasgos corresponden a la deuda técnica que describen Sculley et al. (2015): dependencias de "
               "datos inestables, configuración dispersa y ausencia de monitoreo. Las prácticas que adoptamos siguen "
               "el ciclo de vida de MLOps descrito por Treveil et al. (2020) y Kreuzberger et al. (2023).")
@@ -443,10 +467,13 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
          "modelo y del dataset, y 500 predicciones de referencia como patrón oro."),
         ("Pruebas. ", f"Migración de unittest a pytest con fixtures, marcador de integración y cobertura: de "
          f"{pt.get('legacy_passed', 's/d')} pruebas heredadas a {n(pt.get('passed'))}."),
-        ("Servicio. ", "API FastAPI con validación Pydantic, errores uniformes, OpenAPI y colección de Postman."),
-        ("Contenedor y reproducibilidad. ", "Dockerfile multi-etapa, verificación del servicio contra la referencia "
-         "en distintos entornos y reentrenamiento completo en un contenedor Linux para medir qué se reproduce bit "
-         "a bit y qué no."),
+        ("Servicio. ", "API FastAPI con validación Pydantic, errores uniformes, OpenAPI y colección de Postman; "
+         f"en la versión {svc_ver}, rezagos opcionales calculados con un feature store y registro de predicciones."),
+        ("Contenedor y reproducibilidad. ", "Dockerfile multi-etapa, modelo versionado en Git para construir la imagen "
+         "desde un clon limpio, verificación del servicio contra la referencia en distintos entornos, reentrenamiento "
+         "completo en un contenedor Linux y comparación con el binario original de la Fase 2."),
+        ("Integración de dos soluciones. ", "Jesús Rincón (rama entrega-final) y Gustavo Vázquez (rama fase-final) "
+         "resolvieron la entrega en paralelo; se compararon y se fusionaron en fase-final (sección 2.5)."),
         ("Monitoreo de drift. ", "Ocho escenarios (incluido un control), PSI, KS, Wasserstein, calidad de datos, "
          "MAE y WAPE contra línea base, umbrales en config.yaml y acción propuesta por regla."),
         ("Documentación y reporte. ", "README, docs/, diagrama de la solución y este reporte generado por código."),
@@ -503,21 +530,71 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
         ["Final", "Data drift", "DS / SRE (resp.)", "SciPy, Matplotlib", "src/monitoring, reports/drift/"],
         ["Final", "Versionado de datos y modelo", "DE (resp.)", "DVC", "dvc.yaml, dvc.lock"],
     ]
+    fases += [
+        ["Final", "Solución paralela: servicio con feature store, Podman y DockerHub, CI con build", "DS (Jesús)",
+         "FastAPI, Podman", "rama entrega-final (PR #5)"],
+        ["Final", "Comparación e integración de las dos soluciones", "SRE / DS", "Git, pytest, Docker",
+         f"{merge_ref}, sección 2.5"],
+    ]
     table(ctx, "t:fases", "Resumen de actividades por fase, rol responsable, herramienta y evidencia",
           ["Fase", "Actividad", "Rol", "Herramienta", "Evidencia en el repositorio"], fases,
           widths=[0.6, 2.0, 1.0, 1.4, 2.0], size=8.5,
-          note=["en la fase final la ejecución técnica la realizó Gustavo Vázquez (SRE); “resp.” indica el rol al "
-                "que corresponde el entregable y cuyo integrante es responsable de su análisis y revisión (sección 3)."])
+          note=["en la fase final la ejecución técnica la realizaron en paralelo Gustavo Vázquez (rama fase-final) y "
+                "Jesús Rincón (rama entrega-final); “resp.” indica el rol al que corresponde el entregable y cuyo "
+                "integrante es responsable de su análisis y revisión (sección 3)."])
+
+    heading(ctx, "2.5 Dos soluciones en paralelo y su integración", 2)
+    para(ctx, "Sin haberlo coordinado, dos integrantes resolvieron completa la fase final al mismo tiempo: Jesús "
+              "Rincón en la rama entrega-final (pull request #5) y Gustavo Vázquez en fase-final. En lugar de elegir "
+              "una y descartar la otra, las comparamos requisito por requisito, ejecutamos las pruebas de ambas y "
+              "tomamos de cada una lo que resolvía mejor el problema. La integración se hizo en fase-final ("
+              f"{merge_ref}, con estrategia ours: los commits de Jesús quedan en el historial) y las piezas traídas "
+              "de entrega-final se adaptaron al código de fase-final con sus propias pruebas. La Tabla ",
+         ctx.ref("t:ramas"), " resume la comparación.", keep=True)
+    ramas = [
+        ["Rezagos en /predict", "El cliente envía los tres rezagos", "Feature store con las últimas 360 h; rezagos "
+                                                                     "opcionales y lags_source",
+         "Feature store de entrega-final, con rezagos opcionales y la misma función del entrenamiento"],
+        ["Modelo en la imagen", "Fuera de Git (DVC); build solo con el modelo exportado localmente",
+         "Modelo dentro de Git en models/champion", "Modelo en Git: docker build funciona en un clon limpio"],
+        ["Contenedor", "Docker, python:3.13.9-slim por digest, imagen gusrivasmna/mibici-demand-service",
+         "Podman, Python 3.12, imagen angrinconr/mibici-demand-api", "Imagen de fase-final (1.1.0) y comandos de "
+                                                                      "Podman documentados"],
+        ["Integración continua", "Pruebas con cobertura y verificación de la imagen publicada",
+         "Pruebas y construcción de la imagen desde el repositorio", "Ambas: job docker que construye y prueba la "
+                                                                     "imagen, más la verificación de la publicada"],
+        ["Pruebas", "Suite pytest unitaria y de integración, cobertura por módulo",
+         "Suite pytest con prueba de coherencia servicio-pipeline", "Suite de fase-final más la prueba de "
+                                                                    "coherencia (sin training-serving skew)"],
+        ["Reproducibilidad", "500 predicciones en varios entornos; reentrenamiento en Linux",
+         "1,000 predicciones en Windows, Linux y contenedor Podman", "Ambas; además, el binario original de la Fase 2 "
+                                                                    "se conservó y se comparó"],
+        ["Monitoreo", "8 escenarios, PSI/KS/Wasserstein, calidad de datos, MAE y WAPE",
+         "Escenarios simulados y monitoreo semanal con PSI/KS", "Monitoreo de fase-final"],
+        ["Auditoría de predicciones", "No tenía", "PREDICTION_LOG (registro JSONL)", "Registro opcional de "
+                                                                                    "predicciones"],
+    ]
+    table(ctx, "t:ramas", "Comparación de las dos soluciones y lo que se integró en fase-final",
+          ["Aspecto", "fase-final (Gustavo)", "entrega-final (Jesús)", "Solución integrada"], ramas,
+          widths=[1.2, 1.7, 1.7, 1.9], size=8,
+          note=["descripción de entrega-final tomada de su README (rama origin/entrega-final, sección Entrega Final) "
+                "y de sus commits acf3df3 y 9110f58; la integración, en los commits posteriores al merge (git log)."])
+    para(ctx, ("b", "Por qué fue útil. "), "Comparar dos implementaciones independientes funcionó como una revisión por "
+              "pares: la de Jesús mostró que pedir al cliente los rezagos trasladaba al consumidor un cálculo que el "
+              "servicio puede hacer con la misma función del entrenamiento, y que sin el modelo en Git la imagen no "
+              "se podía construir en un clon limpio; la de fase-final aportó la verificación entre entornos con "
+              "tolerancia justificada, el monitoreo más completo y la imagen fijada por digest. El costo fue trabajo "
+              "duplicado por falta de coordinación previa, que reconocemos como área de mejora (sección 6.2).")
 
     # ============================================================================ 3. ROLES
     heading(ctx, "3. Roles y metodología MLOps", 1, page_break=True)
     para(ctx, "Desde la Fase 1 adoptamos los cinco roles de MLOps con cuatro integrantes: José Antonio Vázquez cubre "
               "Data Engineer y ML Engineer. En las dos primeras fases cada integrante ejecutó las actividades de su "
-              "rol. Para la fase final el equipo acordó que Gustavo Vázquez ejecutara toda la parte técnica (para "
-              "trabajar en una sola máquina con los datos, la base de MLflow y Docker) y que cada uno de los demás "
-              "integrantes asumiera el análisis y la revisión de los entregables de su rol, documentados en su "
-              "archivo reports/fase_final/<nombre>.md. Lo describimos así para que la atribución sea fiel al "
-              "historial de Git.")
+              "rol. En la fase final hubo dos implementaciones técnicas en paralelo: la de Gustavo Vázquez (SRE) en "
+              "la rama fase-final y la de Jesús Rincón (DS) en la rama entrega-final; se compararon y se integraron "
+              "en fase-final (sección 2.5). Cada integrante asume además el análisis y la revisión de los entregables "
+              "de su rol, documentados en su archivo reports/fase_final/<nombre>.md. Lo describimos así para que la "
+              "atribución sea fiel al historial de Git.")
     heading(ctx, "3.1 Actividades de cada rol por fase", 2)
     roles_rows = [
         ["Data Engineer\n(Antonio)", "Descarga y limpieza (downloader, cleaner); versiones raw/interim en MLflow.",
@@ -528,8 +605,11 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
         ["Data Scientist\n(Jesús)", "ML Canvas, EDA, variables cíclicas y rezagos.",
          "Rediseño de variables (sin rezago de 1 h), algoritmos y espacios de Optuna; integró la migración a "
          "Cookiecutter v2 y config.yaml (commit 93586e4).",
-         ["Responsable del análisis de resultados del modelo y de la simulación de drift. ",
-          Guide("[Jesús: ajusta esta celda con lo que analizaste.]")]],
+         ["Implementó en la rama entrega-final una solución completa: servicio con feature store, imagen con "
+          "Podman publicada en DockerHub (angrinconr/mibici-demand-api), CI con construcción de la imagen, "
+          "verificación en 3 entornos y drift; de ella se integraron el feature store, el modelo en Git, el registro "
+          "de predicciones, la prueba de coherencia y el job de build. Responsable del análisis del modelo y del "
+          "drift. ", Guide("[Jesús: ajusta esta celda con tu análisis.]")]],
         ["Software Engineer\n(Erick)", "Estructura Cookiecutter, refactorización a POO, suite unittest, CI.",
          "Revisión de la migración, corrección de la prueba de festivos, pruebas de read_month, integración de main "
          "y CI.",
@@ -537,8 +617,10 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
           Guide("[Erick: ajusta esta celda con lo que revisaste.]")]],
         ["Site Reliability Engineer\n(Gustavo)", "requirements.txt, environment.yml, MLflow con SQLite.",
          "Entorno reproducible y verificación en un clon limpio; hallazgos de dependencias sin versión fija.",
-         "Ejecución técnica completa: entorno fijado, reentrenamiento, exportación, pytest, API, Docker, "
-         "verificación entre entornos y drift."],
+         "Implementó la solución de la rama fase-final: entorno fijado, reentrenamiento y comparación con la "
+         "Fase 2, exportación, pytest y CI, API, Docker y DockerHub, DVC, verificación entre entornos y drift. "
+         f"Comparó las dos ramas, integró las piezas de entrega-final, publicó la versión {svc_ver} y generó el "
+         "reporte."],
         ["ML Engineer\n(Antonio)", "MLflowDataVersioner con SHA-256; flujo de punta a punta.",
          "Pipeline con MLflow Tracking, Model Registry con champion/challenger y predicción por lotes.",
          ["Responsable del análisis del ciclo de vida del modelo: Registry → exportación → servicio. ",
@@ -547,7 +629,8 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
     table(ctx, "t:roles", "Actividades por rol y fase", ["Rol (integrante)", "Fase 1", "Fase 2", "Fase final"],
           roles_rows, widths=[1.3, 1.6, 1.8, 1.8], size=8.5,
           note=["Fases 1 y 2 según reports/roles_mlops.md, los reportes de cada fase, reports/fase2/*.md y el historial "
-                "de Git. Las celdas en amarillo las ajusta cada integrante."])
+                "de Git; fase final según las ramas fase-final y entrega-final. Las celdas en amarillo las ajusta cada "
+                "integrante."])
     heading(ctx, "3.2 Alineación de los roles con el ciclo de vida MLOps", 2)
     para(ctx, "La Figura ", ctx.ref("f:ciclo"), " ubica cada etapa del ciclo de vida (datos, experimentación, "
               "empaquetado, despliegue, monitoreo y retroalimentación) con los roles responsables y la fase en que se "
@@ -575,22 +658,24 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
           ["Etapa", "Roles", "Responsabilidad", "Evidencia"], ciclo, widths=[1.1, 1.3, 2.3, 1.8], size=8.5)
     heading(ctx, "3.3 Matriz RACI de la fase final", 2)
     raci = [
-        ["Datos, hashes y DVC", "A/R", "C", "I", "R*", "C"],
-        ["Reentrenamiento y comparación con Fase 2", "C", "C", "I", "R*", "A"],
-        ["Exportación del champion", "I", "I", "C", "R*", "A"],
-        ["Pruebas pytest y cobertura", "I", "I", "A", "R*", "C"],
-        ["API FastAPI", "I", "C", "A", "R*", "C"],
-        ["Docker, DockerHub y reproducibilidad", "I", "I", "C", "A/R", "C"],
-        ["Simulación de drift y umbrales", "C", "A", "I", "R*", "C"],
+        ["Datos, hashes y DVC", "A", "I", "I", "R", "C"],
+        ["Reentrenamiento y comparación con Fase 2", "C", "C", "I", "R", "A"],
+        ["Exportación del champion y feature store", "I", "R", "C", "R", "A"],
+        ["Pruebas pytest y cobertura", "I", "R", "A", "R", "C"],
+        ["API FastAPI", "I", "R", "A", "R", "C"],
+        ["Contenedor, DockerHub y reproducibilidad", "I", "R", "C", "A/R", "C"],
+        ["Simulación de drift y umbrales", "C", "A/R", "I", "R", "C"],
+        ["Comparación e integración de las dos ramas", "I", "R", "C", "A/R", "C"],
         ["Análisis por rol (archivo .md)", "R", "R", "R", "R", "R"],
-        ["Reporte final y PDF", "C", "C", "C", "R", "A"],
+        ["Reporte final, PDF y PR a main", "C", "C", "C", "R", "A"],
     ]
     table(ctx, "t:raci", "Matriz RACI de la fase final", ["Actividad", "DE (Antonio)", "DS (Jesús)", "SWE (Erick)",
                                                           "SRE (Gustavo)", "MLE (Antonio)"], raci,
           widths=[2.3, 0.85, 0.85, 0.85, 0.85, 0.85], size=8.5, align=["l", "c", "c", "c", "c", "c"],
           note=["R = responsable de ejecutar, A = rinde cuentas y revisa el resultado, C = consultado, I = informado. "
-                "R* = ejecución técnica por el SRE por acuerdo del equipo; el análisis del resultado lo firma el "
-                "rol con A. ", Guide("[Equipo: confirmar la matriz antes de exportar el PDF.]")])
+                "Las dos R en las filas técnicas corresponden a las dos implementaciones en paralelo (Jesús en "
+                "entrega-final y Gustavo en fase-final); quien tiene A revisa y analiza el resultado desde su rol. "
+                "José Antonio, dueño del repositorio, hace el merge del pull request final."])
     heading(ctx, "3.4 Flujo de colaboración", 2)
     para(ctx, "El trabajo se organiza en GitHub con una rama por fase (fase1-datos-reales, fase2-modelado, fase-final) "
               "y pull requests hacia main. Git no admite espacios en nombres de rama, por eso la rama de esta entrega "
@@ -599,7 +684,9 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
               "con hadolint y verifica la imagen publicada contra la referencia. Para evitar conflictos, cada "
               "integrante escribe su análisis en su propio archivo (reports/fase_final/antonio.md, jesus.md, "
               "erick.md y gustavo.md) y lo integra con un commit; José Antonio Vázquez, como dueño del repositorio, "
-              "hace el merge del pull request final.")
+              "hace el merge del pull request final. En esta fase convivieron dos ramas de trabajo (entrega-final, "
+              f"con su pull request #5, y fase-final); la integración se hizo con un merge en fase-final ({merge_ref}) "
+              "para conservar el historial de ambas.")
     heading(ctx, "3.5 Evidencia de actividad en GitHub", 2)
     gtab = []
     if gh.get("available"):
@@ -620,7 +707,7 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
           note=["calculado con git log --all al generar este reporte (fases por fecha: hasta el 25-oct, 26-oct al "
                 "8-nov y desde el 9-nov de 2026). Los alias de Git de cada integrante están en reports/report_data.py. "
                 "El conteo mide actividad registrada, no esfuerzo: en las Fases 1 y 2 parte del trabajo de un rol se "
-                "integró en commits de otro integrante."])
+                "integró en commits de otro integrante, y el merge de entrega-final cuenta para quien lo hizo."])
     cf = commits_figure(D, FIG / "11_actividad_github.png")
     figure(ctx, "f:git", cf, "Commits por integrante y fase", ["generada por reports/build_report.py a partir de "
                                                                "git log --all."], width=5.6)
@@ -743,7 +830,11 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
            [["DVC con dvc.yaml y dvc.lock, sin remoto externo ", None if dvc["yaml"] else
              Pend("configuración de DVC")], "Git LFS; remoto en la nube",
             "dvc.lock registra la huella de datos y modelo por etapa en Git sin subir binarios ni exponer "
-            "credenciales; un remoto queda como trabajo futuro."]],
+            "credenciales; un remoto queda como trabajo futuro."],
+           ["Modelo exportado dentro de Git (models/champion, unos 6.6 MB) y salidas de export con cache: false en "
+            "DVC", "Solo DVC sin remoto; remoto de DVC",
+            "Con el modelo solo en DVC un clon limpio no puede construir la imagen; en Git es pequeño, auditable y "
+            "llega al CI. Idea tomada de la rama entrega-final."]],
           widths=[2.4, 1.5, 2.6], size=8.5)
     para(ctx, ("b", "Análisis. "), "El versionado mostró su valor en esta fase: el SHA-256 del dataset procesado de la Fase 2 "
               "(visible en la captura del Model Registry, Figura ", ctx.ref("f:registry"), ", comienza con "
@@ -876,7 +967,8 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
             ["src/features.py", "Cuadrícula, calendario, rezagos, partición y preprocesador"],
             ["src/tracking.py", "MLflow, SHA-256 y versionado de datos"],
             ["src/modeling/", "pipeline.py, train.py (Optuna + Registry), predict.py, export.py"],
-            ["src/serving/", "app.py (FastAPI) y schemas.py (Pydantic v2)"],
+            ["src/serving/", "app.py (FastAPI), schemas.py (Pydantic v2) y feature_store.py (rezagos en línea)"],
+            ["models/", "champion/ (modelo, estaciones y feature store), metadatos, patrones oro y fase2_original/"],
             ["src/monitoring/", "scenarios, metrics, rules, figures, report y drift (CLI)"],
             ["tests/unit, tests/integration", "Pruebas con pytest y fixtures compartidas"],
             ["docs/, scripts/, docker/", "Documentación de la API, OpenAPI, Postman, scripts de verificación"]]
@@ -893,7 +985,10 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
            ["Marcador integration para el flujo de punta a punta con un Registry temporal", "Solo pruebas unitarias",
             "Detecta rupturas entre etapas (p. ej. cambios de serialización de MLflow)."],
            ["Cobertura de ramas con pytest-cov y CI en cada push", "Medir solo líneas; correr a mano",
-            "La cobertura de ramas muestra caminos de error sin probar (Breck et al., 2017)."]],
+            "La cobertura de ramas muestra caminos de error sin probar (Breck et al., 2017)."],
+           ["Prueba de coherencia servicio-pipeline: el servicio recalcula rezagos y predicciones del feature store "
+            "y deben coincidir con el pipeline", "Confiar en que el servicio usa las mismas funciones",
+            "Detecta training-serving skew; idea tomada de la rama entrega-final (tests/test_serving_feature_store.py)."]],
           widths=[2.4, 1.4, 2.7], size=8.5)
     para(ctx, "El comando único es ", ("c", "pytest -q"), " (configuración en pyproject.toml). Resultado: ",
          f"{n(pt.get('passed'))} pruebas aprobadas, {pt.get('failed', 0)} fallidas, en {pt.get('seconds', 's/d')} s, "
@@ -922,9 +1017,11 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
               "1e-9; con ese ajuste la suite completa pasa también en Linux con el modelo real. La lección es que una "
               "prueba de reproducibilidad debe declarar su tolerancia en lugar de suponer igualdad bit a bit entre "
               "sistemas operativos. En GitHub Actions el flujo tests.yml corre la suite con cobertura en Python 3.13 y un "
-         "runner Linux en cada push (", Link("pestaña Actions", rd.ACTIONS_URL), "; corrida exitosa del push final: ",
-         Link(rd.TESTS_RUN_URL.rsplit("/", 1)[-1], rd.TESTS_RUN_URL), "); ahí se omiten las pruebas que necesitan models/champion, que "
-         "no está en Git.")
+         "runner Linux en cada push (", Link("pestaña Actions", rd.ACTIONS_URL), "; corrida del push final: ",
+         Link(rd.TESTS_RUN_URL.rsplit("/", 1)[-1], dock.get("gha_build_run_url") or rd.TESTS_RUN_URL),
+         "); como el modelo ya está en Git, "
+         "ahí corren también las pruebas que usan el modelo real, y un segundo job (docker) construye la imagen "
+         "desde el repositorio, la levanta y la verifica contra los patrones oro.")
 
     # 4.9 Serving
     heading(ctx, "4.9 Servicio de predicción con FastAPI", 2)
@@ -933,9 +1030,17 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
           [["FastAPI + Pydantic v2 + uvicorn", "Flask; mlflow models serve", "Validación declarativa, OpenAPI "
                                                                             "automático y errores 422 detallados; "
                                                                             "control total del esquema."],
-           ["POST /predict recibe estación, fecha y tres rezagos; el servidor deriva calendario y estación",
+           ["POST /predict recibe estación y fecha; el servidor deriva calendario y estación",
             "Exigir las 13 columnas del modelo", "Contrato simple para el cliente y sin diferencias entre "
                                                  "entrenamiento y servicio (mismas funciones de src/features.py)."],
+           ["Rezagos opcionales: sin ellos se calculan con un feature store de las últimas 360 h por estación "
+            "(1.1.0)", "Obligar al cliente a enviarlos (1.0.0); consultar una base en línea",
+            "El cliente no reimplementa el cálculo; se usa add_lag_features del entrenamiento. Idea de entrega-final. "
+            "Limitación: la ventana predecible es fija."],
+           ["Subir a 1.1.0 (MINOR) y conservar 1.0.0 publicada", "Reemplazar 1.0.0",
+            "Toda petición válida en 1.0.0 sigue siendo válida y da la misma predicción; quien fijó 1.0.0 no se rompe."],
+           ["Registro opcional de predicciones (PREDICTION_LOG, JSONL)", "Solo logs del servidor",
+            "Auditoría de entradas, salidas, versión y latencia para cerrar el ciclo con las etiquetas."],
            ["POST /predict/raw con las 13 columnas", "Solo /predict", "Permite verificar la reproducibilidad "
                                                                       "contra la referencia sin pasar por la "
                                                                       "derivación de variables."],
@@ -945,8 +1050,9 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
     ep = [["GET /health", "Estado, modelo cargado y SHA-256 verificado", "200, 503"],
           ["GET /model-info", "Nombre, versión, URI, alias, run_id, hiperparámetros, métricas, columnas y versiones",
            "200, 503"],
-          ["POST /predict", f"Lote de 1 a {n(max_batch)} instancias {{station_id, datetime, demand_lag_24h, demand_lag_168h, "
-                            "demand_same_hour_mean_7d}", "200, 404, 422, 503"],
+          ["POST /predict", f"Lote de 1 a {n(max_batch)} instancias {{station_id, datetime}} con los tres rezagos "
+                            "opcionales (los tres o ninguno); responde lags_source y los rezagos usados",
+           "200, 404, 422, 503"],
           ["POST /predict/raw", "Filas con las 13 columnas del modelo", "200, 422, 503"]]
     table(ctx, "t:endpoints", "Endpoints de la API", ["Endpoint", "Descripción", "Códigos"], ep,
           widths=[1.4, 4.0, 1.1], size=8.5, note=["esquema completo en docs/api.md y docs/openapi.json; colección de "
@@ -956,10 +1062,17 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
         req_compact = re.sub(r"\s+", " ", api["example_request"]).replace("{ ", "{").replace(" }", "}")
         resp_compact = re.sub(r"\s+", " ", api["example_response"]).replace("{ ", "{").replace(" }", "}")
         code(ctx, "POST /predict\n" + req_compact + f"\n\nHTTP {api['example_status']}\n" + resp_compact, size=8)
+    if api.get("fs_request"):
+        para(ctx, "Sin rezagos (los calcula el servicio con el feature store; ventana predecible ",
+             fsw.get("start", "s/d"), " a ", fsw.get("end", "s/d"), "):", keep=True)
+        req_compact = re.sub(r"\s+", " ", api["fs_request"]).replace("{ ", "{").replace(" }", "}")
+        resp_compact = re.sub(r"\s+", " ", api["fs_response"]).replace("{ ", "{").replace(" }", "}")
+        code(ctx, "POST /predict\n" + req_compact + f"\n\nHTTP {api['fs_status']}\n" + resp_compact, size=8)
     srows = []
     for s in api.get("sections", []):
         codes = ", ".join(f"{k}: {v}" for k, v in sorted(s["codes"].items()))
-        rep_txt = "; ".join(f"{p_} {a}/{b} filas iguales bit a bit, dif. máx. {d}" for p_, _, d, a, b in s["repro"]) or "—"
+        rep_txt = "; ".join(f"{p_}{' sin rezagos' if 'sin rezagos' in (ref or '') else ''}: {a}/{b} iguales bit a "
+                            f"bit, dif. máx. {float(d):.2g}" for p_, ref, _, d, a, b in s["repro"]) or "—"
         srows.append([s["title"], str(s["requests"]), codes, rep_txt])
     table(ctx, "t:smoke", "Prueba de humo de la API contra uvicorn", ["Entorno", "Peticiones", "Códigos HTTP",
                                                                      "Reproducción de la referencia"], srows,
@@ -968,8 +1081,20 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
               "fechas inválidas, campos faltantes o extra, lotes vacíos o mayores al límite, estaciones desconocidas) "
               "y el arranque sin modelo. Que el venv limpio con solo requirements-serve.txt reproduzca exactamente "
               "las 500 predicciones demuestra que el servicio no depende de la base de MLflow ni del código de "
-              "entrenamiento. Limitación: la API recibe los rezagos ya calculados; en operación otro proceso debe "
-              "consultarlos del histórico, y esa dependencia es la que el monitoreo vigila con las reglas de calidad.")
+              "entrenamiento. Con el feature store, el cliente solo envía estación y hora dentro de la ventana predecible "
+              f"({fsw.get('start', 's/d')} a {fsw.get('end', 's/d')}); fuera de ella responde 422 con la ventana válida. "
+              "Limitación: el feature store es una foto de las últimas "
+              f"{fs.get('hours', 's/d')} horas de datos que caduca; en operación habría que actualizarlo con cada "
+              "ingesta. Las Figuras ", ctx.ref("f:swagger"), " a ", ctx.ref("f:resp"), " muestran la documentación "
+              "interactiva, el esquema de /predict y una respuesta real.")
+    figure(ctx, "f:swagger", FIG / "12_api_swagger_docs.png", "Documentación interactiva de la API (Swagger UI, /docs)",
+           ["captura del servicio 1.1.0: endpoints de predicción y de operación, y los esquemas Pydantic."], width=4.6)
+    figure(ctx, "f:esquema", FIG / "13_api_esquema_predict.png", "Esquema y ejemplos de POST /predict en Swagger UI",
+           ["ejemplo con una instancia con rezagos y otra sin ellos (lags_source = request y feature_store)."],
+           width=3.6)
+    figure(ctx, "f:resp", FIG / "14_api_respuesta_200.png", "Respuesta real de POST /predict del contenedor 1.1.0",
+           ["figura generada por scripts/build_api_response_figure.py a partir de la petición y respuesta registradas "
+            "en 20_api_smoke.log (sección B); no es una captura del navegador."], width=6.3)
 
     # 4.10 Reproducibilidad
     heading(ctx, "4.10 Reproducibilidad en otro entorno", 2)
@@ -1003,40 +1128,55 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
               "Dummy, que no tiene nada aleatorio, cambia en la misma magnitud. Optuna recuperó los mismos "
               "hiperparámetros del champion y la asignación de alias no cambió.")
     para(ctx, ("b", "Segunda verificación: el mismo artefacto en otros entornos. "), "scripts/verify_reproducibility.py envía "
-              "las 500 filas de la referencia a un servicio levantado y compara fila por fila. La Tabla ",
-         ctx.ref("t:envs"), " resume cada entorno verificado.", keep=True)
+              "a un servicio levantado las 500 filas de la referencia con rezagos (por /predict y /predict/raw) y las "
+              f"200 filas de la referencia del feature store sin rezagos, y compara fila por fila. La Tabla ",
+         ctx.ref("t:envs"), f" resume cada entorno verificado con el servicio {svc_ver}.", keep=True)
     erows, efills = [], {}
     envs = sorted(envs, key=lambda e: ("tolerancia0" in e["_file"], e["_file"]))
     for i, e in enumerate(envs):
         epd = val(e, "endpoints", "predict") or {}
         sv = val(e, "server_environment", "runtime_library_versions") or {}
+        fp = fs_path(e)
         erows.append([e.get("label"), f"Python {sv.get('python', 's/d')}, scikit-learn {sv.get('scikit-learn', 's/d')}",
                       f"{e.get('tolerance')}", f"{epd.get('max_abs_diff', 's/d'):.3g}"
                       if isinstance(epd.get('max_abs_diff'), float) else str(epd.get("max_abs_diff")),
-                      f"{epd.get('rows_bitwise_identical', 's/d')}/{epd.get('rows', 's/d')}", e.get("verdict"),
-                      e["_file"].split("/")[-1]])
-        efills[(i, 5)] = OK_FILL if e.get("verdict") == "PASS" else ALERT_FILL
+                      f"{epd.get('rows_bitwise_identical', 's/d')}/{epd.get('rows', 's/d')}",
+                      f"{fp.get('max_abs_diff'):.2g} ({fp.get('rows_bitwise_identical')}/{fp.get('rows')})" if fp else "—",
+                      e.get("verdict"), e["_file"].split("/")[-1]])
+        efills[(i, 6)] = OK_FILL if e.get("verdict") == "PASS" else ALERT_FILL
     extra = []
     if rep.get("verify_diff") is not None:
         extra.append(["proceso nuevo, venv de entrenamiento", f"Python {pyv} (Windows)", "0", rep["verify_diff"],
-                      "500/500", "PASS", "07_verify_reference.log"])
+                      "500/500", "—", "PASS", "07_verify_reference.log"])
     if rep.get("standalone_diff") is not None:
         extra.append(["venv solo con requirements-serve.txt", f"Python {pyv} (Windows)", "0", rep["standalone_diff"],
-                      "500/500", "PASS", "08_verify_standalone…log"])
+                      "500/500", "—", "PASS", "08_verify_standalone…log"])
     for j, row in enumerate(extra):
-        efills[(len(erows) + j, 5)] = OK_FILL
+        efills[(len(erows) + j, 6)] = OK_FILL
     gha_row = []
     if not dock.get("gha"):
-        gha_row = [["runner de GitHub Actions (imagen de DockerHub)", "Linux", "1e-09", "—", "—",
-                    "success (CI)", [Link(f"corrida {dock['gha_run_url'].rsplit('/', 1)[-1]}", dock["gha_run_url"]), " ",
-                                     Pend("reproducibilidad/github_actions.json")]]]
-    table(ctx, "t:envs", "Verificación de las 500 predicciones de referencia por entorno",
-          ["Entorno", "Servidor", "Tolerancia", "Dif. máx.", "Idénticas bit a bit", "Veredicto", "Archivo"],
-          erows + extra + gha_row, widths=[1.5, 1.3, 0.75, 0.75, 0.8, 0.7, 1.4], size=8,
-          align=["l", "l", "r", "r", "r", "c", "l"], fills=efills,
+        gha_row = [["runner de GitHub Actions (imagen 1.1.0 publicada)", "Linux", "1e-09", "—", "—", "—", "—",
+                    [Pend("reproducibilidad/github_actions.json (imagen 1.1.0)")]]]
+    table(ctx, "t:envs", "Verificación de las predicciones de referencia por entorno (servicio vigente)",
+          ["Entorno", "Servidor", "Tol.", "Dif. máx. con rezagos", "Idénticas (500)", "Sin rezagos: dif. máx. "
+                                                                                  "(idénticas/200)",
+           "Veredicto", "Archivo"],
+          erows + extra + gha_row, widths=[1.35, 1.15, 0.5, 0.75, 0.65, 0.95, 0.65, 1.2], size=7.5,
+          align=["l", "l", "r", "r", "r", "r", "c", "l"], fills=efills,
           note=["archivos en reports/fase_final/reproducibilidad/ y reports/fase_final/logs/. La fila con tolerancia "
                 "0 es un control deliberadamente estricto: falla por la diferencia de 1 ulp que se explica abajo. "
-                "Corrida del runner de GitHub Actions: ", Link(dock["gha_run_url"], dock["gha_run_url"]), "."])
+                f"Historial de la versión 1.0.0 (en reproducibilidad/v1.0.0/): {len(envs_v1)} verificaciones, "
+                f"{sum(1 for e in envs_v1 if e.get('verdict') == 'PASS')} con PASS, incluida la del runner de GitHub "
+                "Actions (", Link(f"corrida {dock['gha_v1_run_url'].rsplit('/', 1)[-1]}", dock["gha_v1_run_url"]),
+                ")."])
+    if clon:
+        cep = val(clon, "endpoints", "predict") or {}
+        para(ctx, ("b", "Clon limpio. "), "Copiamos a una carpeta fuera del repositorio solo los archivos de Git (sin "
+                  "datos, sin mlruns.db y sin entorno virtual) y ahí corrieron docker build -t ml-service:latest . y "
+                  "la verificación: veredicto ", ("b", str(clon.get("verdict"))), ", diferencia máxima ",
+             f"{cep.get('max_abs_diff', 0):.2g}", " con rezagos y ", f"{fs_path(clon).get('max_abs_diff', 0):.2g}",
+             " sin rezagos (reproducibilidad/clon_limpio.json y clon_limpio_build.log). Esto demuestra que el "
+             "repositorio por sí solo basta para reconstruir el servicio.")
     lin_env = next((e for e in envs if e["_file"].endswith("/contenedor_local.json")), None)
     lin_ep = val(lin_env, "endpoints", "predict") or {}
     lin_rows = lin_ep.get("rows", "s/d")
@@ -1065,6 +1205,38 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
              "reports/fase_final/reproducibilidad/pipeline_linux_vs_windows.md.")
     else:
         para(ctx, ("b", "Tercera verificación: reentrenamiento en Linux. "), Pend("pipeline_linux_vs_windows.csv"))
+    if f2vs:
+        own_w = f2w.get("fase2_reproduces_own_reference") or {}
+        own_l = f2l.get("fase2_reproduces_own_reference") or {}
+        exp_env = val(f2w, "fase2_binary", "export_environment") or {}
+        para(ctx, ("b", "Cuarta verificación: el binario original de la Fase 2. "), "La rama entrega-final conservaba el "
+                  "modelo que se entrenó en la Fase 2 en otra máquina (Python ", exp_env.get("python", "s/d"),
+             "); lo guardamos en models/fase2_original/. Ese mismo binario reproduce aquí sus ",
+             n(own_w.get("rows")), " predicciones de referencia con diferencia máxima ", f"{own_w.get('max_abs_diff', 0):.2g}",
+             " en Windows (Python ", val(f2w, "environment", "python") or "s/d", ") y ",
+             f"{own_l.get('max_abs_diff', 0):.2g}", f" en el contenedor Linux ({own_l.get('rows_bitwise_identical')}/"
+             f"{own_l.get('rows')} idénticas). La Tabla ", ctx.ref("t:f2bin"), " lo compara con el champion "
+                                                                              "reentrenado.", keep=True)
+        mva = f2vs.get("metrics_vs_actual") or {}
+        table(ctx, "t:f2bin", "Binario de la Fase 2 contra el champion reentrenado (500 filas de la referencia)",
+              ["Medida", "Valor"],
+              [["Mismos hiperparámetros", "sí" if f2w.get("same_hyperparameters") else "no"],
+               ["Diferencia máxima entre predicciones", f"{f2vs.get('max_abs_diff'):.4f}"],
+               ["Diferencia media absoluta", f"{f2vs.get('mean_abs_diff'):.4f}"],
+               ["Filas con diferencia > 0.1 viajes", f"{f2vs.get('rows_abs_diff_gt_0.1')} de {f2vs.get('rows')}"],
+               ["Correlación de Pearson", f"{f2vs.get('pearson_correlation'):.5f}"],
+               ["MAE contra la demanda real (Fase 2 / reentrenado)",
+                f"{val(mva, 'fase2_binary', 'mae'):.4f} / {val(mva, 'retrained_champion', 'mae'):.4f}"],
+               ["RMSE (Fase 2 / reentrenado)",
+                f"{val(mva, 'fase2_binary', 'rmse'):.4f} / {val(mva, 'retrained_champion', 'rmse'):.4f}"]],
+              widths=[3.6, 2.9], size=9, align=["l", "r"],
+              note=["reproducibilidad/fase2_binario_vs_reentrenado.json y .md (scripts/compare_fase2_binary.py). El MAE "
+                    "es sobre la muestra de 500 filas, no sobre el conjunto de prueba completo."])
+        para(ctx, "Interpretación: no son el mismo binario aunque tienen el mismo algoritmo, la misma semilla y los "
+                  "mismos hiperparámetros, porque se entrenaron con datos del portal descargados en fechas distintas "
+                  "(sección 4.1). Sus predicciones casi coinciden (correlación cercana a 1, diferencia media de "
+                  "centésimas de viaje) y su error es prácticamente el mismo; la diferencia mide el efecto de los "
+                  "datos, no del código.")
     lin, lin_prev = rep.get("linux_pytest"), rep.get("linux_pytest_prev")
     if lin or lin_prev:
         prev_txt = (f"La primera corrida de la suite en el contenedor Linux con el modelo real dio {lin_prev['passed']} "
@@ -1095,49 +1267,75 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
            ["Usuario sin privilegios, HEALTHCHECK a /health y verificación del SHA-256 durante el build",
             "Correr como root sin chequeo", "Buenas prácticas de seguridad y un build que falla con mensaje claro si "
                                            "falta el modelo."],
-           ["Tags 1.0.0, 1.0.0-model-v1 y latest", "Solo latest", "Versión del servicio y del modelo explícitas; "
-                                                                 "latest para pruebas rápidas."]],
+           ["Tags <servicio> y <servicio>-model-v<N>, más latest; 1.1.0 se publicó sin retirar 1.0.0", "Solo latest",
+            "Versión del servicio y del modelo explícitas e inmutables; latest para pruebas rápidas."],
+           ["Modelo dentro del contexto de build desde Git", "Generarlo antes del build; descargarlo con DVC",
+            "docker build -t ml-service:latest . funciona en un clon limpio y en el CI sin pasos previos."]],
           widths=[2.4, 1.4, 2.7], size=8.5)
-    para(ctx, "Comandos de la entrega (desde la raíz del repositorio, con models/champion presente):", keep=True)
+    para(ctx, "Comandos de la entrega (desde la raíz de un clon del repositorio, sin pasos previos):", keep=True)
     code(ctx, "docker build -t ml-service:latest .\ndocker run -p 8000:8000 ml-service:latest\n"
-              f"docker pull {rd.DOCKER_IMAGE}:1.0.0\ndocker run -p 8000:8000 {rd.DOCKER_IMAGE}:1.0.0")
-    tags = [["1.0.0", "Versión del servicio (serving.service_version)"],
-            ["1.0.0-model-v1", "Servicio 1.0.0 con el modelo registrado v1"],
-            ["latest", "Última versión publicada"]]
-    trows = []
-    for t, d in tags:
-        doc_state = "documentado en docs/docker.md; " if t in dock["tags_documented"] else ""
-        pub = "publicado (verificado con docker pull)" if dock["published_evidence"] else Pend(f"evidencia del push de {t}")
-        trows.append([[("c", f"{rd.DOCKER_IMAGE}:{t}")], d, [doc_state, pub]])
-    table(ctx, "t:tags", "Tags de la imagen en DockerHub", ["Imagen y tag", "Significado", "Estado"], trows,
-          widths=[2.7, 2.0, 1.8], size=8.5,
-          note=["liga: ", Link(rd.DOCKERHUB_URL, rd.DOCKERHUB_URL), ". Construcción local registrada en "
-                "reproducibilidad/docker_build*.log (tag local ", dock.get("local_build_tag") or "s/d", ")."])
-    drows = [["Imagen", [("c", rd.DOCKER_IMAGE)], "docs/docker.md"],
-             ["Digest publicado (los tres tags)", [("c", dock.get("published_digest") or "")] if
-              dock.get("published_digest") else [Pend("digest publicado")], "docs/docker.md"],
+              f"docker pull {rd.DOCKER_IMAGE}:{svc_ver}\ndocker run -p 8000:8000 {rd.DOCKER_IMAGE}:{svc_ver}\n"
+              "# Podman (comandos de la rama entrega-final): podman build --format docker -t ml-service:latest .")
+    meaning = {"1.1.0": "Servicio 1.1.0: rezagos opcionales con feature store",
+               "1.1.0-model-v1": "Servicio 1.1.0 con models:/mibici-demand-forecaster/1",
+               "1.0.0": "Servicio 1.0.0: /predict exige los tres rezagos",
+               "1.0.0-model-v1": "Servicio 1.0.0 con models:/mibici-demand-forecaster/1",
+               "latest": "Última imagen publicada"}
+    trows = [[[("c", t)], meaning.get(t, ""), [("c", v["digest"][:19] + "…")], n(v["full_size_bytes"]),
+              v["last_updated"][:10]] for t, v in sorted(hub_tags.items())]
+    if not trows:
+        trows = [["—", "—", [Pend("reproducibilidad/dockerhub_tags.json")], "—", "—"]]
+    table(ctx, "t:tags", f"Tags publicados de {rd.DOCKER_IMAGE} en DockerHub",
+          ["Tag", "Significado", "Digest", "Bytes comprimida", "Publicada"], trows,
+          widths=[1.2, 2.4, 1.4, 0.9, 0.8], size=8, align=["l", "l", "l", "r", "l"],
+          note=["consulta de la API pública de DockerHub guardada en reproducibilidad/dockerhub_tags.json; liga: ",
+                Link(rd.DOCKERHUB_URL, rd.DOCKERHUB_URL), "."])
+    hub_fs = fs_path(dock.get("hub") or {})
+    drows = [["Imagen vigente", [("c", f"{rd.DOCKER_IMAGE}:{svc_ver}")], "dockerhub_tags.json"],
+             ["Digest (1.1.0, 1.1.0-model-v1, latest)", [("c", t110.get("digest", ""))] if t110 else
+              [Pend("digest publicado")], "dockerhub_tags.json"],
              ["Tamaño", dock.get("size") or Pend("tamaño de la imagen"), "docs/docker.md"],
              ["Tiempo de build", dock.get("build_time") or "s/d", "docs/docker.md"],
              ["Base", "python:3.13.9-slim fijada por digest", "Dockerfile"],
              ["Verificación tras docker pull", f"{val(dock, 'hub', 'verdict') or 's/d'}: dif. máx. "
-              f"{val(dock, 'hub', 'endpoints', 'predict', 'max_abs_diff')}, "
-              f"{val(dock, 'hub', 'endpoints', 'predict', 'rows_bitwise_identical')}/500 idénticas bit a bit"
+              f"{val(dock, 'hub', 'endpoints', 'predict', 'max_abs_diff'):.2g} con rezagos "
+              f"({val(dock, 'hub', 'endpoints', 'predict', 'rows_bitwise_identical')}/500 idénticas) y "
+              f"{hub_fs.get('max_abs_diff', 0):.2g} sin rezagos ({hub_fs.get('rows_bitwise_identical')}/200)"
               if dock.get("hub") else Pend("imagen_dockerhub.json"), "reproducibilidad/imagen_dockerhub.json"]]
     table(ctx, "t:imagen", "Detalles de la imagen publicada", ["Concepto", "Valor", "Evidencia"], drows,
           widths=[1.6, 3.4, 1.5], size=8.5)
-    para(ctx, ("b", "Análisis. "), "Como models/champion no se versiona en Git (es binario y se rastrea con DVC), el runner de "
-              "GitHub Actions no construye la imagen: descarga la publicada en DockerHub, la levanta y verifica la "
-              "referencia. Así la prueba de \"otro entorno\" es literal: una máquina que nunca vio los datos ni la "
-              "base de MLflow reproduce las predicciones del modelo versionado. La misma verificación se hizo localmente "
-              "con la imagen descargada de DockerHub (Tabla ", ctx.ref("t:envs"), "). El flujo "
-              "docker-reproducibilidad.yml corrió con éxito en GitHub (lint del Dockerfile con hadolint y verificación "
-              "de la imagen publicada; ", Link(f"corrida {dock['gha_run_url'].rsplit('/', 1)[-1]}", dock["gha_run_url"]), ")",
-         [", con veredicto ", ("b", str(val(dock, "gha", "verdict"))), ", diferencia máxima ",
-          str(val(dock, "gha", "endpoints", "predict", "max_abs_diff")), " y ",
-          str(val(dock, "gha", "endpoints", "predict", "rows_bitwise_identical")), "/",
-          str(val(dock, "gha", "endpoints", "predict", "rows")), " filas idénticas bit a bit "
-          "(reproducibilidad/github_actions.json)."] if dock.get("gha") else
-         [". ", Pend("JSON del runner en reproducibilidad/github_actions.json")])
+    gha = dock.get("gha")
+    gha_txt = ([" Para la versión ", svc_ver, " el flujo verificó la imagen publicada con veredicto ",
+                ("b", str(gha.get("verdict"))), ", diferencia máxima ",
+                f"{val(gha, 'endpoints', 'predict', 'max_abs_diff'):.2g}", " con rezagos y ",
+                f"{fs_path(gha).get('max_abs_diff', 0):.2g}" if fs_path(gha) else "s/d", " sin rezagos (",
+                Link("corrida", dock["gha_run_url"]) if dock.get("gha_run_url") else "reproducibilidad/",
+                "; reproducibilidad/github_actions.json)."] if gha else
+               [" ", Pend("resultado del flujo docker-reproducibilidad para la imagen 1.1.0 "
+                          "(reproducibilidad/github_actions.json)")])
+    gb = dock.get("gha_build")
+    if gb:
+        gha_txt = gha_txt + [" El job docker de tests.yml, que construye la imagen desde el repositorio en el runner, "
+                             "dio ", ("b", str(gb.get("verdict"))), " con las mismas diferencias (",
+                             f"{val(gb, 'endpoints', 'predict', 'max_abs_diff'):.2g}", " con rezagos y ",
+                             f"{fs_path(gb).get('max_abs_diff', 0):.2g}", " sin rezagos; ",
+                             Link("corrida", dock.get("gha_build_run_url") or rd.TESTS_RUN_URL),
+                             "; reproducibilidad/github_actions_build.json). Ambos flujos publican el JSON como "
+                             "anotaciones del job, de donde se recuperó."]
+    para(ctx, ("b", "Análisis. "), "Con el modelo en Git, la imagen se reconstruye en cualquier clon y el CI la "
+              "construye en cada push (job docker de tests.yml) además de verificar la imagen publicada "
+              "(docker-reproducibilidad.yml). Así la prueba de \"otro entorno\" es literal: máquinas que nunca vieron "
+              "los datos ni la base de MLflow reproducen las predicciones del modelo versionado. La versión 1.0.0 se "
+              "verificó en el runner de GitHub Actions con PASS (",
+         Link(f"corrida {dock['gha_v1_run_url'].rsplit('/', 1)[-1]}", dock["gha_v1_run_url"]), ").", gha_txt,
+         " La Figura ", ctx.ref("f:hub"), " muestra el repositorio en DockerHub y la Figura ", ctx.ref("f:gha"),
+         " las corridas de GitHub Actions de ambas ramas.")
+    figure(ctx, "f:hub", FIG / "15_dockerhub_tags.png", "Repositorio gusrivasmna/mibici-demand-service en DockerHub",
+           ["captura tomada cuando latest apuntaba a 1.0.0 (121.06 MB en unidades binarias = 126,937,001 bytes); los "
+            "tags vigentes y sus digests están en la Tabla ", ctx.ref("t:tags"), "."], width=4.4)
+    figure(ctx, "f:gha", FIG / "16_github_actions.png", "Corridas de GitHub Actions (tests y docker-reproducibilidad)",
+           ["incluye las corridas de la rama entrega-final (PR #5) y de fase-final; todas en verde al momento de la "
+            "captura."], width=4.2)
 
     # 4.12 Drift
     heading(ctx, "4.12 Monitoreo de data drift", 2)
@@ -1275,16 +1473,17 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
         ["3. Reproducibilidad", "Ejecución en entorno limpio y comparación", f"MAE {f(test_mae)} vs {f(test_mae2)}; "
                                                                              f"{len(ok_envs)} entornos PASS",
          "comparacion_fase2.md, reproducibilidad/*.json"],
-        ["3. Reproducibilidad", "Artefactos versionados (DVC/MLflow)", ["MLflow Registry + SHA-256; DVC ",
+        ["3. Reproducibilidad", "Artefactos versionados (DVC/MLflow)", ["MLflow Registry + SHA-256; DVC con "
+                                                                       "dvc.lock; modelo exportado en Git ",
                                                                        None if dvc["lock"] else Pend("dvc.lock")],
-         "mlruns.db (local), dvc.yaml, dvc.lock"],
+         "mlruns.db (local), dvc.yaml, dvc.lock, models/"],
         ["4. Docker", "Dockerfile del servicio", "Multi-etapa, no root, HEALTHCHECK", "Dockerfile, docs/docker.md"],
         ["4. Docker", "docker build -t ml-service:latest . y docker run -p 8000:8000 ml-service:latest",
-         "Construcción y ejecución local verificadas", "reproducibilidad/docker_build*.log, contenedor_local.json"],
-        ["4. Docker", "Publicación en DockerHub con tags versionados", [f"{rd.DOCKER_IMAGE}: 1.0.0, 1.0.0-model-v1, "
-                                                                       "latest ", None if dock["published_evidence"]
-                                                                       else Pend("evidencia de publicación")],
-         [Link("DockerHub", rd.DOCKERHUB_URL)]],
+         "Construcción y ejecución verificadas, también desde un clon limpio y en el CI (job docker)",
+         "docker_build_v1.1.0.log, clon_limpio.json, tests.yml"],
+        ["4. Docker", "Publicación en DockerHub con tags versionados",
+         [f"{rd.DOCKER_IMAGE}: ", ", ".join(sorted(hub_tags)) if hub_tags else Pend("tags publicados")],
+         [Link("DockerHub", rd.DOCKERHUB_URL), ", dockerhub_tags.json"]],
         ["5. Drift", "Datos de monitoreo con distribución alterada", f"{len(scen)} escenarios en dos familias + "
                                                                     f"{len(windows)} ventanas reales",
          "src/monitoring/scenarios.py"],
@@ -1305,8 +1504,9 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
     para(ctx, "El proyecto pasó de un notebook con un mes de datos a un sistema que puede auditarse y operarse: el "
               "modelo champion (", uri, f") reduce a la mitad el error de la referencia ingenua usando solo información "
               "disponible con 24 horas de anticipación; se sirve con una API validada, se empaqueta en una imagen "
-              "versionada, se reproduce en otros entornos con diferencias del orden de 1e-16, y cuenta con un "
-              "monitoreo que distingue fallas del pipeline de cambios reales y propone qué hacer en cada caso.")
+              "versionada que se reconstruye desde un clon limpio, se reproduce en otros entornos con diferencias del orden "
+              "de 1e-16, y cuenta con un monitoreo que distingue fallas del pipeline de cambios reales y propone qué "
+              "hacer en cada caso. La solución final integra el trabajo de dos ramas desarrolladas en paralelo.")
     heading(ctx, "6.1 Lecciones aprendidas", 2)
     for a, b in [
         ("La validez de una métrica depende de cómo se obtuvo. ", "El MAE de 1.344 de la Fase 1 era mejor en "
@@ -1320,6 +1520,9 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
          "relativo empeoró. El monitoreo debe vigilar métricas complementarias."),
         ("El monitoreo necesita controles. ", "El escenario sin alteración evitó que los umbrales dispararan falsas "
          "alarmas y obligó a separar las variables de calendario, que cambian por construcción."),
+        ("Dos soluciones independientes son una revisión por pares. ", "Comparar la rama entrega-final con fase-final "
+         "mostró decisiones que ninguno había cuestionado (quién calcula los rezagos, si el modelo debe estar en Git) "
+         "y permitió quedarnos con la mejor respuesta de cada una, verificada con las pruebas de ambas."),
     ]:
         bullet(ctx, ("b", a), b)
     heading(ctx, "6.2 Áreas de mejora reconocidas en el análisis del caso", 2)
@@ -1347,6 +1550,11 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
          "Remoto de DVC con instantáneas de cada descarga y validación de esquema por mes."],
         ["Regla operativa del Canvas sin validar", "No hay datos de inventario en tiempo real",
          "Integrar el inventario por estación para medir el impacto real en desabasto."],
+        ["Feature store estático", f"Ventana predecible sin rezagos fija ({fsw.get('start', 's/d')[:10]} a "
+                                   f"{fsw.get('end', 's/d')[:10]})",
+         "Actualizar el feature store con cada ingesta o leer el histórico reciente en línea."],
+        ["Coordinación del equipo", "Dos implementaciones completas de la misma entrega, en paralelo",
+         "Acordar desde el inicio quién implementa cada pieza y revisar avances en pull requests tempranos."],
     ]
     table(ctx, "t:mejoras", "Áreas de mejora, evidencia y propuesta", ["Área de mejora", "Evidencia", "Propuesta"],
           mejoras, widths=[2.2, 2.0, 2.3], size=8.5)
@@ -1364,17 +1572,19 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
         ["Separar causas", "Corrupción de entradas frente a cambio real, con acciones distintas", "4.12"],
         ["Documentar decisiones", "Tablas de alternativas, logs de cada ejecución, comparación con la fase anterior",
          "4, reports/fase_final/"],
+        ["Comparar e integrar soluciones", "Dos ramas comparadas requisito por requisito; se tomó lo mejor de cada una",
+         "2.5"],
     ]
     table(ctx, "t:estrategias", "Estrategias empleadas", ["Estrategia", "Cómo se aplicó", "Sección"], estr,
           widths=[1.8, 3.9, 0.8], size=8.5)
     heading(ctx, "6.4 Trabajo futuro y recomendaciones", 2)
     for t_ in ["Programar la ingesta mensual y el reporte de drift como un flujo automático que abra un pull request "
                "con el reentrenamiento cuando aplique la regla R3.",
-               "Configurar un remoto de DVC (almacenamiento del Tec o en la nube) para que cualquier integrante obtenga "
-               "datos y modelo con dvc pull sin volver a ejecutar el pipeline.",
+               "Configurar un remoto de DVC para los datos crudos y procesados (el modelo ya está en Git), de modo "
+               "que se recuperen con dvc pull aunque el portal cambie o retire archivos.",
                "Agregar clima y calendario escolar, y evaluar modelos por horizonte (1, 6 y 24 h).",
-               "Que el CI también ejecute las pruebas que dependen del modelo real (hoy se omiten en GitHub Actions "
-               "porque models/champion no está en Git), obteniéndolo con dvc pull desde un remoto.",
+               "Actualizar el feature store con cada ingesta para que la ventana predecible sin rezagos avance con "
+               "los datos.",
                "Exponer métricas del servicio (latencia, errores 4xx/5xx) y registrar las predicciones para cerrar el "
                "ciclo con las etiquetas reales.",
                "Recomendación a MiBici: usar el modelo para priorizar estaciones por riesgo en las horas pico y "
@@ -1386,13 +1596,14 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
                    "Sugerencias: qué implica que el portal republique CSV, el valor de los hashes y de DVC, y cómo el "
                    "modelo pasa del Registry al servicio con su SHA-256. Pega aquí el texto de la sección Reflexión de "
                    "reports/fase_final/antonio.md.",
-        "jesus": "Jesús (DS): escribe un párrafo sobre los resultados del modelo y del drift. Sugerencias: por qué gana "
-                 f"el boosting, qué significa un WAPE de {pc(base.get('wape'), 0, False)}, por qué el MAE solo no basta y qué "
-                 "harías con diciembre. "
-                 "Pega aquí la sección Reflexión de reports/fase_final/jesus.md.",
+        "jesus": "Jesús (DS): escribe un párrafo sobre tu implementación en la rama entrega-final y los resultados. "
+                 "Sugerencias: por qué diseñaste el feature store y usaste Podman, qué aprendiste al comparar y fusionar "
+                 f"las dos ramas, y qué significa un WAPE de {pc(base.get('wape'), 0, False)} para la operación. Pega "
+                 "aquí la sección Reflexión de reports/fase_final/jesus.md.",
         "erick": "Erick (SWE): escribe un párrafo sobre la calidad de software. Sugerencias: qué protege la suite de "
-                 "pruebas, qué revela la cobertura, la lección de las pruebas de igualdad exacta en Linux y el diseño "
-                 "de la API. Pega aquí la sección Reflexión de reports/fase_final/erick.md.",
+                 "pruebas, qué revela la cobertura, la prueba de coherencia servicio-pipeline, el job docker del CI y "
+                 "la lección de las pruebas de igualdad exacta en Linux. Pega aquí la sección Reflexión de "
+                 "reports/fase_final/erick.md.",
     }
     for m in rd.MEMBERS:
         text = member_section(m["key"], "Reflexión")
@@ -1402,8 +1613,7 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
             _add_parts(ctx, p, [re.sub(r"\s*\n\s*", " ", text)])
         elif text:
             from docx_helpers import _add_parts
-            _add_parts(ctx, p, [re.sub(r"\s*\n\s*", " ", text), " ",
-                                Guide("[Gustavo: borrador tomado de reports/fase_final/gustavo.md; revísalo.]")])
+            _add_parts(ctx, p, [re.sub(r"\s*\n\s*", " ", text)])
         else:
             from docx_helpers import _add_parts
             _add_parts(ctx, p, [Guide(guides.get(m["key"], "Escribe tu reflexión."))])
@@ -1413,6 +1623,8 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
     heading(ctx, "7.1 Ligas del proyecto", 2)
     links = [("Repositorio de GitHub", rd.REPO_URL), ("Imagen en DockerHub", rd.DOCKERHUB_URL),
              ("Rama de la entrega final", f"{rd.REPO_URL}/tree/fase-final"),
+             ("Rama entrega-final (solución paralela, PR #5)", f"{rd.REPO_URL}/tree/entrega-final"),
+             ("Ejecuciones de GitHub Actions", rd.ACTIONS_URL),
              ("Historial de commits (todos los integrantes)", f"{rd.REPO_URL}/commits/fase-final"),
              ("Documentación de la API", f"{rd.REPO_URL}/blob/fase-final/docs/api.md"),
              ("Reporte de data drift", f"{rd.REPO_URL}/blob/fase-final/reports/drift/drift_report.md"),
@@ -1478,7 +1690,6 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
 
     # ============================================================================ 8. IA
     heading(ctx, "8. Declaración de uso de herramientas de inteligencia artificial", 1)
-    para(ctx, Guide("[Equipo: confirmar el texto de esta sección antes de exportar el PDF.]"))
     para(ctx, "En apego a los lineamientos de la actividad, se declara el uso de herramientas de inteligencia "
               "artificial en el proyecto (detalle por fase en reports/declaracion_ia.md).")
     for txt in [
@@ -1487,10 +1698,11 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
         "Fase 2: Anthropic. (2026). Claude (Opus 5.5) [Modelo de lenguaje grande], utilizado como apoyo en la "
         "reestructuración del repositorio a Cookiecutter Data Science v2, la refactorización a módulos configurables, "
         "el código del pipeline con Optuna, MLflow Tracking y Model Registry, las pruebas y la documentación.",
-        "Fase final: Anthropic. (2026). Claude (Fable 5.2 y Opus 5.5) [Modelo de lenguaje grande], utilizado como apoyo en la "
-        "migración de las pruebas a pytest, el servicio con FastAPI, el Dockerfile, los scripts de verificación de "
-        "reproducibilidad y la configuración de DVC, la simulación de data drift, el diagrama de la solución, el generador de este reporte y la "
-        "redacción y revisión de la documentación. https://claude.ai/"]:
+        "Fase final: Anthropic. (2026). Claude (Fable 5.2 y Opus 5.5) [Modelo de lenguaje grande], utilizado como "
+        "apoyo en las pruebas con pytest, el servicio con FastAPI y el feature store, el Dockerfile y la publicación "
+        "de las imágenes, los scripts de verificación de reproducibilidad, la configuración de DVC, la simulación de "
+        "data drift, la comparación e integración de las ramas fase-final y entrega-final, el diagrama de la "
+        "solución, el generador de este reporte y la redacción y revisión de la documentación. https://claude.ai/"]:
         bullet(ctx, txt)
     para(ctx, "El equipo revisó, ejecutó y validó el código. Todas las métricas, tablas y figuras de este reporte "
               "corresponden a ejecuciones reales registradas en los logs y artefactos del repositorio, y se generan "
@@ -1525,24 +1737,29 @@ def word_postprocess(docx: Path, pdf: Path | None) -> str:
 
 
 def update_readme_gha(D) -> str:
-    """Llena la fila "Runner de GitHub Actions" de la tabla de reproducibilidad del README con github_actions.json."""
+    """Llena las filas de GitHub Actions de la tabla de reproducibilidad del README con los JSON del runner."""
     readme = ROOT / "README.md"
     text = readme.read_text(encoding="utf-8")
-    gha = D["docker"].get("gha")
-    url = D["docker"]["gha_run_url"]
-    run = f"[corrida {url.rsplit('/', 1)[-1]}]({url})"
-    if gha:
-        ep = val(gha, "endpoints", "predict") or {}
-        row = (f"| Runner de GitHub Actions (`ubuntu-latest`, imagen de DockerHub) | {ep.get('max_abs_diff'):.3g} | "
-               f"{ep.get('rows_bitwise_identical')}/{ep.get('rows')} | {gha.get('verdict')} | "
-               f"`reproducibilidad/github_actions.json`, {run} |")
-    else:
-        row = (f"| Runner de GitHub Actions (`ubuntu-latest`, imagen de DockerHub) | pendiente | pendiente | "
-               f"flujo en verde | {run}; JSON pendiente en `reproducibilidad/github_actions.json` |")
-    new, k = re.subn(r"^\| Runner de GitHub Actions.*$", lambda _: row, text, flags=re.M)
-    if k:
-        readme.write_text(new, encoding="utf-8", newline="\n")
-    return f"README: fila de GitHub Actions {'actualizada' if k else 'no encontrada'}"
+    dock = D["docker"]
+    done = []
+    for prefix, data, url, fname in (
+            ("| GitHub Actions, imagen construida desde el repo", dock.get("gha_build"), dock.get("gha_build_run_url"),
+             "github_actions_build.json"),
+            ("| GitHub Actions, imagen publicada", dock.get("gha"), dock.get("gha_run_url"), "github_actions.json")):
+        if not data:
+            continue
+        ep = val(data, "endpoints", "predict") or {}
+        fp = val(data, "feature_store", "predict_feature_store") or {}
+        run = f", [corrida {url.rsplit('/', 1)[-1]}]({url})" if url else ""
+        row = (f"{prefix} | {ep.get('max_abs_diff'):.3g} | {ep.get('rows_bitwise_identical')}/{ep.get('rows')} | "
+               f"{fp.get('max_abs_diff', 0):.3g} ({fp.get('rows_bitwise_identical')}/{fp.get('rows')}) | "
+               f"{data.get('verdict')} | `reproducibilidad/{fname}`{run} |")
+        new_text, k = re.subn(rf"^{re.escape(prefix)}.*$", lambda _: row, text, flags=re.M)
+        if k:
+            text = new_text
+            done.append(fname)
+    readme.write_text(text, encoding="utf-8", newline="\n")
+    return f"README: filas de GitHub Actions actualizadas con {', '.join(done) or 'ningún JSON'}"
 
 
 def main() -> None:
