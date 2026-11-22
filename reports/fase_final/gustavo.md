@@ -6,11 +6,11 @@ Versión final. La sección **Reflexión** se copia tal cual al reporte (`python
 
 **Rol:** Site Reliability Engineer (SRE).
 
-Implementé la solución de la rama `fase-final` en una sola máquina (Windows 11, Python 3.13.9, Docker), con los
-datos, la base de MLflow y Docker. Jesús Rincón implementó en paralelo otra solución completa en la rama
-`entrega-final`. Comparé las dos ramas, integré en `fase-final` las piezas de la suya que resolvían mejor el problema y
-publiqué la versión 1.1.0 del servicio. Los demás integrantes analizan los entregables de su rol en su propio archivo
-de `reports/fase_final/`.
+En la fase final el equipo trabajó dos aproximaciones complementarias en ramas separadas: la primera sirve el
+binario original de la Fase 2 (rama `entrega-final`) y la segunda reentrena el modelo en un entorno limpio para
+verificar la reproducibilidad y complementar la solución (rama `fase-final`). Como SRE respondo por el entorno
+fijado, el reentrenamiento de verificación, el contenedor, la publicación de la imagen, la verificación entre
+entornos y la integración de las dos aproximaciones en `fase-final`, que publicamos como servicio 1.1.0.
 
 ## Actividades por fase
 
@@ -37,7 +37,7 @@ de `reports/fase_final/`.
 | Reproducibilidad | Verificación del servicio en Windows, contenedor Linux, clon limpio, imagen descargada de DockerHub y GitHub Actions; reentrenamiento completo en Linux; binario original de la Fase 2 | `reports/fase_final/reproducibilidad/` |
 | DVC | `dvc.yaml` con cinco etapas y `dvc.lock` | `docs/dvc.md` |
 | Drift | 8 escenarios, PSI/KS/Wasserstein, MAE/WAPE, umbrales y reglas de acción | `reports/drift/` |
-| Integración | Comparación de `fase-final` con `entrega-final` y merge (`14e4886`); feature store, modelo en Git, registro de predicciones, prueba de coherencia y job de build del CI tomados de la rama de Jesús | `git log`, sección 2.5 del reporte |
+| Integración | Contraste de las dos aproximaciones y merge en `fase-final` (`14e4886`); de la rama `entrega-final` se integraron el feature store, el modelo en Git, el registro de predicciones, la prueba de coherencia y el job de build del CI | `git log`, sección 2.5 del reporte |
 | Documentación | README, diagrama de la solución y reporte generado por código | `README.md`, `reports/build_report.py` |
 
 ## Análisis
@@ -52,11 +52,11 @@ idénticos bit a bit, pero el boosting elige otros hiperparámetros. Por eso lo 
 verificado y la tolerancia de la verificación es 1e-9. El binario original de la Fase 2, entrenado en otra máquina
 con Python 3.12, también reproduce aquí sus 1,000 predicciones de referencia.
 
-**Integración de las dos ramas.** La rama `entrega-final` resolvía dos problemas que la mía tenía: el cliente debía
-enviar los rezagos, y la imagen no se podía construir en un clon limpio porque el modelo no estaba en Git. Integré el
-feature store (adaptado para usar la misma función de rezagos del entrenamiento), el modelo en Git, el registro de
-predicciones, la prueba de coherencia servicio-pipeline y el job del CI que construye la imagen. Subí el servicio a
-1.1.0 (cambio compatible) y conservé 1.0.0 publicada.
+**Integración de las dos aproximaciones.** El contraste resolvió dos debilidades de la aproximación de
+reentrenamiento: el cliente debía enviar los rezagos y la imagen no se podía construir en un clon limpio porque el
+modelo no estaba en Git. Integramos el feature store (adaptado para usar la misma función de rezagos del
+entrenamiento), el modelo en Git, el registro de predicciones, la prueba de coherencia servicio-pipeline y el job
+del CI que construye la imagen. Subimos el servicio a 1.1.0 (cambio compatible) y conservamos 1.0.0 publicada.
 
 **Operación.** El servicio no depende de `mlruns.db`: carga una carpeta MLflow autocontenida, verifica el SHA-256 del
 modelo y del feature store al arrancar y responde 503 si no coinciden. El contenedor corre como usuario sin
@@ -69,11 +69,11 @@ drift; en esta fase comprobé que cada una de esas medidas resolvía un problema
 mí como SRE es que la reproducibilidad tiene niveles y hay que declarar cuál se promete: el mismo modelo se reproduce
 entre Windows y Linux con una diferencia de una unidad en el último bit, pero reentrenar en otro sistema operativo no
 da el mismo modelo, porque una diferencia de redondeo en exp() cambia la búsqueda de Optuna. Sin patrones oro y una
-tolerancia explícita no habríamos podido distinguir esa diferencia inocua de un error. También aprendí que comparar
-dos soluciones independientes es una forma muy efectiva de revisión: la implementación de Jesús en la rama
-entrega-final me mostró que pedirle los rezagos al cliente y dejar el modelo fuera de Git eran decisiones débiles que
-yo no había cuestionado, y la integración dejó una solución mejor que cualquiera de las dos por separado. Como área de
-mejora reconozco que trabajar en paralelo sin coordinarnos duplicó esfuerzo y que concentrar la ejecución en pocas
-máquinas limitó la práctica de los demás roles; en un proyecto real acordaría desde el inicio quién implementa cada
-pieza, abriría pull requests tempranos y automatizaría el pipeline completo en CI con un remoto de DVC para que
+tolerancia explícita no habríamos podido distinguir esa diferencia inocua de un error. También aprendí el valor de
+contrastar dos aproximaciones: servir el binario de la Fase 2 y reentrenar en un entorno limpio funcionó como
+verificación cruzada, confirmó que el resultado se reproduce y nos obligó a revisar decisiones que dábamos por
+buenas, como pedirle los rezagos al cliente o dejar el modelo fuera de Git; la solución integrada quedó mejor que
+cualquiera de las dos aproximaciones por separado. Como área de mejora reconozco que conviene definir desde el inicio
+la interfaz común entre aproximaciones (formato del artefacto y esquema de la API) para integrar con menos
+adaptación, y que el siguiente paso es automatizar el pipeline completo en CI con un remoto de DVC para que
 cualquier integrante pueda reproducirlo con un solo comando.

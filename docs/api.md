@@ -5,7 +5,7 @@ dada. Código: `src/serving/app.py` (rutas, carga del modelo, errores) y `src/se
 (esquemas Pydantic v2), con el feature store en `src/serving/feature_store.py`. Versión del servicio: `1.1.0`
 (`serving.service_version` en `config.yaml`).
 
-**Cambios de la versión 1.1.0** (fusión con la rama `entrega-final` de Jesús Rincón; las ideas del feature store,
+**Cambios de la versión 1.1.0** (integración con la rama `entrega-final`; las ideas del feature store,
 de `lags_source` y del registro de predicciones vienen de esa rama):
 
 - Los tres rezagos de `POST /predict` son **opcionales**: se envían los tres o ninguno. Sin rezagos, el servicio

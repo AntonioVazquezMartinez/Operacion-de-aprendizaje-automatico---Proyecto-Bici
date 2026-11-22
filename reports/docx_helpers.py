@@ -219,8 +219,21 @@ def numbered(ctx: Ctx, *parts):
     return p
 
 
+def _after_section_break(ctx: Ctx) -> bool:
+    """True si lo último del documento es un salto de sección (que ya empieza página nueva).
+
+    Un salto de página manual justo después dejaría una hoja en blanco (p. ej. al volver de una página horizontal).
+    """
+    body = ctx.doc.element.body
+    last_p = [el for el in body if el.tag == qn("w:p")]
+    if not last_p:
+        return False
+    ppr = last_p[-1].find(qn("w:pPr"))
+    return ppr is not None and ppr.find(qn("w:sectPr")) is not None
+
+
 def heading(ctx: Ctx, text: str, level: int = 1, page_break: bool = False):
-    if page_break:
+    if page_break and not _after_section_break(ctx):
         ctx.doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
     return ctx.doc.add_heading(text, level=level)
 

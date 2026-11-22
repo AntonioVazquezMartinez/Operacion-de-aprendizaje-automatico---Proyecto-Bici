@@ -8,8 +8,9 @@
 
 **Roles:** Data Engineer y ML Engineer.
 
-En esta fase hubo dos implementaciones técnicas en paralelo: la de Gustavo (SRE) en la rama `fase-final` y la de
-Jesús (DS) en la rama `entrega-final`; se compararon y se fusionaron en `fase-final` (merge `14e4886`).
+En esta fase el equipo trabajó dos aproximaciones: servir el binario de la Fase 2 (rama `entrega-final`) y
+reentrenar en un entorno limpio para verificar y complementar (rama `fase-final`); se integraron en `fase-final`
+(merge `14e4886`).
 Tu responsabilidad como DE/MLE es el **análisis y la revisión** de dos entregables:
 
 1. **Etapa de datos:** ingesta de los 12 meses de 2025, limpieza, hashes SHA-256 y versionado con DVC.

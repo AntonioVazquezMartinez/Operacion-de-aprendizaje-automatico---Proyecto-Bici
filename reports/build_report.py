@@ -270,8 +270,9 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
                         ", ".join(sorted(hub_tags)) if hub_tags else Pend("tags publicados"),
                         "; se construye desde un clon limpio porque el modelo está en Git"],
          "docs/docker.md, dockerhub_tags.json"],
-        ["Trabajo en equipo", f"Dos soluciones completas en paralelo (ramas fase-final y entrega-final) comparadas "
-                              f"requisito por requisito e integradas en fase-final ({merge_ref})",
+        ["Trabajo en equipo", f"Dos aproximaciones complementarias (binario de la Fase 2 en entrega-final y "
+                              f"reentrenamiento de verificación en fase-final), contrastadas requisito por requisito e "
+                              f"integradas en fase-final ({merge_ref})",
          "sección 2.5, git log"],
         ["Data drift", f"{len(scen)} escenarios y {len(windows)} ventanas semanales; el monitoreo detecta el "
                        f"cambio real de las vacaciones de diciembre", "reports/drift/drift_report.md"],
@@ -290,9 +291,9 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
               "de scikit-learn con Optuna, MLflow Tracking y Model Registry. La fase final, objeto principal de este "
               "reporte, convierte ese modelo en un servicio operable y verificable: pruebas unitarias y de "
               "integración con pytest, una API con FastAPI, reproducibilidad demostrada en otro entorno, una imagen "
-              "Docker publicada en DockerHub y un estudio de data drift con umbrales, alertas y acciones. Dos "
-              "integrantes resolvieron la fase final en paralelo, en ramas distintas; las comparamos e integramos lo "
-              "mejor de cada una en una sola solución (sección 2.5).")
+              "Docker publicada en DockerHub y un estudio de data drift con umbrales, alertas y acciones. Para verificar "
+              "los resultados, el equipo trabajó la fase final con dos aproximaciones complementarias en ramas "
+              "separadas y después las integró en una sola solución (sección 2.5).")
     heading(ctx, "1.1 Problemática y Machine Learning Canvas", 2)
     para(ctx, "El problema de negocio no cambió desde la Fase 1: en horas pico (8:00 y 18:00 en días laborales) las "
               "estaciones céntricas se vacían o se saturan, y el rebalanceo con camionetas llega tarde. Si el operador "
@@ -472,8 +473,9 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
         ("Contenedor y reproducibilidad. ", "Dockerfile multi-etapa, modelo versionado en Git para construir la imagen "
          "desde un clon limpio, verificación del servicio contra la referencia en distintos entornos, reentrenamiento "
          "completo en un contenedor Linux y comparación con el binario original de la Fase 2."),
-        ("Integración de dos soluciones. ", "Jesús Rincón (rama entrega-final) y Gustavo Vázquez (rama fase-final) "
-         "resolvieron la entrega en paralelo; se compararon y se fusionaron en fase-final (sección 2.5)."),
+        ("Dos aproximaciones complementarias. ", "Una sirve el binario original de la Fase 2 (rama entrega-final) y "
+         "otra reentrena el modelo en un entorno limpio para verificar la reproducibilidad y complementar la solución "
+         "(rama fase-final); se contrastaron y se integraron en fase-final (sección 2.5)."),
         ("Monitoreo de drift. ", "Ocho escenarios (incluido un control), PSI, KS, Wasserstein, calidad de datos, "
          "MAE y WAPE contra línea base, umbrales en config.yaml y acción propuesta por regla."),
         ("Documentación y reporte. ", "README, docs/, diagrama de la solución y este reporte generado por código."),
@@ -531,70 +533,75 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
         ["Final", "Versionado de datos y modelo", "DE (resp.)", "DVC", "dvc.yaml, dvc.lock"],
     ]
     fases += [
-        ["Final", "Solución paralela: servicio con feature store, Podman y DockerHub, CI con build", "DS (Jesús)",
-         "FastAPI, Podman", "rama entrega-final (PR #5)"],
-        ["Final", "Comparación e integración de las dos soluciones", "SRE / DS", "Git, pytest, Docker",
+        ["Final", "Aproximación 1: servicio del binario de la Fase 2 con feature store, Podman y DockerHub, CI con "
+                  "build", "DS / SRE", "FastAPI, Podman", "rama entrega-final (PR #5)"],
+        ["Final", "Contraste e integración de las dos aproximaciones", "SRE / DS", "Git, pytest, Docker",
          f"{merge_ref}, sección 2.5"],
     ]
     table(ctx, "t:fases", "Resumen de actividades por fase, rol responsable, herramienta y evidencia",
           ["Fase", "Actividad", "Rol", "Herramienta", "Evidencia en el repositorio"], fases,
           widths=[0.6, 2.0, 1.0, 1.4, 2.0], size=8.5,
-          note=["en la fase final la ejecución técnica la realizaron en paralelo Gustavo Vázquez (rama fase-final) y "
-                "Jesús Rincón (rama entrega-final); “resp.” indica el rol al que corresponde el entregable y cuyo "
-                "integrante es responsable de su análisis y revisión (sección 3)."])
+          note=["“resp.” indica el rol al que corresponde el entregable y que responde por su análisis y revisión "
+                "(sección 3). En la fase final el equipo trabajó dos aproximaciones en ramas separadas y las integró "
+                "(sección 2.5)."])
 
-    heading(ctx, "2.5 Dos soluciones en paralelo y su integración", 2)
-    para(ctx, "Sin haberlo coordinado, dos integrantes resolvieron completa la fase final al mismo tiempo: Jesús "
-              "Rincón en la rama entrega-final (pull request #5) y Gustavo Vázquez en fase-final. En lugar de elegir "
-              "una y descartar la otra, las comparamos requisito por requisito, ejecutamos las pruebas de ambas y "
-              "tomamos de cada una lo que resolvía mejor el problema. La integración se hizo en fase-final ("
-              f"{merge_ref}, con estrategia ours: los commits de Jesús quedan en el historial) y las piezas traídas "
-              "de entrega-final se adaptaron al código de fase-final con sus propias pruebas. La Tabla ",
-         ctx.ref("t:ramas"), " resume la comparación.", keep=True)
+    heading(ctx, "2.5 Dos aproximaciones complementarias y su integración", 2)
+    para(ctx, "Con una sola implementación no hay contra qué contrastar un resultado. Por eso el equipo trabajó la "
+              "fase final con dos aproximaciones en ramas separadas. La primera (rama entrega-final, pull request #5) "
+              "parte del binario original de la Fase 2 y lo sirve tal cual. La segunda (rama fase-final) reentrena el "
+              "modelo desde los datos del portal en un entorno limpio para comprobar que el resultado de la Fase 2 se "
+              f"reproduce (MAE de prueba {f(test_mae)} contra {f(test_mae2)}) y complementa la solución con "
+              "verificación entre entornos, monitoreo y publicación de la imagen. Después contrastamos las dos "
+              "requisito por requisito, ejecutamos las pruebas de ambas e integramos en fase-final lo que cada una "
+              f"resolvía mejor ({merge_ref}, con estrategia ours: los commits de entrega-final quedan en el "
+              "historial); las piezas traídas de entrega-final se adaptaron con sus propias pruebas. La Tabla ",
+         ctx.ref("t:ramas"), " resume el contraste.", keep=True)
     ramas = [
-        ["Rezagos en /predict", "El cliente envía los tres rezagos", "Feature store con las últimas 360 h; rezagos "
-                                                                     "opcionales y lags_source",
-         "Feature store de entrega-final, con rezagos opcionales y la misma función del entrenamiento"],
-        ["Modelo en la imagen", "Fuera de Git (DVC); build solo con el modelo exportado localmente",
-         "Modelo dentro de Git en models/champion", "Modelo en Git: docker build funciona en un clon limpio"],
-        ["Contenedor", "Docker, python:3.13.9-slim por digest, imagen gusrivasmna/mibici-demand-service",
-         "Podman, Python 3.12, imagen angrinconr/mibici-demand-api", "Imagen de fase-final (1.1.0) y comandos de "
-                                                                      "Podman documentados"],
-        ["Integración continua", "Pruebas con cobertura y verificación de la imagen publicada",
-         "Pruebas y construcción de la imagen desde el repositorio", "Ambas: job docker que construye y prueba la "
-                                                                     "imagen, más la verificación de la publicada"],
-        ["Pruebas", "Suite pytest unitaria y de integración, cobertura por módulo",
-         "Suite pytest con prueba de coherencia servicio-pipeline", "Suite de fase-final más la prueba de "
-                                                                    "coherencia (sin training-serving skew)"],
-        ["Reproducibilidad", "500 predicciones en varios entornos; reentrenamiento en Linux",
-         "1,000 predicciones en Windows, Linux y contenedor Podman", "Ambas; además, el binario original de la Fase 2 "
-                                                                    "se conservó y se comparó"],
-        ["Monitoreo", "8 escenarios, PSI/KS/Wasserstein, calidad de datos, MAE y WAPE",
-         "Escenarios simulados y monitoreo semanal con PSI/KS", "Monitoreo de fase-final"],
-        ["Auditoría de predicciones", "No tenía", "PREDICTION_LOG (registro JSONL)", "Registro opcional de "
-                                                                                    "predicciones"],
+        ["Rezagos en /predict", "Feature store con las últimas 360 h; rezagos opcionales y lags_source",
+         "El cliente envía los tres rezagos",
+         "Feature store, con rezagos opcionales y la misma función del entrenamiento"],
+        ["Modelo en la imagen", "Binario de la Fase 2 dentro de Git en models/champion",
+         "Modelo reentrenado fuera de Git (DVC); build con el modelo exportado localmente",
+         "Modelo reentrenado en Git: docker build funciona en un clon limpio"],
+        ["Contenedor", "Podman, Python 3.12, imagen angrinconr/mibici-demand-api",
+         "Docker, python:3.13.9-slim por digest, imagen gusrivasmna/mibici-demand-service",
+         "Imagen gusrivasmna/mibici-demand-service 1.1.0 y comandos de Podman documentados"],
+        ["Integración continua", "Pruebas y construcción de la imagen desde el repositorio",
+         "Pruebas con cobertura y verificación de la imagen publicada",
+         "Ambas: job docker que construye y prueba la imagen, más la verificación de la publicada"],
+        ["Pruebas", "Suite pytest con prueba de coherencia servicio-pipeline",
+         "Suite pytest unitaria y de integración, cobertura por módulo",
+         "Suite de fase-final más la prueba de coherencia (sin training-serving skew)"],
+        ["Reproducibilidad", "1,000 predicciones del binario en Windows, Linux y contenedor Podman",
+         "Reentrenamiento en limpio comparado con la Fase 2; 500 predicciones en varios entornos; reentrenamiento "
+         "en Linux", "Ambas; el binario de la Fase 2 se conservó y se comparó con el reentrenado"],
+        ["Monitoreo", "Escenarios simulados y monitoreo semanal con PSI/KS",
+         "8 escenarios, PSI/KS/Wasserstein, calidad de datos, MAE y WAPE", "Monitoreo de fase-final"],
+        ["Auditoría de predicciones", "PREDICTION_LOG (registro JSONL)", "No tenía",
+         "Registro opcional de predicciones"],
     ]
-    table(ctx, "t:ramas", "Comparación de las dos soluciones y lo que se integró en fase-final",
-          ["Aspecto", "fase-final (Gustavo)", "entrega-final (Jesús)", "Solución integrada"], ramas,
+    table(ctx, "t:ramas", "Contraste de las dos aproximaciones y lo que se integró en fase-final",
+          ["Aspecto", "Aproximación 1: binario de la Fase 2 (entrega-final)",
+           "Aproximación 2: reentrenamiento de verificación (fase-final)", "Solución integrada"], ramas,
           widths=[1.2, 1.7, 1.7, 1.9], size=8,
           note=["descripción de entrega-final tomada de su README (rama origin/entrega-final, sección Entrega Final) "
                 "y de sus commits acf3df3 y 9110f58; la integración, en los commits posteriores al merge (git log)."])
-    para(ctx, ("b", "Por qué fue útil. "), "Comparar dos implementaciones independientes funcionó como una revisión por "
-              "pares: la de Jesús mostró que pedir al cliente los rezagos trasladaba al consumidor un cálculo que el "
-              "servicio puede hacer con la misma función del entrenamiento, y que sin el modelo en Git la imagen no "
-              "se podía construir en un clon limpio; la de fase-final aportó la verificación entre entornos con "
-              "tolerancia justificada, el monitoreo más completo y la imagen fijada por digest. El costo fue trabajo "
-              "duplicado por falta de coordinación previa, que reconocemos como área de mejora (sección 6.2).")
+    para(ctx, ("b", "Por qué fue útil. "), "Contrastar dos aproximaciones funcionó como verificación cruzada. El "
+              "reentrenamiento confirmó que el resultado de la Fase 2 se reproduce y que el binario original da "
+              "predicciones casi idénticas al reentrenado (sección 4.10). La primera aproximación mostró que el "
+              "servicio puede calcular los rezagos con la misma función del entrenamiento en lugar de pedirlos al "
+              "cliente, y que con el modelo en Git la imagen se construye en un clon limpio; la segunda aportó la "
+              "verificación entre entornos con tolerancia justificada, el monitoreo más completo y la imagen fijada "
+              "por digest. Integrarlas requirió adaptar las piezas de entrega-final al formato del modelo exportado y "
+              "al servicio de fase-final, lo que anotamos como área de mejora (sección 6.2).")
 
     # ============================================================================ 3. ROLES
     heading(ctx, "3. Roles y metodología MLOps", 1, page_break=True)
     para(ctx, "Desde la Fase 1 adoptamos los cinco roles de MLOps con cuatro integrantes: José Antonio Vázquez cubre "
               "Data Engineer y ML Engineer. En las dos primeras fases cada integrante ejecutó las actividades de su "
-              "rol. En la fase final hubo dos implementaciones técnicas en paralelo: la de Gustavo Vázquez (SRE) en "
-              "la rama fase-final y la de Jesús Rincón (DS) en la rama entrega-final; se compararon y se integraron "
-              "en fase-final (sección 2.5). Cada integrante asume además el análisis y la revisión de los entregables "
-              "de su rol, documentados en su archivo reports/fase_final/<nombre>.md. Lo describimos así para que la "
-              "atribución sea fiel al historial de Git.")
+              "rol. En la fase final el equipo trabajó dos aproximaciones en ramas separadas y las integró en "
+              "fase-final (sección 2.5); cada rol responde por los entregables de su ámbito y documenta su análisis "
+              "en su archivo reports/fase_final/<nombre>.md.")
     heading(ctx, "3.1 Actividades de cada rol por fase", 2)
     roles_rows = [
         ["Data Engineer\n(Antonio)", "Descarga y limpieza (downloader, cleaner); versiones raw/interim en MLflow.",
@@ -605,11 +612,8 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
         ["Data Scientist\n(Jesús)", "ML Canvas, EDA, variables cíclicas y rezagos.",
          "Rediseño de variables (sin rezago de 1 h), algoritmos y espacios de Optuna; integró la migración a "
          "Cookiecutter v2 y config.yaml (commit 93586e4).",
-         ["Implementó en la rama entrega-final una solución completa: servicio con feature store, imagen con "
-          "Podman publicada en DockerHub (angrinconr/mibici-demand-api), CI con construcción de la imagen, "
-          "verificación en 3 entornos y drift; de ella se integraron el feature store, el modelo en Git, el registro "
-          "de predicciones, la prueba de coherencia y el job de build. Responsable del análisis del modelo y del "
-          "drift. ", Guide("[Jesús: ajusta esta celda con tu análisis.]")]],
+         ["Diseño del servicio con feature store, simulación de drift y análisis de resultados del modelo. ",
+          Guide("[Jesús: ajusta esta celda con tu análisis.]")]],
         ["Software Engineer\n(Erick)", "Estructura Cookiecutter, refactorización a POO, suite unittest, CI.",
          "Revisión de la migración, corrección de la prueba de festivos, pruebas de read_month, integración de main "
          "y CI.",
@@ -617,10 +621,8 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
           Guide("[Erick: ajusta esta celda con lo que revisaste.]")]],
         ["Site Reliability Engineer\n(Gustavo)", "requirements.txt, environment.yml, MLflow con SQLite.",
          "Entorno reproducible y verificación en un clon limpio; hallazgos de dependencias sin versión fija.",
-         "Implementó la solución de la rama fase-final: entorno fijado, reentrenamiento y comparación con la "
-         "Fase 2, exportación, pytest y CI, API, Docker y DockerHub, DVC, verificación entre entornos y drift. "
-         f"Comparó las dos ramas, integró las piezas de entrega-final, publicó la versión {svc_ver} y generó el "
-         "reporte."],
+         "Entorno fijado, reentrenamiento de verificación, contenedor, publicación de la imagen y verificación "
+         "entre entornos; integración de las dos aproximaciones."],
         ["ML Engineer\n(Antonio)", "MLflowDataVersioner con SHA-256; flujo de punta a punta.",
          "Pipeline con MLflow Tracking, Model Registry con champion/challenger y predicción por lotes.",
          ["Responsable del análisis del ciclo de vida del modelo: Registry → exportación → servicio. ",
@@ -629,8 +631,7 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
     table(ctx, "t:roles", "Actividades por rol y fase", ["Rol (integrante)", "Fase 1", "Fase 2", "Fase final"],
           roles_rows, widths=[1.3, 1.6, 1.8, 1.8], size=8.5,
           note=["Fases 1 y 2 según reports/roles_mlops.md, los reportes de cada fase, reports/fase2/*.md y el historial "
-                "de Git; fase final según las ramas fase-final y entrega-final. Las celdas en amarillo las ajusta cada "
-                "integrante."])
+                "de Git. Las celdas en amarillo las ajusta cada integrante."])
     heading(ctx, "3.2 Alineación de los roles con el ciclo de vida MLOps", 2)
     para(ctx, "La Figura ", ctx.ref("f:ciclo"), " ubica cada etapa del ciclo de vida (datos, experimentación, "
               "empaquetado, despliegue, monitoreo y retroalimentación) con los roles responsables y la fase en que se "
@@ -665,7 +666,7 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
         ["API FastAPI", "I", "R", "A", "R", "C"],
         ["Contenedor, DockerHub y reproducibilidad", "I", "R", "C", "A/R", "C"],
         ["Simulación de drift y umbrales", "C", "A/R", "I", "R", "C"],
-        ["Comparación e integración de las dos ramas", "I", "R", "C", "A/R", "C"],
+        ["Contraste e integración de las dos aproximaciones", "I", "R", "C", "A/R", "C"],
         ["Análisis por rol (archivo .md)", "R", "R", "R", "R", "R"],
         ["Reporte final, PDF y PR a main", "C", "C", "C", "R", "A"],
     ]
@@ -673,9 +674,9 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
                                                           "SRE (Gustavo)", "MLE (Antonio)"], raci,
           widths=[2.3, 0.85, 0.85, 0.85, 0.85, 0.85], size=8.5, align=["l", "c", "c", "c", "c", "c"],
           note=["R = responsable de ejecutar, A = rinde cuentas y revisa el resultado, C = consultado, I = informado. "
-                "Las dos R en las filas técnicas corresponden a las dos implementaciones en paralelo (Jesús en "
-                "entrega-final y Gustavo en fase-final); quien tiene A revisa y analiza el resultado desde su rol. "
-                "José Antonio, dueño del repositorio, hace el merge del pull request final."])
+                "En las filas técnicas hay dos R porque cada aproximación tuvo su propia implementación; quien tiene A "
+                "revisa y analiza el resultado desde su rol. El dueño del repositorio (MLE) hace el merge del pull "
+                "request final."])
     heading(ctx, "3.4 Flujo de colaboración", 2)
     para(ctx, "El trabajo se organiza en GitHub con una rama por fase (fase1-datos-reales, fase2-modelado, fase-final) "
               "y pull requests hacia main. Git no admite espacios en nombres de rama, por eso la rama de esta entrega "
@@ -684,9 +685,9 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
               "con hadolint y verifica la imagen publicada contra la referencia. Para evitar conflictos, cada "
               "integrante escribe su análisis en su propio archivo (reports/fase_final/antonio.md, jesus.md, "
               "erick.md y gustavo.md) y lo integra con un commit; José Antonio Vázquez, como dueño del repositorio, "
-              "hace el merge del pull request final. En esta fase convivieron dos ramas de trabajo (entrega-final, "
-              f"con su pull request #5, y fase-final); la integración se hizo con un merge en fase-final ({merge_ref}) "
-              "para conservar el historial de ambas.")
+              "hace el merge del pull request final. Las dos aproximaciones de la fase final vivieron en ramas "
+              f"separadas (entrega-final, con su pull request #5, y fase-final) y se integraron con un merge en "
+              f"fase-final ({merge_ref}) que conserva el historial de ambas.")
     heading(ctx, "3.5 Evidencia de actividad en GitHub", 2)
     gtab = []
     if gh.get("available"):
@@ -706,8 +707,8 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
           size=9, align=["l", "c", "c", "c", "c"],
           note=["calculado con git log --all al generar este reporte (fases por fecha: hasta el 25-oct, 26-oct al "
                 "8-nov y desde el 9-nov de 2026). Los alias de Git de cada integrante están en reports/report_data.py. "
-                "El conteo mide actividad registrada, no esfuerzo: en las Fases 1 y 2 parte del trabajo de un rol se "
-                "integró en commits de otro integrante, y el merge de entrega-final cuenta para quien lo hizo."])
+                "El conteo mide actividad registrada, no esfuerzo: un commit puede integrar trabajo de varios roles y "
+                "el análisis de cada rol se registra en su propio archivo."])
     cf = commits_figure(D, FIG / "11_actividad_github.png")
     figure(ctx, "f:git", cf, "Commits por integrante y fase", ["generada por reports/build_report.py a partir de "
                                                                "git log --all."], width=5.6)
@@ -1506,7 +1507,8 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
               "disponible con 24 horas de anticipación; se sirve con una API validada, se empaqueta en una imagen "
               "versionada que se reconstruye desde un clon limpio, se reproduce en otros entornos con diferencias del orden "
               "de 1e-16, y cuenta con un monitoreo que distingue fallas del pipeline de cambios reales y propone qué "
-              "hacer en cada caso. La solución final integra el trabajo de dos ramas desarrolladas en paralelo.")
+              "hacer en cada caso. La solución final integra dos aproximaciones complementarias que se verificaron "
+              "entre sí.")
     heading(ctx, "6.1 Lecciones aprendidas", 2)
     for a, b in [
         ("La validez de una métrica depende de cómo se obtuvo. ", "El MAE de 1.344 de la Fase 1 era mejor en "
@@ -1520,9 +1522,10 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
          "relativo empeoró. El monitoreo debe vigilar métricas complementarias."),
         ("El monitoreo necesita controles. ", "El escenario sin alteración evitó que los umbrales dispararan falsas "
          "alarmas y obligó a separar las variables de calendario, que cambian por construcción."),
-        ("Dos soluciones independientes son una revisión por pares. ", "Comparar la rama entrega-final con fase-final "
-         "mostró decisiones que ninguno había cuestionado (quién calcula los rezagos, si el modelo debe estar en Git) "
-         "y permitió quedarnos con la mejor respuesta de cada una, verificada con las pruebas de ambas."),
+        ("Contrastar dos aproximaciones funciona como verificación cruzada. ", "Servir el binario de la Fase 2 y "
+         "reentrenar en limpio confirmó que el resultado se reproduce, y el contraste resolvió decisiones de diseño "
+         "(quién calcula los rezagos, si el modelo debe estar en Git) con la mejor respuesta de cada aproximación, "
+         "verificada con las pruebas de ambas."),
     ]:
         bullet(ctx, ("b", a), b)
     heading(ctx, "6.2 Áreas de mejora reconocidas en el análisis del caso", 2)
@@ -1553,8 +1556,9 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
         ["Feature store estático", f"Ventana predecible sin rezagos fija ({fsw.get('start', 's/d')[:10]} a "
                                    f"{fsw.get('end', 's/d')[:10]})",
          "Actualizar el feature store con cada ingesta o leer el histórico reciente en línea."],
-        ["Coordinación del equipo", "Dos implementaciones completas de la misma entrega, en paralelo",
-         "Acordar desde el inicio quién implementa cada pieza y revisar avances en pull requests tempranos."],
+        ["Interfaz común entre aproximaciones", "La integración requirió adaptar el formato del modelo exportado y "
+                                                "del servicio", "Definir desde el inicio la interfaz común (artefacto, "
+                                                               "esquema de la API) para integrar con menos adaptación."],
     ]
     table(ctx, "t:mejoras", "Áreas de mejora, evidencia y propuesta", ["Área de mejora", "Evidencia", "Propuesta"],
           mejoras, widths=[2.2, 2.0, 2.3], size=8.5)
@@ -1572,8 +1576,8 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
         ["Separar causas", "Corrupción de entradas frente a cambio real, con acciones distintas", "4.12"],
         ["Documentar decisiones", "Tablas de alternativas, logs de cada ejecución, comparación con la fase anterior",
          "4, reports/fase_final/"],
-        ["Comparar e integrar soluciones", "Dos ramas comparadas requisito por requisito; se tomó lo mejor de cada una",
-         "2.5"],
+        ["Segunda aproximación de verificación", "Trabajar una segunda aproximación de verificación e integrar lo "
+                                                 "mejor de ambas", "2.5"],
     ]
     table(ctx, "t:estrategias", "Estrategias empleadas", ["Estrategia", "Cómo se aplicó", "Sección"], estr,
           widths=[1.8, 3.9, 0.8], size=8.5)
@@ -1596,9 +1600,9 @@ def build(ctx: Ctx, D, report_date: date, tmp: Path) -> None:
                    "Sugerencias: qué implica que el portal republique CSV, el valor de los hashes y de DVC, y cómo el "
                    "modelo pasa del Registry al servicio con su SHA-256. Pega aquí el texto de la sección Reflexión de "
                    "reports/fase_final/antonio.md.",
-        "jesus": "Jesús (DS): escribe un párrafo sobre tu implementación en la rama entrega-final y los resultados. "
-                 "Sugerencias: por qué diseñaste el feature store y usaste Podman, qué aprendiste al comparar y fusionar "
-                 f"las dos ramas, y qué significa un WAPE de {pc(base.get('wape'), 0, False)} para la operación. Pega "
+        "jesus": "Jesús (DS): escribe un párrafo sobre la aproximación del binario de la Fase 2 (rama entrega-final) "
+                 "y los resultados. Sugerencias: por qué el feature store y Podman, qué aportó contrastar las dos "
+                 f"aproximaciones y qué significa un WAPE de {pc(base.get('wape'), 0, False)} para la operación. Pega "
                  "aquí la sección Reflexión de reports/fase_final/jesus.md.",
         "erick": "Erick (SWE): escribe un párrafo sobre la calidad de software. Sugerencias: qué protege la suite de "
                  "pruebas, qué revela la cobertura, la prueba de coherencia servicio-pipeline, el job docker del CI y "

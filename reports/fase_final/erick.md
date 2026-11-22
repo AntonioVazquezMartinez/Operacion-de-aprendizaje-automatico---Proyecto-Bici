@@ -8,8 +8,8 @@
 
 **Rol:** Software Engineer.
 
-En esta fase hubo dos implementaciones en paralelo (Gustavo en `fase-final` y Jesús en `entrega-final`), que se
-fusionaron en `fase-final`. Tu responsabilidad como SWE es el **análisis y la
+En esta fase el equipo trabajó dos aproximaciones (binario de la Fase 2 en `entrega-final` y reentrenamiento de
+verificación en `fase-final`), que se integraron en `fase-final`. Tu responsabilidad como SWE es el **análisis y la
 revisión de la calidad de software**: la suite de pruebas (punto 1 de la entrega), la API (punto 2) y la
 integración continua.
 

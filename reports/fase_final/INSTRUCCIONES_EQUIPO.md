@@ -6,7 +6,7 @@ Copia y pega el bloque de abajo en WhatsApp. Sustituye `[LIGA DEL WORD COMPARTID
 
 🚲 *Fase final MiBici – Equipo 19*
 
-🔀 *Fusión hecha:* la rama de Jesús (`entrega-final`) ya está integrada en `fase-final`. Se compararon las dos soluciones y nos quedamos con lo mejor de cada una (feature store, modelo en Git, registro de predicciones y CI con build vienen de la rama de Jesús).
+🔀 *Integración hecha:* las dos aproximaciones del equipo (binario de la Fase 2 en `entrega-final` y reentrenamiento de verificación en `fase-final`) ya están integradas en `fase-final`, con lo mejor de cada una (feature store, modelo en Git, registro de predicciones y CI con build vienen de `entrega-final`).
 
 ✅ *Ya está listo (todo en `fase-final`)*
 • Modelo `models:/mibici-demand-forecaster/1`: MAE de prueba 0.7651 (Fase 2: 0.7656)
@@ -22,7 +22,7 @@ Copia y pega el bloque de abajo en WhatsApp. Sustituye `[LIGA DEL WORD COMPARTID
 ✍️ *Lo que falta de cada quien*
 1. Abrir tu archivo en la rama `fase-final` y llenar donde dice `<!-- ESCRIBE AQUÍ -->` (ya trae tus resultados y preguntas guía):
    • Antonio (DE/MLE) → `reports/fase_final/antonio.md` (datos, DVC, modelo en Git, Registry → servicio, binario de la Fase 2)
-   • Jesús (DS) → `reports/fase_final/jesus.md` (tu implementación en `entrega-final`, feature store, Podman, la fusión, resultados del modelo y drift)
+   • Jesús (DS) → `reports/fase_final/jesus.md` (aproximación del binario de la Fase 2 en `entrega-final`, feature store, Podman, el contraste de aproximaciones, resultados del modelo y drift)
    • Erick (SWE) → `reports/fase_final/erick.md` (305 pruebas, prueba de coherencia, API 1.1.0, job docker del CI)
 2. En el Word compartido: [LIGA DEL WORD COMPARTIDO]
    • Tu celda de la Tabla "Actividades por rol y fase" (sección 3.1, en amarillo)

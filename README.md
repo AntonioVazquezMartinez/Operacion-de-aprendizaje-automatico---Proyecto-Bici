@@ -30,23 +30,25 @@ horas de anticipación para programar la redistribución antes del desabasto. Pl
 
 ---
 
-## Integración de las dos soluciones del equipo
+## Integración de dos aproximaciones complementarias
 
-Dos integrantes resolvieron la fase final en paralelo y sin haberlo coordinado: Jesús Rincón en la rama
-`entrega-final` (PR #5) y Gustavo Vázquez en `fase-final`. Comparamos las dos requisito por requisito, ejecutamos
-las pruebas de ambas y las fusionamos en `fase-final` (merge `14e4886`, que conserva los commits de las dos ramas);
-las piezas de `entrega-final` se adaptaron al código de `fase-final` con sus propias pruebas.
+Con una sola implementación no hay contra qué contrastar un resultado, así que el equipo trabajó la fase final con
+dos aproximaciones en ramas separadas: la primera sirve el binario original de la Fase 2 (rama `entrega-final`,
+PR #5) y la segunda reentrena el modelo en un entorno limpio para verificar la reproducibilidad (MAE de prueba 0.7651
+contra 0.7656 de la Fase 2) y complementar la solución (rama `fase-final`). Las contrastamos requisito por requisito,
+ejecutamos las pruebas de ambas y las integramos en `fase-final` (merge `14e4886`, que conserva los commits de las
+dos ramas); las piezas de `entrega-final` se adaptaron al código de `fase-final` con sus propias pruebas.
 
-| Aspecto | `fase-final` (Gustavo) | `entrega-final` (Jesús) | Solución integrada |
+| Aspecto | Aproximación 1: binario de la Fase 2 (`entrega-final`) | Aproximación 2: reentrenamiento de verificación (`fase-final`) | Solución integrada |
 |---|---|---|---|
-| Rezagos en `/predict` | El cliente envía los tres rezagos | Feature store de las últimas 360 h; rezagos opcionales con `lags_source` | Feature store y rezagos opcionales (servicio 1.1.0) |
-| Modelo en la imagen | Fuera de Git (DVC); build con el modelo exportado localmente | Modelo dentro de Git | Modelo en Git: `docker build` funciona en un clon limpio |
-| Contenedor | Docker, `python:3.13.9-slim` por digest, `gusrivasmna/mibici-demand-service` | Podman, Python 3.12, `angrinconr/mibici-demand-api` | Imagen de `fase-final` y comandos de Podman en `docs/docker.md` |
-| CI | Pruebas con cobertura y verificación de la imagen publicada | Pruebas y construcción de la imagen desde el repo | Ambos: job `docker` en `tests.yml` y `docker-reproducibilidad.yml` |
-| Pruebas | Unitarias e integración con cobertura por módulo | Incluye la coherencia servicio-pipeline | Suite de `fase-final` + prueba de coherencia (`tests/test_serving_feature_store.py`) |
-| Reproducibilidad | 500 predicciones en varios entornos; reentrenamiento en Linux | 1,000 predicciones en Windows, Linux y Podman | Ambas + binario original de la Fase 2 (`models/fase2_original/`) |
-| Monitoreo | 8 escenarios, PSI/KS/Wasserstein, calidad de datos, MAE y WAPE | Escenarios simulados y monitoreo semanal con PSI/KS | Monitoreo de `fase-final` |
-| Auditoría de predicciones | — | `PREDICTION_LOG` (JSONL) | Registro opcional de predicciones |
+| Rezagos en `/predict` | Feature store de las últimas 360 h; rezagos opcionales con `lags_source` | El cliente envía los tres rezagos | Feature store y rezagos opcionales (servicio 1.1.0) |
+| Modelo en la imagen | Binario de la Fase 2 dentro de Git | Modelo reentrenado fuera de Git (DVC) | Modelo reentrenado en Git: `docker build` funciona en un clon limpio |
+| Contenedor | Podman, Python 3.12, `angrinconr/mibici-demand-api` | Docker, `python:3.13.9-slim` por digest, `gusrivasmna/mibici-demand-service` | Imagen `gusrivasmna/mibici-demand-service` 1.1.0 y comandos de Podman en `docs/docker.md` |
+| CI | Pruebas y construcción de la imagen desde el repo | Pruebas con cobertura y verificación de la imagen publicada | Ambos: job `docker` en `tests.yml` y `docker-reproducibilidad.yml` |
+| Pruebas | Incluye la coherencia servicio-pipeline | Unitarias e integración con cobertura por módulo | Suite de `fase-final` + prueba de coherencia (`tests/test_serving_feature_store.py`) |
+| Reproducibilidad | 1,000 predicciones del binario en Windows, Linux y Podman | Reentrenamiento comparado con la Fase 2; 500 predicciones en varios entornos; reentrenamiento en Linux | Ambas + binario de la Fase 2 conservado en `models/fase2_original/` |
+| Monitoreo | Escenarios simulados y monitoreo semanal con PSI/KS | 8 escenarios, PSI/KS/Wasserstein, calidad de datos, MAE y WAPE | Monitoreo de `fase-final` |
+| Auditoría de predicciones | `PREDICTION_LOG` (JSONL) | — | Registro opcional de predicciones |
 
 ---
 

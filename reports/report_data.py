@@ -63,7 +63,7 @@ PULL_REQUESTS = [
     (2, "fase1-swe-reproducibilidad", "Fase 1: Makefile, pyproject, CI y notebook de EDA ejecutado"),
     (3, "jesus/declaracion-ia", "Fase 1: declaración de uso de IA"),
     (4, "fase2-modelado", "Fase 2: Cookiecutter v2, config.yaml, Optuna, MLflow Tracking y Model Registry"),
-    (5, "entrega-final", "Fase final en paralelo (Jesús Rincón): feature store, Podman/DockerHub, CI con build; abierto"),
+    (5, "entrega-final", "Fase final, aproximación 1: binario de la Fase 2, feature store, Podman/DockerHub, CI con build"),
 ]
 REPRO_V1 = REPRO / "v1.0.0"
 

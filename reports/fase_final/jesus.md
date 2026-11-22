@@ -8,10 +8,10 @@
 
 **Rol:** Data Scientist.
 
-En esta fase implementaste en la rama `entrega-final` (PR #5, commits `acf3df3` y `9110f58`) una solución completa de
-la entrega: servicio FastAPI con feature store, imagen construida con Podman y publicada en DockerHub
-(`angrinconr/mibici-demand-api`), CI que construye la imagen, verificación en 3 entornos y simulación de drift. Gustavo
-implementó otra en paralelo en `fase-final`; se compararon y se fusionaron en `fase-final` (merge `14e4886`). Como DS
+En esta fase el equipo trabajó dos aproximaciones. En la rama `entrega-final` (PR #5, commits `acf3df3` y `9110f58`)
+está la que sirve el binario original de la Fase 2: servicio FastAPI con feature store, imagen construida con Podman y publicada en DockerHub
+(`angrinconr/mibici-demand-api`), CI que construye la imagen, verificación en 3 entornos y simulación de drift. La otra aproximación (rama `fase-final`) reentrena en un entorno
+limpio para verificar y complementar; se contrastaron y se integraron en `fase-final` (merge `14e4886`). Como DS
 también eres responsable del **análisis e interpretación** de los resultados del modelo y del drift.
 
 ## Lo que se integró de tu rama (con su evidencia)
@@ -44,8 +44,8 @@ también eres responsable del **análisis e interpretación** de los resultados 
    limitación tiene (ventana predecible fija, foto que caduca) y cómo la resolverías en operación?
 2. ¿Por qué usaste Podman y Python 3.12? ¿Qué problemas encontraste (p. ej. el reenvío de puertos en modo rootless) y
    qué aprendiste al publicar la imagen?
-3. ¿Qué aprendiste al comparar tu rama con `fase-final` y fusionarlas? ¿Qué harías distinto para coordinarse desde el
-   inicio?
+3. ¿Qué aportó contrastar las dos aproximaciones (binario de la Fase 2 y reentrenamiento de verificación) y qué
+   harías distinto para integrarlas con menos adaptación?
 4. ¿Por qué el boosting supera a la regresión de Poisson lineal? ¿Qué significa que tu binario de la Fase 2 y el
    reentrenado tengan los mismos hiperparámetros pero predicciones ligeramente distintas?
 5. ¿Por qué el MAE por sí solo engaña en la caída de demanda y en vacaciones? ¿Qué aporta el WAPE?

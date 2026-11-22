@@ -43,7 +43,7 @@ en la que se ejecutó el paso "Verifica el modelo"); el contenedor llegó a `hea
 
 ## Podman (comandos equivalentes)
 
-Adaptado de la rama `entrega-final` (Jesús Rincón), que construyó y publicó su imagen con Podman. Los comandos
+Adaptado de la rama `entrega-final`, que construyó y publicó su imagen con Podman. Los comandos
 son los mismos cambiando `docker` por `podman`, con dos notas:
 
 ```bash
