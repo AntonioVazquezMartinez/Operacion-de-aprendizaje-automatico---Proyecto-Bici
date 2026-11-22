@@ -15,3 +15,14 @@ En apego a los lineamientos de la actividad, se declara el uso de herramientas d
   - las pruebas automatizadas y la documentación del repositorio.
 
   El equipo revisó, ejecutó y validó el código. Las métricas y capturas reportadas corresponden a la ejecución real del pipeline sobre los datos abiertos de MiBici, registrada en MLflow. https://claude.ai/
+
+## Fase final
+
+- Anthropic. (2026). Claude (Opus 5.5) [Modelo de lenguaje grande], utilizado como apoyo en:
+  - la migración de las pruebas a pytest y su configuración de cobertura e integración continua;
+  - el servicio de predicción con FastAPI y Pydantic, y su documentación (OpenAPI y Postman);
+  - el Dockerfile, los scripts de verificación de reproducibilidad entre entornos y la configuración de DVC;
+  - la simulación de data drift (escenarios, métricas, umbrales y reglas de acción);
+  - el diagrama de la solución, el generador del reporte final en Word y la redacción y revisión de la documentación.
+
+  El equipo revisó, ejecutó y validó el código. Las métricas, tablas y figuras reportadas corresponden a ejecuciones reales registradas en los logs y artefactos del repositorio (`reports/fase_final/`, `reports/drift/`, `models/champion_metadata.json`). https://claude.ai/
