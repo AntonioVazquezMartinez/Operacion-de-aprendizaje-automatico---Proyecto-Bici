@@ -18,7 +18,9 @@ Las estaciones de MiBici se vacían o se saturan en las horas pico. El modelo es
 ## Estructura del proyecto (Cookiecutter Data Science v2)
 
 ```text
-├── .github/workflows/     <- Integración continua: corre las pruebas en cada pull request y en push a main
+├── .github/workflows/     <- CI: pruebas, verificación del modelo y construcción de la imagen en cada pull request
+├── Dockerfile             <- Imagen del servicio FastAPI (Entrega Final)
+├── dvc.yaml               <- Etapas del pipeline declaradas para DVC (dependencias, parámetros y salidas)
 ├── Makefile               <- Comandos del pipeline (make data, make train, ...)
 ├── README.md
 ├── config.yaml            <- Configuración única: rutas, meses, reglas, semillas, modelos e hiperparámetros
@@ -32,7 +34,8 @@ Las estaciones de MiBici se vacían o se saturan en las horas pico. El modelo es
 │   ├── interim/           <- Viajes limpios
 │   └── processed/         <- Matriz estación-hora para el modelo y predicciones
 │
-├── models/                <- (Los modelos se versionan en el MLflow Model Registry)
+├── models/
+│   └── champion/          <- Paquete de despliegue exportado de models:/mibici-demand-forecaster/1
 ├── notebooks/
 │   └── 1.0-eq19-eda-mibici.ipynb   <- Exploración; importa los módulos de src/
 ├── references/
@@ -40,6 +43,8 @@ Las estaciones de MiBici se vacían o se saturan en las horas pico. El modelo es
 ├── reports/
 │   ├── figures/           <- Figuras del EDA y comparación de modelos
 │   ├── fase2/             <- Rol y reflexión de cada integrante en la Fase 2
+│   ├── drift/             <- Resultados de la simulación de data drift y alertas
+│   ├── reproducibility/   <- Verificaciones del modelo en distintos entornos
 │   ├── model_comparison.csv
 │   ├── ML_Canvas_MiBici.md
 │   └── roles_mlops.md
@@ -50,10 +55,19 @@ Las estaciones de MiBici se vacían o se saturan en las horas pico. El modelo es
 │   ├── features.py        <- MiBiciFeatureEngineer, partición temporal y preprocesador
 │   ├── plots.py           <- Gráficas del EDA y de evaluación
 │   ├── tracking.py        <- Conexión a MLflow, hashes SHA-256 y versionado de datos
-│   └── modeling/
-│       ├── pipeline.py    <- Pipeline de scikit-learn (preprocesamiento + modelo) y métricas
-│       ├── train.py       <- Optuna + MLflow Tracking + Model Registry
-│       └── predict.py     <- Predicción por lotes con el modelo `champion`
+│   ├── modeling/
+│   │   ├── pipeline.py    <- Pipeline de scikit-learn (preprocesamiento + modelo) y métricas
+│   │   ├── train.py       <- Optuna + MLflow Tracking + Model Registry
+│   │   └── predict.py     <- Predicción por lotes con el modelo `champion`
+│   ├── serving/
+│   │   ├── bundle.py      <- Paquete de despliegue: modelo, feature store, ficha y referencias
+│   │   ├── export_model.py <- Exporta una versión del Model Registry al paquete
+│   │   ├── service.py     <- Construcción de variables en línea y predicción
+│   │   ├── schemas.py     <- Esquemas Pydantic de entrada y salida
+│   │   ├── app.py         <- API FastAPI (/predict, /health, /model-info)
+│   │   └── verify.py      <- Verificación de reproducibilidad en cualquier entorno
+│   └── monitoring/
+│       └── drift.py       <- Simulación de data drift, PSI/KS, umbrales y alertas
 │
 └── tests/                 <- Pruebas unitarias y de integración
 ```
@@ -150,6 +164,158 @@ El portal de MiBici bloquea la descarga automática (HTTP 406), por lo que los a
 | RandomForest | 0.826 | 0.783 | 1.351 | 0.670 | v2 · `challenger` |
 | PoissonRegressor | 1.249 | 1.098 | 3.115 | -0.753 | v3 |
 | Dummy (media) | 1.630 | 1.535 | 2.355 | -0.002 | — |
+
+
+---
+
+## Entrega Final: pruebas, servicio, reproducibilidad, contenedor y data drift
+
+### Resumen
+
+| Requisito | Implementación | Comando |
+|---|---|---|
+| Pruebas unitarias y de integración | `tests/` con pytest: datos, características, modelos, servicio, API, drift y una prueba de extremo a extremo | `pytest -q` |
+| Servicio con FastAPI | `src/serving/app.py`: `POST /predict`, `GET /health`, `GET /model-info`, Swagger en `/docs` | `uvicorn src.serving.app:app --port 8000` |
+| Artefacto del modelo | `models:/mibici-demand-forecaster/1` (alias `champion`), exportado a `models/champion/` | `python -m src.serving.export_model` |
+| Reproducibilidad | Versiones fijas, semilla global, hashes SHA-256, artefactos en MLflow y verificación en 3 entornos | `python -m src.serving.verify --full` |
+| Contenedor | `Dockerfile` (Python 3.12, usuario sin privilegios, healthcheck) | `podman build --format docker -t mibici-demand-api:1.0.0 .` |
+| Data drift | `src/monitoring/drift.py`: 4 escenarios simulados + monitoreo semanal, PSI, KS, umbrales y alertas | `python -m src.monitoring.drift` |
+
+### Artefacto del modelo desplegado
+
+| Campo | Valor |
+|---|---|
+| Modelo registrado | `mibici-demand-forecaster` |
+| URI de la versión | `models:/mibici-demand-forecaster/1` |
+| URI por alias | `models:/mibici-demand-forecaster@champion` |
+| Algoritmo | HistGradientBoostingRegressor (pérdida Poisson) dentro de un `Pipeline` de scikit-learn |
+| Corrida de entrenamiento | `b230b27936e2439db0c9eae68986d884` (experimento `MiBici_Fase2_Modelos`) |
+| Paquete de despliegue | `models/champion/` (hash del modelo en `model_card.json`) |
+| Imagen | `docker.io/angrinconr/mibici-demand-api:1.0.0` (también `:latest`): https://hub.docker.com/r/angrinconr/mibici-demand-api |
+
+`models/champion/` contiene el pipeline (`model.joblib`), la ficha del modelo (`model_card.json`: URI, versión, run, métricas, hashes y versiones de librerías), el *feature store* con las últimas 360 horas de demanda por estación, el catálogo de estaciones y 1,000 predicciones de referencia. El servicio no necesita la base de MLflow: usa esta copia identificada del modelo registrado.
+
+### 1. Pruebas
+
+```bash
+pytest -q                      # toda la suite (datos sintéticos en una carpeta temporal)
+pytest -q tests/test_api.py    # solo la API
+```
+
+| Archivo | Qué valida |
+|---|---|
+| `test_pipeline.py` | Limpieza, cuadrícula estación-hora, rezagos sin fuga, días festivos, partición cronológica, preprocesador |
+| `test_modeling.py` | Cada modelo de `config.yaml` entrena y predice, semilla, reproducibilidad e integración con MLflow + Optuna |
+| `test_integration_e2e.py` | Carga → limpieza → características → entrenamiento → predicción → métricas → paquete → servicio, y que la API calcule las mismas variables y predicciones que el pipeline (sin *training-serving skew*) |
+| `test_serving.py` | Feature store, rezagos enviados por el cliente, estaciones desconocidas, zona horaria, tipos de entrada, esquemas Pydantic y semilla global |
+| `test_api.py` | `/health`, `/model-info`, `/predict` (200 y 422) y el esquema OpenAPI |
+| `test_drift.py` | PSI, escenarios de drift, reglas de alerta y el monitor de extremo a extremo |
+
+### 2. Servicio con FastAPI
+
+```bash
+uvicorn src.serving.app:app --host 0.0.0.0 --port 8000
+# Documentación interactiva: http://localhost:8000/docs
+```
+
+Entrada (`POST /predict`). El cliente envía estación y fecha-hora; los rezagos se toman del *feature store* o se pueden enviar:
+
+```json
+{
+  "instances": [
+    {"station_id": 2, "fecha_hora": "2025-12-31T18:00:00"},
+    {"station_id": 3, "fecha_hora": "2026-03-01T08:00:00",
+     "demand_lag_24h": 2, "demand_lag_168h": 1, "demand_same_hour_mean_7d": 1.4}
+  ]
+}
+```
+
+Salida:
+
+```json
+{
+  "model_name": "mibici-demand-forecaster",
+  "model_version": "1",
+  "model_uri": "models:/mibici-demand-forecaster/1",
+  "n_predictions": 1,
+  "predictions": [
+    {"station_id": 2, "fecha_hora": "2025-12-31T18:00:00", "demand_pred": 3.4493,
+     "lags_source": "feature_store", "demand_lag_24h": 1.0, "demand_lag_168h": 3.0,
+     "demand_same_hour_mean_7d": 1.7143}
+  ]
+}
+```
+
+Errores: `422` si el JSON no cumple el esquema (Pydantic), si la estación no existe o si no hay historial para calcular los rezagos; `503` si el modelo no se pudo cargar. Con `PREDICTION_LOG=logs/predicciones.jsonl` cada solicitud se registra (entradas, salidas, versión del modelo y latencia) para auditoría y monitoreo.
+
+### 3. Reproducibilidad en otro entorno
+
+- Versiones fijas en `requirements.txt` (entrenamiento) y `requirements-api.txt` (servicio); scikit-learn, NumPy, pandas y SciPy coinciden con las que MLflow guardó junto al modelo.
+- `load_config()` fija la semilla de Python, NumPy y `PYTHONHASHSEED`; los estimadores, el TargetEncoder y Optuna reciben `random_state` desde `config.yaml`.
+- Artefactos versionados en MLflow: cada versión de datos (raw, interim, processed) con su hash SHA-256 en `MiBici_Datos`, el modelo en el Model Registry y el paquete de despliegue completo (modelo, feature store y predicciones de referencia) en la corrida `05_Export_mibici-demand-forecaster_v1` del experimento `MiBici_Despliegue`.
+- `dvc.yaml` declara las etapas del pipeline (datos → características → entrenamiento → exportación → drift) con sus dependencias y parámetros de `config.yaml`, para que `dvc repro` vuelva a ejecutar solo lo que cambió.
+
+Entornos verificados (resultados en `reports/reproducibility/`):
+
+| Entorno | Python | Diferencia máxima en 1,000 predicciones | MAE de prueba |
+|---|---|---|---|
+| Windows 11 (entrenamiento) | 3.12.10 | 0 | 0.76559 |
+| Linux (otra máquina) | 3.13.18 | 8.9e-16 | 0.76559 |
+| Contenedor Podman (Linux, WSL2) | 3.12.16 | 8.9e-16 | — |
+
+```bash
+python -m src.serving.verify --full --tag windows-local --output reports/reproducibility
+podman run --rm mibici-demand-api:1.0.0 python -m src.serving.verify --tag contenedor
+```
+
+`verify` compara el hash del modelo y 1,000 predicciones de referencia (tolerancia de 1e-6 bicicletas por hora; entre Windows/Python 3.12 y Linux/Python 3.13 la diferencia medida fue de ~1e-15) y, con `--full`, recalcula el MAE del periodo de prueba contra el registrado en el Model Registry.
+
+### 4. Contenedor
+
+Imagen publicada: https://hub.docker.com/r/angrinconr/mibici-demand-api (tags `1.0.0` y `latest`, ~165 MB comprimida). Para usarla sin clonar el repositorio:
+
+```bash
+podman run --rm -p 8000:8000 docker.io/angrinconr/mibici-demand-api:1.0.0
+```
+
+
+```bash
+podman build --format docker -t mibici-demand-api:1.0.0 -t mibici-demand-api:latest .
+podman run --rm -p 8000:8000 mibici-demand-api:1.0.0
+# Publicar en Docker Hub
+podman login docker.io
+podman tag mibici-demand-api:1.0.0 docker.io/angrinconr/mibici-demand-api:1.0.0
+podman tag mibici-demand-api:1.0.0 docker.io/angrinconr/mibici-demand-api:latest
+podman push docker.io/angrinconr/mibici-demand-api:1.0.0
+podman push docker.io/angrinconr/mibici-demand-api:latest
+```
+
+En Windows, si `localhost:8000` no responde con el contenedor en ejecución (Podman sobre WSL en modo *rootless* no reenvía bien el puerto), cambiar la máquina a modo *rootful* y reconstruir la imagen: `podman machine stop; podman machine set --rootful; podman machine start`.
+
+Con Docker los comandos son iguales cambiando `podman` por `docker` (`docker build -t ml-service:latest .` y `docker run -p 8000:8000 ml-service:latest` también funcionan). Tags: `MAJOR.MINOR.PATCH` de la API; una nueva versión del modelo en el Model Registry implica un nuevo tag de la imagen.
+
+### 5. Data drift
+
+```bash
+python -m src.monitoring.drift            # resultados en reports/drift/ y MLflow (MiBici_Monitoreo)
+python -m src.monitoring.drift --evidently  # además, reportes HTML de Evidently (opcional)
+```
+
+Línea base: el periodo de prueba (8 nov - 31 dic 2025), que el champion no vio. Referencia de distribuciones: train + val.
+
+| Señal | Advertencia | Alerta |
+|---|---|---|
+| Aumento del MAE contra la línea base | ≥ 10 % | ≥ 25 % |
+| Sesgo de la predicción | ≥ ±10 % | ≥ ±20 % |
+| PSI de una variable | ≥ 0.10 | ≥ 0.25 |
+| Filas con variables faltantes | | ≥ 5 % |
+
+| Diagnóstico | Acción |
+|---|---|
+| Faltantes sobre el umbral | Revisar el feature pipeline / feature store; no reentrenar con datos incompletos |
+| Drift en las entradas sin cambio en la demanda real | Probable error en el cálculo de variables: revisar el feature pipeline |
+| Pérdida de desempeño o sesgo con demanda distinta | Reentrenar con datos recientes, comparar con el challenger y promover por alias |
+| Cambio moderado | Aumentar la frecuencia de monitoreo y programar reentrenamiento si persiste |
 
 ---
 

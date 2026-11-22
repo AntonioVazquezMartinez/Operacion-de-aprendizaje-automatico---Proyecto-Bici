@@ -60,3 +60,8 @@ reports/Fase 1_EquipoXX.*
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Entrega Final
+logs/
+tmp_claude/
+reports/drift/evidently_*.html

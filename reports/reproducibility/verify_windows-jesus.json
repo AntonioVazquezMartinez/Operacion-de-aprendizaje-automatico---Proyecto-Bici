@@ -1,0 +1,42 @@
+{
+  "timestamp_utc": "2026-11-22T17:36:56+00:00",
+  "host": "JesusR",
+  "environment": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "scikit_learn": "1.9.1",
+    "pandas": "3.1.1",
+    "numpy": "2.5.4"
+  },
+  "export_environment": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "scikit_learn": "1.9.1",
+    "pandas": "3.1.1",
+    "numpy": "2.5.4"
+  },
+  "model_uri": "models:/mibici-demand-forecaster/1",
+  "model_sha256_expected": "ee03d0da0d1d0c83d00a44bc35a01fc624412591448442665a68364eb43a6f51",
+  "model_sha256_actual": "ee03d0da0d1d0c83d00a44bc35a01fc624412591448442665a68364eb43a6f51",
+  "reference_rows": 1000,
+  "reference_max_abs_diff": 0.0,
+  "reference_mean_abs_diff": 0.0,
+  "model_hash_ok": true,
+  "predictions_ok": true,
+  "test_metrics": {
+    "test_mae": 0.7655929572370478,
+    "test_rmse": 1.3042328417666642,
+    "test_r2": 0.6925852874841245,
+    "test_poisson_deviance": 0.9151545595202063
+  },
+  "test_metrics_registry": {
+    "val_mae": 0.8043,
+    "test_mae": 0.7656,
+    "test_rmse": 1.3042,
+    "test_r2": 0.6926
+  },
+  "test_mae_abs_diff": 7.042762952158554e-06,
+  "metrics_ok": true,
+  "reproducible": true,
+  "tag": "windows-jesus"
+}

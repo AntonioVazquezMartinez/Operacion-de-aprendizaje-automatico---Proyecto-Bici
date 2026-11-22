@@ -5,7 +5,7 @@
 
 PYTHON ?= python
 
-.PHONY: requirements data features eda train predict test mlflow-ui pipeline clean
+.PHONY: requirements data features eda train predict test mlflow-ui pipeline clean export serve verify drift docker-build docker-run
 
 ## Instalar dependencias y el paquete en modo editable
 requirements:
@@ -40,8 +40,36 @@ test:
 mlflow-ui:
 	mlflow ui --backend-store-uri sqlite:///mlruns.db --port 5000
 
+## Exportar el modelo champion del Model Registry a models/champion (paquete de despliegue)
+export:
+	$(PYTHON) -m src.serving.export_model
+
+## Levantar la API localmente (http://localhost:8000/docs)
+serve:
+	uvicorn src.serving.app:app --host 0.0.0.0 --port 8000
+
+## Verificar la reproducibilidad del modelo desplegable en este entorno
+verify:
+	$(PYTHON) -m src.serving.verify --full
+
+## Simular data drift y medir la pérdida de desempeño
+drift:
+	$(PYTHON) -m src.monitoring.drift
+
+IMAGE ?= mibici-demand-api
+VERSION ?= 1.0.0
+ENGINE ?= podman
+
+## Construir la imagen del servicio (ENGINE=docker para usar Docker)
+docker-build:
+	$(ENGINE) build $(if $(filter podman,$(ENGINE)),--format docker) -t $(IMAGE):$(VERSION) -t $(IMAGE):latest .
+
+## Ejecutar el contenedor en el puerto 8000
+docker-run:
+	$(ENGINE) run --rm -p 8000:8000 $(IMAGE):$(VERSION)
+
 ## Pipeline completo de punta a punta
-pipeline: data features eda train predict
+pipeline: data features eda train predict export drift
 
 ## Borrar archivos compilados de Python
 clean:
