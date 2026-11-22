@@ -1,0 +1,11 @@
+# Archivos que se ejecutan dentro de contenedores Linux: siempre con fin de línea LF, aunque Git en Windows use
+# core.autocrlf=true (un script bash con CRLF falla con "$'\r': command not found").
+*.sh text eol=lf
+Dockerfile text eol=lf
+docker/Dockerfile.* text eol=lf
+*.dockerignore text eol=lf
+.dockerignore text eol=lf
+# Artefactos cuyo SHA-256 se guarda en models/champion_metadata.json: mismo contenido byte a byte en
+# Windows y Linux.
+models/*.csv text eol=lf
+models/*.json text eol=lf

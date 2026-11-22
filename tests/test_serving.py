@@ -220,7 +220,7 @@ def test_predict_lote_coherente_con_el_pipeline(client, artefactos):
 
     raw = client.post("/predict/raw", json={"rows": test[cols].to_dict(orient="records")})
     assert raw.status_code == 200, raw.text
-    np.testing.assert_array_equal(raw.json()["predictions"], esperado)
+    np.testing.assert_allclose(raw.json()["predictions"], esperado, rtol=0, atol=1e-9)
 
 
 @pytest.mark.integration
@@ -406,7 +406,8 @@ def test_modelo_real_reproduce_la_referencia():
         instancias = [_instancia(row) for _, row in reference.iterrows()]
         r = c.post("/predict", json={"instances": instancias})
         assert r.status_code == 200, r.text
-        np.testing.assert_array_equal([p["demand_pred"] for p in r.json()["predictions"]], esperado)
+        # Tolerancia 1e-9: entre sistemas operativos exp() puede variar 1 ulp (ver docs/docker.md).
+        np.testing.assert_allclose([p["demand_pred"] for p in r.json()["predictions"]], esperado, rtol=0, atol=1e-9)
         raw = c.post("/predict/raw", json={"rows": reference[cols].to_dict(orient="records")})
         assert raw.status_code == 200, raw.text
-        np.testing.assert_array_equal(raw.json()["predictions"], esperado)
+        np.testing.assert_allclose(raw.json()["predictions"], esperado, rtol=0, atol=1e-9)

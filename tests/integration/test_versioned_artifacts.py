@@ -80,4 +80,7 @@ def test_local_champion_reproduces_reference(metadata):
         pytest.skip(f"{PATHS['model_dir']} no existe en este entorno (en CI no se versiona); "
                     "ejecuta `python -m src.modeling.export` para generarla")
     assert calculate_sha256(model_file) == metadata["model_sha256"]
-    assert verify_reference(REPO_CONFIG) == 0.0
+    # En el sistema donde se exportó la diferencia es 0; en otro sistema operativo el exp() final de la
+    # pérdida de Poisson puede variar 1 ulp (~1e-15), por eso se usa la misma tolerancia que
+    # scripts/verify_reproducibility.py.
+    assert verify_reference(REPO_CONFIG) <= 1e-9

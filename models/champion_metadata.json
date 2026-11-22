@@ -25,7 +25,7 @@
   "dataset_sha256": "fec850d2bdbc935a16cc3e439c1debe824647c801aea4652710d59d6a1a597dc",
   "dataset_sha256_matches_registry": true,
   "stations_file": "stations.csv",
-  "stations_sha256": "350f093dd0fe854d859b8a03d8b927c0ee743677afa7f45d6daa2fadc5ab6647",
+  "stations_sha256": "429951fb49a3dafa73384ed2718bd3dd372ae969824b0c6f2bbb0c486bada545",
   "num_stations": 370,
   "metrics": {
     "test_mae": 0.7651310452008431,
@@ -81,7 +81,7 @@
     "file": "reference_predictions.csv",
     "rows": 500,
     "seed": 42,
-    "sha256": "3bb0832b2656c8d0ffaf6d555929c1af09d2b508631c238a8134ae7ac0859926"
+    "sha256": "bf5254b3d738b7c7b689a038428d908846c00c76642703fce62eafb1333d3ca7"
   },
   "library_versions": {
     "python": "3.13.9",
@@ -91,5 +91,5 @@
     "numpy": "2.5.4"
   },
   "platform": "Windows-11-10.0.26300-SP0",
-  "exported_at": "2026-11-22T18:22:04+00:00"
+  "exported_at": "2026-11-22T19:11:20+00:00"
 }

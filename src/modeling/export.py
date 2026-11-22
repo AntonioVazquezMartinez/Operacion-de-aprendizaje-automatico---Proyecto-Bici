@@ -116,7 +116,9 @@ def export_champion(config: Config, alias: Optional[str] = None) -> Dict[str, An
     stations = pd.read_csv(config.file("raw_dir", "stations_file"))
     known = set(df["Origen_Id"].unique())
     stations = stations.loc[stations["id"].isin(known), STATION_COLUMNS].sort_values("id").reset_index(drop=True)
-    stations.to_csv(paths["stations"], index=False)
+    # Fin de línea fijo "\n": con el de la plataforma (CRLF en Windows) el SHA-256 de los metadatos no
+    # coincide con el archivo que Git entrega en Linux (core.autocrlf normaliza a LF).
+    stations.to_csv(paths["stations"], index=False, lineterminator="\n")
 
     # 3. Muestra fija del conjunto de prueba con la predicción de referencia del modelo exportado.
     target = config["features"]["target"]
@@ -129,7 +131,7 @@ def export_champion(config: Config, alias: Optional[str] = None) -> Dict[str, An
     sample["demand_pred"] = predict_clipped(model, sample[inputs])
     reference = sample[reference_columns(config)]
     paths["reference"].parent.mkdir(parents=True, exist_ok=True)
-    reference.to_csv(paths["reference"], index=False)
+    reference.to_csv(paths["reference"], index=False, lineterminator="\n")
 
     # 4. Metadatos.
     run = client.get_run(mv.run_id)

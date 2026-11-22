@@ -343,7 +343,7 @@ def _runtime_versions() -> Dict[str, str]:
     import sklearn
 
     versions = {"python": platform.python_version(), "scikit-learn": sklearn.__version__,
-                "pandas": pd.__version__, "numpy": np.__version__}
+                "pandas": pd.__version__, "numpy": np.__version__, "platform": platform.platform()}
     try:
         import mlflow
 

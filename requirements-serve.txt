@@ -11,3 +11,5 @@ numpy==2.5.4
 PyYAML==6.0.4
 mlflow-skinny==3.18.0
 cloudpickle==3.1.3
+# Dependencia transitiva de pandas fijada para que la imagen coincida con requirements-lock.txt.
+python-dateutil==2.9.0.post0
