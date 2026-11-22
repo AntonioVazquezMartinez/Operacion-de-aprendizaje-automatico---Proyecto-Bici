@@ -33,5 +33,87 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -e .
+      # Con models/champion/ en Git (versión 1.1.0) también corren aquí, en Linux, las pruebas que usan el modelo
+      # real, su feature store y el binario de la Fase 2 (tolerancia 1e-9).
       - name: Corre las pruebas con cobertura
         run: python -m pytest -q --cov=src --cov-report=term-missing
+
+  # Construye la imagen desde el repositorio (el modelo está en Git), la levanta y la verifica contra el patrón oro.
+  # Idea adaptada del job `docker` de la rama entrega-final.
+  docker:
+    name: Imagen construida desde el repositorio
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Construye la imagen (comando de la tarea)
+        run: |
+          docker build -t ml-service:latest .
+          docker image inspect ml-service:latest --format 'Id={{.Id}} Size={{.Size}}'
+
+      - name: Levanta el contenedor
+        run: docker run -d --name mibici-api -p 8000:8000 ml-service:latest
+
+      - name: Espera a que el HEALTHCHECK reporte healthy
+        run: |
+          for i in $(seq 1 40); do
+            status=$(docker inspect --format '{{.State.Health.Status}}' mibici-api)
+            echo "intento $i: $status"
+            [ "$status" = "healthy" ] && exit 0
+            sleep 3
+          done
+          docker logs mibici-api
+          exit 1
+
+      - name: Verifica la reproducibilidad (con rezagos, /predict/raw y feature store)
+        run: |
+          python3 --version
+          mkdir -p reports/fase_final/reproducibilidad
+          python3 scripts/verify_reproducibility.py --url http://localhost:8000 \
+            --label "github-actions-build-${{ runner.os }}" \
+            --output reports/fase_final/reproducibilidad/github_actions_build.json \
+            | tee reports/fase_final/reproducibilidad/github_actions_build.log
+          exit "${PIPESTATUS[0]}"
+
+      - name: Petición real a /predict sin rezagos (feature store)
+        run: |
+          curl -sf -X POST http://localhost:8000/predict -H "Content-Type: application/json" \
+            -d '{"instances":[{"station_id":24,"datetime":"2025-12-31T18:00:00"}]}' | tee predict_fs.json
+          echo
+          python3 - <<'PY'
+          import json
+          body = json.load(open("predict_fs.json", encoding="utf-8"))
+          pred = body["predictions"][0]
+          assert pred["lags_source"] == "feature_store", pred
+          assert pred["demand_pred"] >= 0, pred
+          print("OK: lags_source=feature_store, demand_pred =", pred["demand_pred"])
+          PY
+
+      - name: Publica el resultado como anotación del job
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json, pathlib
+          path = pathlib.Path("reports/fase_final/reproducibilidad/github_actions_build.json")
+          if path.exists():
+              data = json.loads(path.read_text(encoding="utf-8"))
+              print("::notice title=reproducibilidad-build-json::" + json.dumps(data, separators=(",", ":")))
+          PY
+
+      - name: Guarda los logs del contenedor
+        if: always()
+        run: docker logs mibici-api > reports/fase_final/reproducibilidad/github_actions_build_container.log 2>&1 || true
+
+      - name: Sube los resultados como artefacto
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reproducibilidad-github-actions-build
+          path: reports/fase_final/reproducibilidad/github_actions_build*
+          if-no-files-found: warn
+
+      - name: Detiene el contenedor
+        if: always()
+        run: docker rm -f mibici-api || true

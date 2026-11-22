@@ -1,12 +1,12 @@
-##### A) Servicio en el venv del repo (.venv) con models/champion
-===== 2026-11-22T12:36:42 | http://127.0.0.1:8000 =====
+##### A) Servicio 1.1.0 en el venv del repo (.venv, Python 3.13.9, Windows) con models/champion, puerto 8000
+===== 2026-11-22T14:24:16 | http://127.0.0.1:8000 =====
 
 --- raíz
 >>> GET /
-<<< HTTP 200 (12.3 ms)
+<<< HTTP 200 (25.6 ms)
 {
   "service": "MiBici - API de demanda horaria por estación",
-  "service_version": "1.0.0",
+  "service_version": "1.1.0",
   "model_loaded": true,
   "model_uri": "models:/mibici-demand-forecaster/1",
   "docs": "/docs",
@@ -21,19 +21,19 @@
 
 --- health
 >>> GET /health
-<<< HTTP 200 (0.9 ms)
+<<< HTTP 200 (15.6 ms)
 {
   "status": "ok",
   "model_loaded": true,
   "model_uri": "models:/mibici-demand-forecaster/1",
   "model_sha256_verified": true,
-  "service_version": "1.0.0",
+  "service_version": "1.1.0",
   "detail": null
 }
 
 --- model-info
 >>> GET /model-info
-<<< HTTP 200 (12.3 ms)
+<<< HTTP 200 (15.9 ms)
 {
   "model": {
     "name": "mibici-demand-forecaster",
@@ -97,6 +97,26 @@
     "demand_lag_168h",
     "demand_same_hour_mean_7d"
   ],
+  "optional_request_fields": [
+    "demand_lag_24h",
+    "demand_lag_168h",
+    "demand_same_hour_mean_7d"
+  ],
+  "feature_store": {
+    "enabled": true,
+    "file": "feature_store.csv.gz",
+    "sha256": "aa1a39cd1cc8e354728ba835496573ea125925293792bf0a42d203000bf05ee6",
+    "sha256_verified": true,
+    "start": "2025-12-17T00:00:00",
+    "end": "2025-12-31T23:00:00",
+    "hours": 360,
+    "num_stations": 370,
+    "rows": 133200,
+    "predictable_window": {
+      "start": "2025-12-24T00:00:00",
+      "end": "2026-01-01T23:00:00"
+    }
+  },
   "target": "demand_count",
   "prediction_postprocessing": "clip(prediccion, 0, None)",
   "data_period": {
@@ -134,13 +154,15 @@
     "scikit-learn": "1.9.1",
     "pandas": "3.1.1",
     "numpy": "2.5.4",
+    "platform": "Windows-11-10.0.26300-SP0",
     "mlflow": "3.18.0"
   },
-  "exported_at": "2026-11-22T18:22:04+00:00",
-  "loaded_at": "2026-11-22T18:36:42+00:00",
-  "service_version": "1.0.0",
+  "exported_at": "2026-11-22T20:08:23+00:00",
+  "loaded_at": "2026-11-22T20:24:12+00:00",
+  "service_version": "1.1.0",
   "local_utc_offset": "-06:00",
-  "max_batch_size": 1000
+  "max_batch_size": 1000,
+  "prediction_log_enabled": false
 }
 
 --- predict: una instancia (fila 1 de reference_predictions.csv)
@@ -156,13 +178,17 @@
     }
   ]
 }
-<<< HTTP 200 (58.4 ms)
+<<< HTTP 200 (54.4 ms)
 {
   "predictions": [
     {
       "station_id": 24,
       "datetime": "2025-11-08T10:00:00",
-      "demand_pred": 2.6064224732591033
+      "demand_pred": 2.6064224732591033,
+      "lags_source": "request",
+      "demand_lag_24h": 5.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 3.5714285714285716
     }
   ],
   "model": {
@@ -202,23 +228,35 @@
     }
   ]
 }
-<<< HTTP 200 (22.0 ms)
+<<< HTTP 200 (38.1 ms)
 {
   "predictions": [
     {
       "station_id": 24,
       "datetime": "2025-11-08T10:00:00",
-      "demand_pred": 2.6064224732591033
+      "demand_pred": 2.6064224732591033,
+      "lags_source": "request",
+      "demand_lag_24h": 5.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 3.5714285714285716
     },
     {
       "station_id": 80,
       "datetime": "2025-11-08T11:00:00",
-      "demand_pred": 2.2542647065879575
+      "demand_pred": 2.2542647065879575,
+      "lags_source": "request",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 2.0,
+      "demand_same_hour_mean_7d": 1.4285714285714286
     },
     {
       "station_id": 346,
       "datetime": "2025-11-08T16:00:00",
-      "demand_pred": 1.5534872370393082
+      "demand_pred": 1.5534872370393082,
+      "lags_source": "request",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 2.0,
+      "demand_same_hour_mean_7d": 1.0
     }
   ],
   "model": {
@@ -244,13 +282,17 @@
     }
   ]
 }
-<<< HTTP 200 (33.5 ms)
+<<< HTTP 200 (25.1 ms)
 {
   "predictions": [
     {
       "station_id": 24,
       "datetime": "2025-11-08T10:00:00",
-      "demand_pred": 2.6064224732591033
+      "demand_pred": 2.6064224732591033,
+      "lags_source": "request",
+      "demand_lag_24h": 5.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 3.5714285714285716
     }
   ],
   "model": {
@@ -261,6 +303,121 @@
     "algorithm": "hist_gradient_boosting"
   },
   "n_instances": 1
+}
+
+--- predict SIN rezagos: el servicio los calcula con el feature store (31-dic-2025 18:00)
+>>> POST /predict
+{
+  "instances": [
+    {
+      "station_id": 24,
+      "datetime": "2025-12-31T18:00:00"
+    }
+  ]
+}
+<<< HTTP 200 (15.4 ms)
+{
+  "predictions": [
+    {
+      "station_id": 24,
+      "datetime": "2025-12-31T18:00:00",
+      "demand_pred": 3.1631559452523517,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 1.0,
+      "demand_same_hour_mean_7d": 1.8571428571428572
+    }
+  ],
+  "model": {
+    "name": "mibici-demand-forecaster",
+    "version": 1,
+    "uri": "models:/mibici-demand-forecaster/1",
+    "alias": "champion",
+    "algorithm": "hist_gradient_boosting"
+  },
+  "n_instances": 1
+}
+
+--- predict SIN rezagos: hora posterior al último dato (1-ene-2026 08:00, dentro de la ventana)
+>>> POST /predict
+{
+  "instances": [
+    {
+      "station_id": 24,
+      "datetime": "2026-01-01T08:00:00"
+    }
+  ]
+}
+<<< HTTP 200 (24.7 ms)
+{
+  "predictions": [
+    {
+      "station_id": 24,
+      "datetime": "2026-01-01T08:00:00",
+      "demand_pred": 1.5051365530193872,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 2.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 3.142857142857143
+    }
+  ],
+  "model": {
+    "name": "mibici-demand-forecaster",
+    "version": 1,
+    "uri": "models:/mibici-demand-forecaster/1",
+    "alias": "champion",
+    "algorithm": "hist_gradient_boosting"
+  },
+  "n_instances": 1
+}
+
+--- predict: lote mixto (con rezagos y sin rezagos)
+>>> POST /predict
+{
+  "instances": [
+    {
+      "station_id": 24,
+      "datetime": "2025-11-08T10:00:00",
+      "demand_lag_24h": 5.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 3.5714285714285716
+    },
+    {
+      "station_id": 24,
+      "datetime": "2025-12-31T18:00:00"
+    }
+  ]
+}
+<<< HTTP 200 (15.3 ms)
+{
+  "predictions": [
+    {
+      "station_id": 24,
+      "datetime": "2025-11-08T10:00:00",
+      "demand_pred": 2.6064224732591033,
+      "lags_source": "request",
+      "demand_lag_24h": 5.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 3.5714285714285716
+    },
+    {
+      "station_id": 24,
+      "datetime": "2025-12-31T18:00:00",
+      "demand_pred": 3.1631559452523517,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 1.0,
+      "demand_same_hour_mean_7d": 1.8571428571428572
+    }
+  ],
+  "model": {
+    "name": "mibici-demand-forecaster",
+    "version": 1,
+    "uri": "models:/mibici-demand-forecaster/1",
+    "alias": "champion",
+    "algorithm": "hist_gradient_boosting"
+  },
+  "n_instances": 2
 }
 
 --- predict/raw: fila 1 de la referencia con las columnas ya construidas
@@ -284,7 +441,7 @@
     }
   ]
 }
-<<< HTTP 200 (33.8 ms)
+<<< HTTP 200 (16.3 ms)
 {
   "predictions": [
     2.6064224732591033
@@ -312,7 +469,7 @@
     }
   ]
 }
-<<< HTTP 422 (1.2 ms)
+<<< HTTP 422 (1.3 ms)
 {
   "error": "validation_error",
   "message": "La petición no cumple el esquema de entrada.",
@@ -333,7 +490,7 @@
 --- 422: NaN e Infinity
 >>> POST /predict
 {"instances": [{"station_id": 24, "datetime": "2025-11-08T10:00:00", "demand_lag_24h": NaN, "demand_lag_168h": Infinity, "demand_same_hour_mean_7d": 3.5714285714285716}]}
-<<< HTTP 422 (21.4 ms)
+<<< HTTP 422 (1.7 ms)
 {
   "error": "validation_error",
   "message": "La petición no cumple el esquema de entrada.",
@@ -374,7 +531,7 @@
     }
   ]
 }
-<<< HTTP 422 (15.4 ms)
+<<< HTTP 422 (24.1 ms)
 {
   "error": "validation_error",
   "message": "La petición no cumple el esquema de entrada.",
@@ -406,7 +563,7 @@
     }
   ]
 }
-<<< HTTP 422 (1.6 ms)
+<<< HTTP 422 (15.4 ms)
 {
   "error": "validation_error",
   "message": "La petición no cumple el esquema de entrada.",
@@ -434,19 +591,19 @@
   ]
 }
 
---- 422: campo faltante
+--- 422: campo faltante (station_id)
 >>> POST /predict
 {
   "instances": [
     {
-      "station_id": 24,
       "datetime": "2025-11-08T10:00:00",
       "demand_lag_24h": 5.0,
+      "demand_lag_168h": 0.0,
       "demand_same_hour_mean_7d": 3.5714285714285716
     }
   ]
 }
-<<< HTTP 422 (1.5 ms)
+<<< HTTP 422 (15.5 ms)
 {
   "error": "validation_error",
   "message": "La petición no cumple el esquema de entrada.",
@@ -456,10 +613,70 @@
         "body",
         "instances",
         0,
-        "demand_lag_168h"
+        "station_id"
       ],
       "msg": "Campo obligatorio.",
       "type": "missing"
+    }
+  ]
+}
+
+--- 422: rezagos incompletos (solo demand_lag_24h)
+>>> POST /predict
+{
+  "instances": [
+    {
+      "station_id": 24,
+      "datetime": "2025-12-31T18:00:00",
+      "demand_lag_24h": 1.0
+    }
+  ]
+}
+<<< HTTP 422 (15.1 ms)
+{
+  "error": "validation_error",
+  "message": "La petición no cumple el esquema de entrada.",
+  "details": [
+    {
+      "loc": [
+        "body",
+        "instances",
+        0
+      ],
+      "msg": "Se envían los tres rezagos o ninguno. Faltan: demand_lag_168h, demand_same_hour_mean_7d. Sin rezagos el servicio los calcula con el feature store.",
+      "type": "lags_incomplete"
+    }
+  ]
+}
+
+--- 422: sin rezagos fuera de la ventana del feature store (8-nov-2025)
+>>> POST /predict
+{
+  "instances": [
+    {
+      "station_id": 24,
+      "datetime": "2025-11-08T10:00:00"
+    }
+  ]
+}
+<<< HTTP 422 (17.8 ms)
+{
+  "error": "outside_feature_store_window",
+  "message": "Sin rezagos solo se pueden predecir las horas del 2025-12-24T00:00:00 al 2026-01-01T23:00:00 (hora local; feature store del 2025-12-17T00:00:00 al 2025-12-31T23:00:00). Fuera de esa ventana envía los tres rezagos.",
+  "predictable_window": {
+    "start": "2025-12-24T00:00:00",
+    "end": "2026-01-01T23:00:00"
+  },
+  "details": [
+    {
+      "loc": [
+        "body",
+        "instances",
+        0,
+        "datetime"
+      ],
+      "type": "outside_feature_store_window",
+      "msg": "2025-11-08T10:00:00 (estación 24) está fuera de la ventana 2025-12-24T00:00:00 a 2026-01-01T23:00:00."
     }
   ]
 }
@@ -469,7 +686,7 @@
 {
   "instances": []
 }
-<<< HTTP 422 (1.4 ms)
+<<< HTTP 422 (1.3 ms)
 {
   "error": "validation_error",
   "message": "La petición no cumple el esquema de entrada.",
@@ -487,7 +704,7 @@
 
 --- 422: lote mayor que serving.max_batch_size (1001 instancias)
 >>> POST /predict
-<<< HTTP 422 (6.2 ms)
+<<< HTTP 422 (43.7 ms)
 {
   "error": "validation_error",
   "message": "La petición no cumple el esquema de entrada.",
@@ -506,7 +723,7 @@
 --- 422: JSON inválido
 >>> POST /predict
 {no es json
-<<< HTTP 422 (1.4 ms)
+<<< HTTP 422 (1.0 ms)
 {
   "error": "validation_error",
   "message": "La petición no cumple el esquema de entrada.",
@@ -542,7 +759,7 @@
     }
   ]
 }
-<<< HTTP 422 (17.8 ms)
+<<< HTTP 422 (11.9 ms)
 {
   "error": "validation_error",
   "message": "La petición no cumple el esquema de entrada.",
@@ -598,7 +815,7 @@
 
 --- 404: ruta inexistente
 >>> GET /no-existe
-<<< HTTP 404 (13.6 ms)
+<<< HTTP 404 (1.3 ms)
 {
   "error": "not_found",
   "message": "Recurso no encontrado."
@@ -606,191 +823,162 @@
 
 --- 405: método no permitido
 >>> GET /predict
-<<< HTTP 405 (1.1 ms)
+<<< HTTP 405 (12.7 ms)
 {
   "error": "method_not_allowed",
   "message": "Método no permitido."
 }
 
---- reproducibilidad: 500 filas de la referencia por /predict
+--- reproducibilidad: 500 filas de reference_predictions.csv por /predict
 >>> POST /predict
-<<< HTTP 200 (41.8 ms)
+<<< HTTP 200 (25.4 ms)
 {
   "predictions": [
     {
       "station_id": 24,
       "datetime": "2025-11-08T10:00:00",
-      "demand_pred": 2.6064224732591033
+      "demand_pred": 2.6064224732591033,
+      "lags_source": "request",
+      "demand_lag_24h": 5.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 3.5714285714285716
     },
     {
       "station_id": 80,
       "datetime": "2025-11-08T11:00:00",
-      "demand_pred": 2.2542647065879575
+      "demand_pred": 2.2542647065879575,
+      "lags_source": "request",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 2.0,
+      "demand_same_hour_mean_7d": 1.4285714285714286
     },
     {
       "station_id": 346,
       "datetime": "2025-11-08T16:00:00",
-      "demand_pred": 1.5534872370393082
+      "demand_pred": 1.5534872370393082,
+      "lags_source": "request",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 2.0,
+      "demand_same_hour_mean_7d": 1.0
     },
     {
       "station_id": 386,
       "datetime": "2025-11-08T18:00:00",
-      "demand_pred": 0.6769876507029072
+      "demand_pred": 0.6769876507029072,
+      "lags_source": "request",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 1.0,
+      "demand_same_hour_mean_7d": 1.2857142857142858
     },
     {
       "station_id": 112,
       "datetime": "2025-11-08T20:00:00",
-      "demand_pred": 0.5077363743213095
+      "demand_pred": 0.5077363743213095,
+      "lags_source": "request",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.5714285714285714
     },
     {
       "station_id": 237,
       "datetime": "2025-11-08T22:00:00",
-      "demand_pred": 0.2651748813346651
+      "demand_pred": 0.2651748813346651,
+      "lags_source": "request",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 1.0,
+      "demand_same_hour_mean_7d": 0.7142857142857143
     },
     {
       "station_id": 200,
       "datetime": "2025-11-08T23:00:00",
-      "demand_pred": 1.1784554403543182
+      "demand_pred": 1.1784554403543182,
+      "lags_source": "request",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 2.0,
+      "demand_same_hour_mean_7d": 1.0
     },
     {
       "station_id": 167,
       "datetime": "2025-11-09T00:00:00",
-      "demand_pred": 0.24928731379406535
+      "demand_pred": 0.24928731379406535,
+      "lags_source": "request",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.42857142857142855
     },
     {
       "station_id": 27,
       "datetime": "2025-11-09T04:00:00",
-      "demand_pred": 8.598755400008644e-05
+      "demand_pred": 8.598755400008644e-05,
+      "lags_source": "request",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.0
     },
     {
       "station_id": 196,
       "datetime": "2025-11-09T04:00:00",
-      "demand_pred": 9.084324648690932e-05
+      "demand_pred": 9.084324648690932e-05,
+      "lags_source": "request",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.0
     },
     {
       "station_id": 256,
       "datetime": "2025-11-09T04:00:00",
-      "demand_pred": 8.300744675555922e-05
+      "demand_pred": 8.300744675555922e-05,
+      "lags_source": "request",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.0
     },
     {
       "station_id": 9,
       "datetime": "2025-11-09T10:00:00",
-      "demand_pred": 1.9417967296181475
+      "demand_pred": 1.9417967296181475,
+      "lags_source": "request",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 2.0,
+      "demand_same_hour_mean_7d": 1.5714285714285714
     },
     {
       "station_id": 270,
       "datetime": "2025-11-09T11:00:00",
-      "demand_pred": 0.844335978224852
+      "demand_pred": 0.844335978224852,
+      "lags_source": "request",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.2857142857142857
     },
     {
       "station_id": 2,
       "datetime": "2025-11-09T13:00:00",
-      "demand_pred": 1.8852145526472284
+      "demand_pred": 1.8852145526472284,
+      "lags_source": "request",
+      "demand_lag_24h": 5.0,
+      "demand_lag_168h": 1.0,
+      "demand_same_hour_mean_7d": 3.4285714285714284
     },
     {
       "station_id": 359,
       "datetime": "2025-11-09T15:00:00",
-      "demand_pred": 0.5991749344623192
+      "demand_pred": 0.5991749344623192,
+      "lags_source": "request",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.7142857142857143
     },
     {
       "station_id": 358,
       "datetime": "2025-11-09T18:00:00",
-      "demand_pred": 0.17184030712262952
-    },
-    {
-      "station_id": 107,
-      "datetime": "2025-11-09T22:00:00",
-      "demand_pred": 0.09745317699912083
-    },
-    {
-      "station_id": 91,
-      "datetime": "2025-11-10T03:00:00",
-      "demand_pred": 0.00010102598474657957
-    },
-    {
-      "station_id": 254,
-      "datetime": "2025-11-10T05:00:00",
-      "demand_pred": 1.0814756250811879
-    },
-    {
-      "station_id": 381,
-      "datetime": "2025-11-10T05:00:00",
-      "demand_pred": 0.03574354315701094
-    },
-    {
-      "station_id": 239,
-      "datetime": "2025-11-10T08:00:00",
-      "demand_pred": 0.36769655108672816
-    },
-    {
-      "station_id": 332,
-      "datetime": "2025-11-10T12:00:00",
-      "demand_pred": 1.2466765470336083
-    },
-    {
-      "station_id": 309,
-      "datetime": "2025-11-10T14:00:00",
-      "demand_pred": 0.7066411377215821
-    },
-    {
-      "station_id": 357,
-      "datetime": "2025-11-10T15:00:00",
-      "demand_pred": 0.44653550153467564
-    },
-    {
-      "station_id": 390,
-      "datetime": "2025-11-10T17:00:00",
-      "demand_pred": 2.6707522415325506
-    },
-    {
-      "station_id": 359,
-      "datetime": "2025-11-10T20:00:00",
-      "demand_pred": 0.992981881521589
-    },
-    {
-      "station_id": 388,
-      "datetime": "2025-11-10T22:00:00",
-      "demand_pred": 0.2717023634811814
-    },
-    {
-      "station_id": 384,
-      "datetime": "2025-11-11T02:00:00",
-      "demand_pred": 5.801463591383009e-05
-    },
-    {
-      "station_id": 341,
-      "datetime": "2025-11-11T07:00:00",
-      "demand_pred": 1.025894288534878
-    },
-    {
-      "station_id": 48,
-      "datetime": "2025-11-11T08:00:00",
-      "demand_pred": 1.2211964014840335
-    },
-    {
-      "station_id": 115,
-      "datetime": "2025-11-11T17:00:00",
-      "demand_pred": 2.1072823651921175
-    },
-    {
-      "station_id": 293,
-      "datetime": "2025-11-11T20:00:00",
-      "demand_pred": 1.77226572566389
-    },
-    {
-      "station_id": 44,
-      "datetime": "2025-11-11T22:00:00",
-      "demand_pred": 1.0667154999389517
-    },
-    {
-      "station_id": 296,
-      "datetim
-... (59766 caracteres en total)
-*** /predict: 500 predicciones; diferencia máxima absoluta = 0.0; iguales bit a bit = 500/500
+      "demand_pred"
+... (130121 caracteres en total)
+*** /predict [reference_predictions.csv]: 500 predicciones; diferencia máxima absoluta = 0.0; iguales bit a bit = 500/500
 
---- reproducibilidad: 500 filas de la referencia por /predict/raw
+--- reproducibilidad: 500 filas de reference_predictions.csv por /predict/raw
 >>> POST /predict/raw
-<<< HTTP 200 (21.5 ms)
+<<< HTTP 200 (38.0 ms)
 {
   "predictions": [
     2.6064224732591033,
@@ -958,17 +1146,162 @@
     0.00011902946295933683,
     
 ... (12417 caracteres en total)
-*** /predict/raw: 500 predicciones; diferencia máxima absoluta = 0.0; iguales bit a bit = 500/500
+*** /predict/raw [reference_predictions.csv]: 500 predicciones; diferencia máxima absoluta = 0.0; iguales bit a bit = 500/500
 
-##### B) Servicio en un venv limpio con SOLO requirements-serve.txt (fuera del repo), mismo modelo
-===== 2026-11-22T12:36:57 | http://127.0.0.1:8000 =====
+--- reproducibilidad: 200 filas de reference_feature_store_predictions.csv (sin rezagos) por /predict
+>>> POST /predict
+<<< HTTP 200 (42.6 ms)
+{
+  "predictions": [
+    {
+      "station_id": 402,
+      "datetime": "2025-12-24T00:00:00",
+      "demand_pred": 0.0010056473936009488,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.0
+    },
+    {
+      "station_id": 192,
+      "datetime": "2025-12-24T02:00:00",
+      "demand_pred": 5.641518132751655e-05,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.0
+    },
+    {
+      "station_id": 12,
+      "datetime": "2025-12-24T03:00:00",
+      "demand_pred": 9.228581928844132e-05,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.0
+    },
+    {
+      "station_id": 391,
+      "datetime": "2025-12-24T05:00:00",
+      "demand_pred": 0.0153834327114757,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.0
+    },
+    {
+      "station_id": 193,
+      "datetime": "2025-12-24T06:00:00",
+      "demand_pred": 1.4431518102300465,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 2.0,
+      "demand_same_hour_mean_7d": 1.7142857142857142
+    },
+    {
+      "station_id": 266,
+      "datetime": "2025-12-24T06:00:00",
+      "demand_pred": 4.001783807087512,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 3.0,
+      "demand_lag_168h": 5.0,
+      "demand_same_hour_mean_7d": 3.2857142857142856
+    },
+    {
+      "station_id": 271,
+      "datetime": "2025-12-24T06:00:00",
+      "demand_pred": 7.37597175470027,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 7.0,
+      "demand_lag_168h": 7.0,
+      "demand_same_hour_mean_7d": 5.857142857142857
+    },
+    {
+      "station_id": 333,
+      "datetime": "2025-12-24T07:00:00",
+      "demand_pred": 3.946850941524049,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 7.0,
+      "demand_same_hour_mean_7d": 3.0
+    },
+    {
+      "station_id": 309,
+      "datetime": "2025-12-24T08:00:00",
+      "demand_pred": 0.7494097518213574,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.5714285714285714
+    },
+    {
+      "station_id": 185,
+      "datetime": "2025-12-24T11:00:00",
+      "demand_pred": 0.8808011163091745,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 2.0,
+      "demand_same_hour_mean_7d": 0.8571428571428571
+    },
+    {
+      "station_id": 337,
+      "datetime": "2025-12-24T14:00:00",
+      "demand_pred": 0.906415756167534,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 1.0,
+      "demand_same_hour_mean_7d": 1.0
+    },
+    {
+      "station_id": 148,
+      "datetime": "2025-12-24T20:00:00",
+      "demand_pred": 1.5266198996521814,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 3.0,
+      "demand_same_hour_mean_7d": 1.2857142857142858
+    },
+    {
+      "station_id": 378,
+      "datetime": "2025-12-24T21:00:00",
+      "demand_pred": 0.26897546321231575,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.2857142857142857
+    },
+    {
+      "station_id": 287,
+      "datetime": "2025-12-24T22:00:00",
+      "demand_pred": 0.1502160382591303,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.14285714285714285
+    },
+    {
+      "station_id": 40,
+      "datetime": "2025-12-24T23:00:00",
+      "demand_pred": 1.6187740136486513,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 5.0,
+      "demand_same_hour_mean_7d": 1.8571428571428572
+    },
+    {
+      "sta
+... (53274 caracteres en total)
+*** /predict [reference_feature_store_predictions.csv (sin rezagos)]: 200 predicciones; diferencia máxima absoluta = 0.0; iguales bit a bit = 200/200
+
+##### B) Contenedor Linux ml-service:latest (imagen 1.1.0 construida con `docker build -t ml-service:latest .`; solo requirements-serve.txt), puerto 8000
+===== 2026-11-22T14:22:42 | http://localhost:8000 =====
 
 --- raíz
 >>> GET /
-<<< HTTP 200 (13.1 ms)
+<<< HTTP 200 (25.5 ms)
 {
   "service": "MiBici - API de demanda horaria por estación",
-  "service_version": "1.0.0",
+  "service_version": "1.1.0",
   "model_loaded": true,
   "model_uri": "models:/mibici-demand-forecaster/1",
   "docs": "/docs",
@@ -983,19 +1316,19 @@
 
 --- health
 >>> GET /health
-<<< HTTP 200 (1.1 ms)
+<<< HTTP 200 (15.0 ms)
 {
   "status": "ok",
   "model_loaded": true,
   "model_uri": "models:/mibici-demand-forecaster/1",
   "model_sha256_verified": true,
-  "service_version": "1.0.0",
+  "service_version": "1.1.0",
   "detail": null
 }
 
 --- model-info
 >>> GET /model-info
-<<< HTTP 200 (1.5 ms)
+<<< HTTP 200 (15.5 ms)
 {
   "model": {
     "name": "mibici-demand-forecaster",
@@ -1059,6 +1392,26 @@
     "demand_lag_168h",
     "demand_same_hour_mean_7d"
   ],
+  "optional_request_fields": [
+    "demand_lag_24h",
+    "demand_lag_168h",
+    "demand_same_hour_mean_7d"
+  ],
+  "feature_store": {
+    "enabled": true,
+    "file": "feature_store.csv.gz",
+    "sha256": "aa1a39cd1cc8e354728ba835496573ea125925293792bf0a42d203000bf05ee6",
+    "sha256_verified": true,
+    "start": "2025-12-17T00:00:00",
+    "end": "2025-12-31T23:00:00",
+    "hours": 360,
+    "num_stations": 370,
+    "rows": 133200,
+    "predictable_window": {
+      "start": "2025-12-24T00:00:00",
+      "end": "2026-01-01T23:00:00"
+    }
+  },
   "target": "demand_count",
   "prediction_postprocessing": "clip(prediccion, 0, None)",
   "data_period": {
@@ -1096,13 +1449,15 @@
     "scikit-learn": "1.9.1",
     "pandas": "3.1.1",
     "numpy": "2.5.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41",
     "mlflow": "3.18.0"
   },
-  "exported_at": "2026-11-22T18:22:04+00:00",
-  "loaded_at": "2026-11-22T18:36:57+00:00",
-  "service_version": "1.0.0",
+  "exported_at": "2026-11-22T20:08:23+00:00",
+  "loaded_at": "2026-11-22T20:21:45+00:00",
+  "service_version": "1.1.0",
   "local_utc_offset": "-06:00",
-  "max_batch_size": 1000
+  "max_batch_size": 1000,
+  "prediction_log_enabled": false
 }
 
 --- predict: una instancia (fila 1 de reference_predictions.csv)
@@ -1118,13 +1473,17 @@
     }
   ]
 }
-<<< HTTP 200 (29.3 ms)
+<<< HTTP 200 (31.2 ms)
 {
   "predictions": [
     {
       "station_id": 24,
       "datetime": "2025-11-08T10:00:00",
-      "demand_pred": 2.6064224732591033
+      "demand_pred": 2.6064224732591033,
+      "lags_source": "request",
+      "demand_lag_24h": 5.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 3.5714285714285716
     }
   ],
   "model": {
@@ -1164,23 +1523,35 @@
     }
   ]
 }
-<<< HTTP 200 (12.9 ms)
+<<< HTTP 200 (24.2 ms)
 {
   "predictions": [
     {
       "station_id": 24,
       "datetime": "2025-11-08T10:00:00",
-      "demand_pred": 2.6064224732591033
+      "demand_pred": 2.6064224732591033,
+      "lags_source": "request",
+      "demand_lag_24h": 5.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 3.5714285714285716
     },
     {
       "station_id": 80,
       "datetime": "2025-11-08T11:00:00",
-      "demand_pred": 2.2542647065879575
+      "demand_pred": 2.2542647065879575,
+      "lags_source": "request",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 2.0,
+      "demand_same_hour_mean_7d": 1.4285714285714286
     },
     {
       "station_id": 346,
       "datetime": "2025-11-08T16:00:00",
-      "demand_pred": 1.5534872370393082
+      "demand_pred": 1.5534872370393085,
+      "lags_source": "request",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 2.0,
+      "demand_same_hour_mean_7d": 1.0
     }
   ],
   "model": {
@@ -1206,13 +1577,17 @@
     }
   ]
 }
-<<< HTTP 200 (30.6 ms)
+<<< HTTP 200 (32.3 ms)
 {
   "predictions": [
     {
       "station_id": 24,
       "datetime": "2025-11-08T10:00:00",
-      "demand_pred": 2.6064224732591033
+      "demand_pred": 2.6064224732591033,
+      "lags_source": "request",
+      "demand_lag_24h": 5.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 3.5714285714285716
     }
   ],
   "model": {
@@ -1223,6 +1598,121 @@
     "algorithm": "hist_gradient_boosting"
   },
   "n_instances": 1
+}
+
+--- predict SIN rezagos: el servicio los calcula con el feature store (31-dic-2025 18:00)
+>>> POST /predict
+{
+  "instances": [
+    {
+      "station_id": 24,
+      "datetime": "2025-12-31T18:00:00"
+    }
+  ]
+}
+<<< HTTP 200 (19.6 ms)
+{
+  "predictions": [
+    {
+      "station_id": 24,
+      "datetime": "2025-12-31T18:00:00",
+      "demand_pred": 3.1631559452523517,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 1.0,
+      "demand_same_hour_mean_7d": 1.8571428571428572
+    }
+  ],
+  "model": {
+    "name": "mibici-demand-forecaster",
+    "version": 1,
+    "uri": "models:/mibici-demand-forecaster/1",
+    "alias": "champion",
+    "algorithm": "hist_gradient_boosting"
+  },
+  "n_instances": 1
+}
+
+--- predict SIN rezagos: hora posterior al último dato (1-ene-2026 08:00, dentro de la ventana)
+>>> POST /predict
+{
+  "instances": [
+    {
+      "station_id": 24,
+      "datetime": "2026-01-01T08:00:00"
+    }
+  ]
+}
+<<< HTTP 200 (19.0 ms)
+{
+  "predictions": [
+    {
+      "station_id": 24,
+      "datetime": "2026-01-01T08:00:00",
+      "demand_pred": 1.5051365530193872,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 2.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 3.142857142857143
+    }
+  ],
+  "model": {
+    "name": "mibici-demand-forecaster",
+    "version": 1,
+    "uri": "models:/mibici-demand-forecaster/1",
+    "alias": "champion",
+    "algorithm": "hist_gradient_boosting"
+  },
+  "n_instances": 1
+}
+
+--- predict: lote mixto (con rezagos y sin rezagos)
+>>> POST /predict
+{
+  "instances": [
+    {
+      "station_id": 24,
+      "datetime": "2025-11-08T10:00:00",
+      "demand_lag_24h": 5.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 3.5714285714285716
+    },
+    {
+      "station_id": 24,
+      "datetime": "2025-12-31T18:00:00"
+    }
+  ]
+}
+<<< HTTP 200 (16.5 ms)
+{
+  "predictions": [
+    {
+      "station_id": 24,
+      "datetime": "2025-11-08T10:00:00",
+      "demand_pred": 2.6064224732591033,
+      "lags_source": "request",
+      "demand_lag_24h": 5.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 3.5714285714285716
+    },
+    {
+      "station_id": 24,
+      "datetime": "2025-12-31T18:00:00",
+      "demand_pred": 3.1631559452523517,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 1.0,
+      "demand_same_hour_mean_7d": 1.8571428571428572
+    }
+  ],
+  "model": {
+    "name": "mibici-demand-forecaster",
+    "version": 1,
+    "uri": "models:/mibici-demand-forecaster/1",
+    "alias": "champion",
+    "algorithm": "hist_gradient_boosting"
+  },
+  "n_instances": 2
 }
 
 --- predict/raw: fila 1 de la referencia con las columnas ya construidas
@@ -1246,7 +1736,7 @@
     }
   ]
 }
-<<< HTTP 200 (26.8 ms)
+<<< HTTP 200 (36.2 ms)
 {
   "predictions": [
     2.6064224732591033
@@ -1274,7 +1764,7 @@
     }
   ]
 }
-<<< HTTP 422 (17.8 ms)
+<<< HTTP 422 (20.9 ms)
 {
   "error": "validation_error",
   "message": "La petición no cumple el esquema de entrada.",
@@ -1295,7 +1785,7 @@
 --- 422: NaN e Infinity
 >>> POST /predict
 {"instances": [{"station_id": 24, "datetime": "2025-11-08T10:00:00", "demand_lag_24h": NaN, "demand_lag_168h": Infinity, "demand_same_hour_mean_7d": 3.5714285714285716}]}
-<<< HTTP 422 (15.3 ms)
+<<< HTTP 422 (15.2 ms)
 {
   "error": "validation_error",
   "message": "La petición no cumple el esquema de entrada.",
@@ -1336,7 +1826,7 @@
     }
   ]
 }
-<<< HTTP 422 (15.0 ms)
+<<< HTTP 422 (3.0 ms)
 {
   "error": "validation_error",
   "message": "La petición no cumple el esquema de entrada.",
@@ -1368,7 +1858,7 @@
     }
   ]
 }
-<<< HTTP 422 (1.3 ms)
+<<< HTTP 422 (2.2 ms)
 {
   "error": "validation_error",
   "message": "La petición no cumple el esquema de entrada.",
@@ -1396,19 +1886,19 @@
   ]
 }
 
---- 422: campo faltante
+--- 422: campo faltante (station_id)
 >>> POST /predict
 {
   "instances": [
     {
-      "station_id": 24,
       "datetime": "2025-11-08T10:00:00",
       "demand_lag_24h": 5.0,
+      "demand_lag_168h": 0.0,
       "demand_same_hour_mean_7d": 3.5714285714285716
     }
   ]
 }
-<<< HTTP 422 (1.2 ms)
+<<< HTTP 422 (2.4 ms)
 {
   "error": "validation_error",
   "message": "La petición no cumple el esquema de entrada.",
@@ -1418,10 +1908,70 @@
         "body",
         "instances",
         0,
-        "demand_lag_168h"
+        "station_id"
       ],
       "msg": "Campo obligatorio.",
       "type": "missing"
+    }
+  ]
+}
+
+--- 422: rezagos incompletos (solo demand_lag_24h)
+>>> POST /predict
+{
+  "instances": [
+    {
+      "station_id": 24,
+      "datetime": "2025-12-31T18:00:00",
+      "demand_lag_24h": 1.0
+    }
+  ]
+}
+<<< HTTP 422 (2.0 ms)
+{
+  "error": "validation_error",
+  "message": "La petición no cumple el esquema de entrada.",
+  "details": [
+    {
+      "loc": [
+        "body",
+        "instances",
+        0
+      ],
+      "msg": "Se envían los tres rezagos o ninguno. Faltan: demand_lag_168h, demand_same_hour_mean_7d. Sin rezagos el servicio los calcula con el feature store.",
+      "type": "lags_incomplete"
+    }
+  ]
+}
+
+--- 422: sin rezagos fuera de la ventana del feature store (8-nov-2025)
+>>> POST /predict
+{
+  "instances": [
+    {
+      "station_id": 24,
+      "datetime": "2025-11-08T10:00:00"
+    }
+  ]
+}
+<<< HTTP 422 (2.7 ms)
+{
+  "error": "outside_feature_store_window",
+  "message": "Sin rezagos solo se pueden predecir las horas del 2025-12-24T00:00:00 al 2026-01-01T23:00:00 (hora local; feature store del 2025-12-17T00:00:00 al 2025-12-31T23:00:00). Fuera de esa ventana envía los tres rezagos.",
+  "predictable_window": {
+    "start": "2025-12-24T00:00:00",
+    "end": "2026-01-01T23:00:00"
+  },
+  "details": [
+    {
+      "loc": [
+        "body",
+        "instances",
+        0,
+        "datetime"
+      ],
+      "type": "outside_feature_store_window",
+      "msg": "2025-11-08T10:00:00 (estación 24) está fuera de la ventana 2025-12-24T00:00:00 a 2026-01-01T23:00:00."
     }
   ]
 }
@@ -1431,7 +1981,7 @@
 {
   "instances": []
 }
-<<< HTTP 422 (1.2 ms)
+<<< HTTP 422 (2.0 ms)
 {
   "error": "validation_error",
   "message": "La petición no cumple el esquema de entrada.",
@@ -1449,7 +1999,7 @@
 
 --- 422: lote mayor que serving.max_batch_size (1001 instancias)
 >>> POST /predict
-<<< HTTP 422 (28.5 ms)
+<<< HTTP 422 (4.1 ms)
 {
   "error": "validation_error",
   "message": "La petición no cumple el esquema de entrada.",
@@ -1468,7 +2018,7 @@
 --- 422: JSON inválido
 >>> POST /predict
 {no es json
-<<< HTTP 422 (13.2 ms)
+<<< HTTP 422 (2.0 ms)
 {
   "error": "validation_error",
   "message": "La petición no cumple el esquema de entrada.",
@@ -1504,7 +2054,7 @@
     }
   ]
 }
-<<< HTTP 422 (15.7 ms)
+<<< HTTP 422 (1.9 ms)
 {
   "error": "validation_error",
   "message": "La petición no cumple el esquema de entrada.",
@@ -1548,7 +2098,7 @@
     }
   ]
 }
-<<< HTTP 404 (15.7 ms)
+<<< HTTP 404 (2.0 ms)
 {
   "error": "unknown_station",
   "message": "Estaciones desconocidas para el modelo: [5000, 99999]. Consulta /model-info.",
@@ -1560,7 +2110,7 @@
 
 --- 404: ruta inexistente
 >>> GET /no-existe
-<<< HTTP 404 (15.9 ms)
+<<< HTTP 404 (1.6 ms)
 {
   "error": "not_found",
   "message": "Recurso no encontrado."
@@ -1568,196 +2118,167 @@
 
 --- 405: método no permitido
 >>> GET /predict
-<<< HTTP 405 (17.0 ms)
+<<< HTTP 405 (2.1 ms)
 {
   "error": "method_not_allowed",
   "message": "Método no permitido."
 }
 
---- reproducibilidad: 500 filas de la referencia por /predict
+--- reproducibilidad: 500 filas de reference_predictions.csv por /predict
 >>> POST /predict
-<<< HTTP 200 (23.4 ms)
+<<< HTTP 200 (18.4 ms)
 {
   "predictions": [
     {
       "station_id": 24,
       "datetime": "2025-11-08T10:00:00",
-      "demand_pred": 2.6064224732591033
+      "demand_pred": 2.6064224732591033,
+      "lags_source": "request",
+      "demand_lag_24h": 5.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 3.5714285714285716
     },
     {
       "station_id": 80,
       "datetime": "2025-11-08T11:00:00",
-      "demand_pred": 2.2542647065879575
+      "demand_pred": 2.2542647065879575,
+      "lags_source": "request",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 2.0,
+      "demand_same_hour_mean_7d": 1.4285714285714286
     },
     {
       "station_id": 346,
       "datetime": "2025-11-08T16:00:00",
-      "demand_pred": 1.5534872370393082
+      "demand_pred": 1.5534872370393085,
+      "lags_source": "request",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 2.0,
+      "demand_same_hour_mean_7d": 1.0
     },
     {
       "station_id": 386,
       "datetime": "2025-11-08T18:00:00",
-      "demand_pred": 0.6769876507029072
+      "demand_pred": 0.6769876507029072,
+      "lags_source": "request",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 1.0,
+      "demand_same_hour_mean_7d": 1.2857142857142858
     },
     {
       "station_id": 112,
       "datetime": "2025-11-08T20:00:00",
-      "demand_pred": 0.5077363743213095
+      "demand_pred": 0.5077363743213095,
+      "lags_source": "request",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.5714285714285714
     },
     {
       "station_id": 237,
       "datetime": "2025-11-08T22:00:00",
-      "demand_pred": 0.2651748813346651
+      "demand_pred": 0.2651748813346651,
+      "lags_source": "request",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 1.0,
+      "demand_same_hour_mean_7d": 0.7142857142857143
     },
     {
       "station_id": 200,
       "datetime": "2025-11-08T23:00:00",
-      "demand_pred": 1.1784554403543182
+      "demand_pred": 1.1784554403543182,
+      "lags_source": "request",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 2.0,
+      "demand_same_hour_mean_7d": 1.0
     },
     {
       "station_id": 167,
       "datetime": "2025-11-09T00:00:00",
-      "demand_pred": 0.24928731379406535
+      "demand_pred": 0.24928731379406535,
+      "lags_source": "request",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.42857142857142855
     },
     {
       "station_id": 27,
       "datetime": "2025-11-09T04:00:00",
-      "demand_pred": 8.598755400008644e-05
+      "demand_pred": 8.598755400008644e-05,
+      "lags_source": "request",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.0
     },
     {
       "station_id": 196,
       "datetime": "2025-11-09T04:00:00",
-      "demand_pred": 9.084324648690932e-05
+      "demand_pred": 9.084324648690932e-05,
+      "lags_source": "request",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.0
     },
     {
       "station_id": 256,
       "datetime": "2025-11-09T04:00:00",
-      "demand_pred": 8.300744675555922e-05
+      "demand_pred": 8.300744675555922e-05,
+      "lags_source": "request",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.0
     },
     {
       "station_id": 9,
       "datetime": "2025-11-09T10:00:00",
-      "demand_pred": 1.9417967296181475
+      "demand_pred": 1.9417967296181475,
+      "lags_source": "request",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 2.0,
+      "demand_same_hour_mean_7d": 1.5714285714285714
     },
     {
       "station_id": 270,
       "datetime": "2025-11-09T11:00:00",
-      "demand_pred": 0.844335978224852
+      "demand_pred": 0.844335978224852,
+      "lags_source": "request",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.2857142857142857
     },
     {
       "station_id": 2,
       "datetime": "2025-11-09T13:00:00",
-      "demand_pred": 1.8852145526472284
+      "demand_pred": 1.8852145526472284,
+      "lags_source": "request",
+      "demand_lag_24h": 5.0,
+      "demand_lag_168h": 1.0,
+      "demand_same_hour_mean_7d": 3.4285714285714284
     },
     {
       "station_id": 359,
       "datetime": "2025-11-09T15:00:00",
-      "demand_pred": 0.5991749344623192
+      "demand_pred": 0.5991749344623192,
+      "lags_source": "request",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.7142857142857143
     },
     {
       "station_id": 358,
       "datetime": "2025-11-09T18:00:00",
-      "demand_pred": 0.17184030712262952
-    },
-    {
-      "station_id": 107,
-      "datetime": "2025-11-09T22:00:00",
-      "demand_pred": 0.09745317699912083
-    },
-    {
-      "station_id": 91,
-      "datetime": "2025-11-10T03:00:00",
-      "demand_pred": 0.00010102598474657957
-    },
-    {
-      "station_id": 254,
-      "datetime": "2025-11-10T05:00:00",
-      "demand_pred": 1.0814756250811879
-    },
-    {
-      "station_id": 381,
-      "datetime": "2025-11-10T05:00:00",
-      "demand_pred": 0.03574354315701094
-    },
-    {
-      "station_id": 239,
-      "datetime": "2025-11-10T08:00:00",
-      "demand_pred": 0.36769655108672816
-    },
-    {
-      "station_id": 332,
-      "datetime": "2025-11-10T12:00:00",
-      "demand_pred": 1.2466765470336083
-    },
-    {
-      "station_id": 309,
-      "datetime": "2025-11-10T14:00:00",
-      "demand_pred": 0.7066411377215821
-    },
-    {
-      "station_id": 357,
-      "datetime": "2025-11-10T15:00:00",
-      "demand_pred": 0.44653550153467564
-    },
-    {
-      "station_id": 390,
-      "datetime": "2025-11-10T17:00:00",
-      "demand_pred": 2.6707522415325506
-    },
-    {
-      "station_id": 359,
-      "datetime": "2025-11-10T20:00:00",
-      "demand_pred": 0.992981881521589
-    },
-    {
-      "station_id": 388,
-      "datetime": "2025-11-10T22:00:00",
-      "demand_pred": 0.2717023634811814
-    },
-    {
-      "station_id": 384,
-      "datetime": "2025-11-11T02:00:00",
-      "demand_pred": 5.801463591383009e-05
-    },
-    {
-      "station_id": 341,
-      "datetime": "2025-11-11T07:00:00",
-      "demand_pred": 1.025894288534878
-    },
-    {
-      "station_id": 48,
-      "datetime": "2025-11-11T08:00:00",
-      "demand_pred": 1.2211964014840335
-    },
-    {
-      "station_id": 115,
-      "datetime": "2025-11-11T17:00:00",
-      "demand_pred": 2.1072823651921175
-    },
-    {
-      "station_id": 293,
-      "datetime": "2025-11-11T20:00:00",
-      "demand_pred": 1.77226572566389
-    },
-    {
-      "station_id": 44,
-      "datetime": "2025-11-11T22:00:00",
-      "demand_pred": 1.0667154999389517
-    },
-    {
-      "station_id": 296,
-      "datetim
-... (59766 caracteres en total)
-*** /predict: 500 predicciones; diferencia máxima absoluta = 0.0; iguales bit a bit = 500/500
+      "demand_pred"
+... (130120 caracteres en total)
+*** /predict [reference_predictions.csv]: 500 predicciones; diferencia máxima absoluta = 8.881784197001252e-16; iguales bit a bit = 495/500
 
---- reproducibilidad: 500 filas de la referencia por /predict/raw
+--- reproducibilidad: 500 filas de reference_predictions.csv por /predict/raw
 >>> POST /predict/raw
-<<< HTTP 200 (24.9 ms)
+<<< HTTP 200 (35.4 ms)
 {
   "predictions": [
     2.6064224732591033,
     2.2542647065879575,
-    1.5534872370393082,
+    1.5534872370393085,
     0.6769876507029072,
     0.5077363743213095,
     0.2651748813346651,
@@ -1832,7 +2353,7 @@
     0.24980386841489471,
     0.00011442886783726997,
     9.056493641243102e-05,
-    5.877233250473746e-05,
+    5.8772332504737454e-05,
     1.087708109120107,
     1.1119603178400612,
     1.257646296597897,
@@ -1843,7 +2364,7 @@
     0.7375416066312812,
     6.325789882104617,
     2.035824862250695,
-    7.826232514469565,
+    7.826232514469566,
     1.6489855221622851,
     1.7333349094713528,
     0.9242293905191471,
@@ -1898,7 +2419,7 @@
     2.482887871323817,
     4.774264039906856,
     1.753403930262269,
-    0.27043934616294407,
+    0.2704393461629441,
     0.2926505792794036,
     1.7029114323653194,
     6.90501462510381,
@@ -1919,27 +2440,172 @@
     0.7960209585837065,
     0.00011902946295933683,
     
-... (12417 caracteres en total)
-*** /predict/raw: 500 predicciones; diferencia máxima absoluta = 0.0; iguales bit a bit = 500/500
+... (12416 caracteres en total)
+*** /predict/raw [reference_predictions.csv]: 500 predicciones; diferencia máxima absoluta = 8.881784197001252e-16; iguales bit a bit = 495/500
+
+--- reproducibilidad: 200 filas de reference_feature_store_predictions.csv (sin rezagos) por /predict
+>>> POST /predict
+<<< HTTP 200 (29.6 ms)
+{
+  "predictions": [
+    {
+      "station_id": 402,
+      "datetime": "2025-12-24T00:00:00",
+      "demand_pred": 0.0010056473936009488,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.0
+    },
+    {
+      "station_id": 192,
+      "datetime": "2025-12-24T02:00:00",
+      "demand_pred": 5.641518132751655e-05,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.0
+    },
+    {
+      "station_id": 12,
+      "datetime": "2025-12-24T03:00:00",
+      "demand_pred": 9.228581928844132e-05,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.0
+    },
+    {
+      "station_id": 391,
+      "datetime": "2025-12-24T05:00:00",
+      "demand_pred": 0.0153834327114757,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.0
+    },
+    {
+      "station_id": 193,
+      "datetime": "2025-12-24T06:00:00",
+      "demand_pred": 1.4431518102300465,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 2.0,
+      "demand_same_hour_mean_7d": 1.7142857142857142
+    },
+    {
+      "station_id": 266,
+      "datetime": "2025-12-24T06:00:00",
+      "demand_pred": 4.001783807087512,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 3.0,
+      "demand_lag_168h": 5.0,
+      "demand_same_hour_mean_7d": 3.2857142857142856
+    },
+    {
+      "station_id": 271,
+      "datetime": "2025-12-24T06:00:00",
+      "demand_pred": 7.37597175470027,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 7.0,
+      "demand_lag_168h": 7.0,
+      "demand_same_hour_mean_7d": 5.857142857142857
+    },
+    {
+      "station_id": 333,
+      "datetime": "2025-12-24T07:00:00",
+      "demand_pred": 3.946850941524049,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 7.0,
+      "demand_same_hour_mean_7d": 3.0
+    },
+    {
+      "station_id": 309,
+      "datetime": "2025-12-24T08:00:00",
+      "demand_pred": 0.7494097518213574,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.5714285714285714
+    },
+    {
+      "station_id": 185,
+      "datetime": "2025-12-24T11:00:00",
+      "demand_pred": 0.8808011163091745,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 2.0,
+      "demand_same_hour_mean_7d": 0.8571428571428571
+    },
+    {
+      "station_id": 337,
+      "datetime": "2025-12-24T14:00:00",
+      "demand_pred": 0.906415756167534,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 1.0,
+      "demand_same_hour_mean_7d": 1.0
+    },
+    {
+      "station_id": 148,
+      "datetime": "2025-12-24T20:00:00",
+      "demand_pred": 1.5266198996521814,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 3.0,
+      "demand_same_hour_mean_7d": 1.2857142857142858
+    },
+    {
+      "station_id": 378,
+      "datetime": "2025-12-24T21:00:00",
+      "demand_pred": 0.26897546321231575,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.2857142857142857
+    },
+    {
+      "station_id": 287,
+      "datetime": "2025-12-24T22:00:00",
+      "demand_pred": 0.1502160382591303,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 0.0,
+      "demand_lag_168h": 0.0,
+      "demand_same_hour_mean_7d": 0.14285714285714285
+    },
+    {
+      "station_id": 40,
+      "datetime": "2025-12-24T23:00:00",
+      "demand_pred": 1.6187740136486513,
+      "lags_source": "feature_store",
+      "demand_lag_24h": 1.0,
+      "demand_lag_168h": 5.0,
+      "demand_same_hour_mean_7d": 1.8571428571428572
+    },
+    {
+      "sta
+... (53274 caracteres en total)
+*** /predict [reference_feature_store_predictions.csv (sin rezagos)]: 200 predicciones; diferencia máxima absoluta = 0.0; iguales bit a bit = 200/200
 
 ##### C) Servicio sin modelo (MODEL_DIR=models/no_existe), puerto 8001
-===== 2026-11-22T12:37:00 | http://127.0.0.1:8001 =====
+===== 2026-11-22T14:24:17 | http://127.0.0.1:8001 =====
 
 --- health sin modelo (503)
 >>> GET /health
-<<< HTTP 503 (34.9 ms)
+<<< HTTP 503 (11.9 ms)
 {
   "status": "unavailable",
   "model_loaded": false,
   "model_uri": null,
   "model_sha256_verified": null,
-  "service_version": "1.0.0",
+  "service_version": "1.1.0",
   "detail": "FileNotFoundError: No existe un modelo MLflow (archivo MLmodel) en models/no_existe"
 }
 
 --- model-info sin modelo (503)
 >>> GET /model-info
-<<< HTTP 503 (15.6 ms)
+<<< HTTP 503 (19.3 ms)
 {
   "error": "model_unavailable",
   "message": "El modelo no está cargado: FileNotFoundError: No existe un modelo MLflow (archivo MLmodel) en models/no_existe"
@@ -1958,9 +2624,8 @@
     }
   ]
 }
-<<< HTTP 503 (2.9 ms)
+<<< HTTP 503 (14.1 ms)
 {
   "error": "model_unavailable",
   "message": "El modelo no está cargado: FileNotFoundError: No existe un modelo MLflow (archivo MLmodel) en models/no_existe"
 }
-

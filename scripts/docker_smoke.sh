@@ -3,7 +3,7 @@
 #
 # Uso (desde la raíz del repositorio):
 #   bash scripts/docker_smoke.sh                                   # construye ml-service:latest y lo verifica
-#   SKIP_BUILD=1 IMAGE=gusrivasmna/mibici-demand-service:1.0.0 bash scripts/docker_smoke.sh   # imagen publicada
+#   SKIP_BUILD=1 IMAGE=gusrivasmna/mibici-demand-service:1.1.0 bash scripts/docker_smoke.sh   # imagen publicada
 # Variables: IMAGE (ml-service:latest), PORT (8000), LABEL (contenedor-local), OUTPUT (JSON de resultados),
 #            SKIP_BUILD (1 = no construir), PYTHON (python3 o python).
 set -euo pipefail

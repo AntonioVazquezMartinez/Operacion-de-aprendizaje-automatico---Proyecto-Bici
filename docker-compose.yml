@@ -1,11 +1,11 @@
 # Servicio de predicción de MiBici con Docker Compose.
 #   docker compose up -d            # usa la imagen publicada (docker pull automático)
-#   docker compose up -d --build    # construye localmente con el Dockerfile (requiere models/champion/)
+#   docker compose up -d --build    # construye localmente con el Dockerfile (el modelo está en Git)
 #   docker compose down
-# MIBICI_TAG elige el tag publicado (por omisión 1.0.0); ver docs/docker.md.
+# MIBICI_TAG elige el tag publicado (por omisión 1.1.0; MIBICI_TAG=1.0.0 para la primera versión); ver docs/docker.md.
 services:
   api:
-    image: gusrivasmna/mibici-demand-service:${MIBICI_TAG:-1.0.0}
+    image: gusrivasmna/mibici-demand-service:${MIBICI_TAG:-1.1.0}
     build:
       context: .
       dockerfile: Dockerfile

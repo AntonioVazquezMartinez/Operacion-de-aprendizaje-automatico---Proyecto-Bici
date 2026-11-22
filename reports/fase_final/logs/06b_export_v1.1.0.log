@@ -1,0 +1,12 @@
+# comando: python -m src.modeling.export  (2026-11-22T14:08:18-06:00, Python 3.13.9)
+Exportando mibici-demand-forecaster@champion -> v1 (models:/mibici-demand-forecaster/1)
+Fin de línea LF en: conda.yaml, MLmodel, python_env.yaml, serving_input_example.json
+Modelo: ./models\champion (SHA-256 ca4331a49948c99b29580463d89e8aa1dc8d14451f866c029588f3de67ce2ed5)
+Metadatos: ./models\champion_metadata.json
+Referencia: ./models\reference_predictions.csv (500 filas)
+Feature store: feature_store.csv.gz 2025-12-17T00:00:00 a 2025-12-31T23:00:00 (360 h, 370 estaciones, SHA-256 aa1a39cd1cc8e354728ba835496573ea125925293792bf0a42d203000bf05ee6); ventana predecible 2025-12-24T00:00:00 a 2026-01-01T23:00:00
+Referencia del feature store: ./models\reference_feature_store_predictions.csv (200 filas)
+Verificación: 500 filas, diferencia máxima absoluta = 0.000e+00 (Python 3.13.9, scikit-learn 1.9.1, win32)
+# codigo_salida: 0
+# fin: 2026-11-22T14:08:23-06:00
+# duracion_segundos: 5

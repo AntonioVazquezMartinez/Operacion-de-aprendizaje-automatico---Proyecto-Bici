@@ -1,6 +1,7 @@
-# Reproducibilidad del servicio en un entorno distinto al de entrenamiento (runner Linux de GitHub Actions).
-# models/champion/ no está en Git (se versiona con DVC), así que aquí NO se construye la imagen: se descarga la
-# imagen publicada en DockerHub, se levanta y se verifica contra models/reference_predictions.csv (sí en Git).
+# Reproducibilidad de la imagen PUBLICADA en DockerHub en un entorno distinto al de entrenamiento (runner Linux
+# de GitHub Actions): descarga la imagen, la levanta y la verifica contra models/reference_predictions.csv y
+# models/reference_feature_store_predictions.csv (en Git). La imagen construida desde el repositorio se verifica
+# en el job `docker` de tests.yml.
 name: docker-reproducibilidad
 
 on:
@@ -9,7 +10,7 @@ on:
       tag:
         description: "Tag de gusrivasmna/mibici-demand-service a verificar"
         required: false
-        default: "1.0.0"
+        default: "1.1.0"
   push:
     branches: [main, fase-final]
 
@@ -18,7 +19,7 @@ permissions:
 
 env:
   IMAGE: gusrivasmna/mibici-demand-service
-  TAG: ${{ github.event.inputs.tag || '1.0.0' }}
+  TAG: ${{ github.event.inputs.tag || '1.1.0' }}
 
 jobs:
   lint-dockerfile:

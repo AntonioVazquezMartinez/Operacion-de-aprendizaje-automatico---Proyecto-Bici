@@ -1,0 +1,15 @@
+INFO:     Started server process [21544]
+INFO:     Waiting for application startup.
+2026-11-22 12:47:42,014 INFO mibici.serving: Modelo cargado: models:/mibici-demand-forecaster/1 (SHA-256 verificado: True, 370 estaciones)
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+2026-11-22 12:47:42,172 INFO mibici.serving: GET /health -> 200 (1.37 ms)
+INFO:     127.0.0.1:64762 - "GET /health HTTP/1.1" 200 OK
+2026-11-22 12:47:42,173 INFO mibici.serving: GET /model-info -> 200 (0.74 ms)
+INFO:     127.0.0.1:64767 - "GET /model-info HTTP/1.1" 200 OK
+2026-11-22 12:47:42,219 INFO mibici.serving: predict/raw: 500 filas en 36.69 ms
+2026-11-22 12:47:42,220 INFO mibici.serving: POST /predict/raw -> 200 (39.85 ms)
+INFO:     127.0.0.1:64768 - "POST /predict/raw HTTP/1.1" 200 OK
+2026-11-22 12:47:42,251 INFO mibici.serving: predict: 500 instancias en 13.21 ms
+2026-11-22 12:47:42,253 INFO mibici.serving: POST /predict -> 200 (16.56 ms)
+INFO:     127.0.0.1:64769 - "POST /predict HTTP/1.1" 200 OK

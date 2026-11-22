@@ -10,9 +10,11 @@
 !src/features.py
 !src/serving/
 
+# models/champion/ (modelo + stations.csv + feature store) está en Git; models/fase2_original/ queda fuera.
 !models/champion/
 !models/champion_metadata.json
 !models/reference_predictions.csv
+!models/reference_feature_store_predictions.csv
 
 # Nunca bytecode ni cachés aunque estén dentro de carpetas permitidas.
 **/__pycache__

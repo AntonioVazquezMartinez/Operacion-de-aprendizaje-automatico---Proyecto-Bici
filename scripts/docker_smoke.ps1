@@ -4,7 +4,7 @@
 # Uso (desde la raíz del repositorio):
 #   powershell -ExecutionPolicy Bypass -File scripts\docker_smoke.ps1
 #   powershell -ExecutionPolicy Bypass -File scripts\docker_smoke.ps1 -SkipBuild `
-#       -Image gusrivasmna/mibici-demand-service:1.0.0
+#       -Image gusrivasmna/mibici-demand-service:1.1.0
 param(
     [string]$Image = "ml-service:latest",
     [int]$Port = 8000,

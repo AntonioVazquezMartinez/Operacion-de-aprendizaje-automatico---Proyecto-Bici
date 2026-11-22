@@ -1,0 +1,348 @@
+# Prueba de clon limpio: carpeta temporal fuera del repositorio con SOLO los archivos de Git (git ls-files + nuevos no ignorados; sin data/, mlruns.db ni .venv)
+# comando: docker build -t ml-service:clon-limpio .
+# inicio: 2026-11-22T14:31:51-06:00
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 7.19kB done
+#1 DONE 0.1s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 ...
+
+#3 [auth] docker/dockerfile:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 DONE 0.8s
+
+#4 docker-image://docker.io/docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183
+#4 resolve docker.io/docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183
+#4 resolve docker.io/docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183 0.2s done
+#4 CACHED
+
+#5 [internal] load metadata for docker.io/library/python:3.13.9-slim@sha256:326df678c20c78d465db501563f3492d17c42a4afe33a1f2bf5406a1d56b0e86
+#5 DONE 0.2s
+
+#6 [internal] load .dockerignore
+#6 transferring context: 703B done
+#6 DONE 0.1s
+
+#7 [builder 1/4] FROM docker.io/library/python:3.13.9-slim@sha256:326df678c20c78d465db501563f3492d17c42a4afe33a1f2bf5406a1d56b0e86
+#7 resolve docker.io/library/python:3.13.9-slim@sha256:326df678c20c78d465db501563f3492d17c42a4afe33a1f2bf5406a1d56b0e86 0.1s done
+#7 DONE 0.1s
+
+#8 [internal] load build context
+#8 transferring context: 6.75MB 0.5s done
+#8 DONE 0.8s
+
+#9 [runtime  6/10] RUN python - <<'EOF'
+#9 CACHED
+
+#10 [runtime  7/10] RUN mkdir -p /app/logs && chown app:app /app/logs
+#10 CACHED
+
+#11 [runtime  8/10] COPY config.yaml ./config.yaml
+#11 CACHED
+
+#12 [builder 3/4] COPY requirements-serve.txt /tmp/requirements-serve.txt
+#12 CACHED
+
+#13 [runtime  5/10] COPY models/ ./models/
+#13 CACHED
+
+#14 [runtime  9/10] COPY src/__init__.py src/config.py src/features.py ./src/
+#14 CACHED
+
+#15 [runtime  2/10] RUN groupadd --system --gid 10001 app     && useradd --system --uid 10001 --gid app --home-dir /home/app --create-home --shell /usr/sbin/nologin app
+#15 CACHED
+
+#16 [builder 2/4] RUN python -m venv /opt/venv
+#16 CACHED
+
+#17 [runtime  4/10] WORKDIR /app
+#17 CACHED
+
+#18 [builder 4/4] RUN pip install --no-cache-dir -r /tmp/requirements-serve.txt     && find /opt/venv -type d -name "__pycache__" -prune -exec rm -rf {} +     && find /opt/venv -type d -name "tests" -path "*/site-packages/*/tests" -prune -exec rm -rf {} +
+#18 CACHED
+
+#19 [runtime  3/10] COPY --from=builder /opt/venv /opt/venv
+#19 CACHED
+
+#20 [runtime 10/10] COPY src/serving/ ./src/serving/
+#20 CACHED
+
+#21 exporting to image
+#21 exporting layers done
+#21 exporting manifest sha256:8a64efd3104eea7753437eb6952fa70a330d264b45b2478e67a693df23cf72e4 0.0s done
+#21 exporting config sha256:9e1074c95a14943eff8da096c799a0ee87371da17c1ef0b1c6de4164dd5a919f done
+#21 exporting attestation manifest sha256:c99d7e653ddfa517d68fc887fdb883d7666648903f2921003e1f81bf7b1d0049
+#21 exporting attestation manifest sha256:c99d7e653ddfa517d68fc887fdb883d7666648903f2921003e1f81bf7b1d0049 0.2s done
+#21 exporting manifest list sha256:330070c14b579dd11f775b394f4706f87dbf013d1e1d278e2f56be204150b9f3
+#21 exporting manifest list sha256:330070c14b579dd11f775b394f4706f87dbf013d1e1d278e2f56be204150b9f3 0.1s done
+#21 naming to docker.io/library/ml-service:clon-limpio 0.0s done
+#21 unpacking to docker.io/library/ml-service:clon-limpio 0.0s done
+#21 DONE 0.5s
+# fin: 2026-11-22T14:31:56-06:00
+# duracion_segundos: 4
+# codigo_salida: 0
+
+# Segunda construcción SIN caché de capas (descarga e instala todo de nuevo) para que el paso 'Verifica el modelo' se ejecute
+# comando: docker build --no-cache -t ml-service:clon-limpio .
+# inicio: 2026-11-22T14:32:05-06:00
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 7.19kB done
+#1 DONE 0.2s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 DONE 0.3s
+
+#3 docker-image://docker.io/docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183
+#3 resolve docker.io/docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183 0.1s done
+#3 CACHED
+
+#4 [internal] load metadata for docker.io/library/python:3.13.9-slim@sha256:326df678c20c78d465db501563f3492d17c42a4afe33a1f2bf5406a1d56b0e86
+#4 DONE 0.2s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 703B done
+#5 DONE 0.0s
+
+#6 [internal] load build context
+#6 transferring context: 1.09kB done
+#6 DONE 0.0s
+
+#7 [builder 1/4] FROM docker.io/library/python:3.13.9-slim@sha256:326df678c20c78d465db501563f3492d17c42a4afe33a1f2bf5406a1d56b0e86
+#7 resolve docker.io/library/python:3.13.9-slim@sha256:326df678c20c78d465db501563f3492d17c42a4afe33a1f2bf5406a1d56b0e86 0.1s done
+#7 CACHED
+
+#8 [builder 2/4] RUN python -m venv /opt/venv
+#8 ...
+
+#9 [runtime  2/10] RUN groupadd --system --gid 10001 app     && useradd --system --uid 10001 --gid app --home-dir /home/app --create-home --shell /usr/sbin/nologin app
+#9 0.890 useradd warning: app's uid 10001 is greater than SYS_UID_MAX 999
+#9 DONE 1.2s
+
+#8 [builder 2/4] RUN python -m venv /opt/venv
+#8 DONE 3.0s
+
+#10 [builder 3/4] COPY requirements-serve.txt /tmp/requirements-serve.txt
+#10 DONE 0.3s
+
+#11 [builder 4/4] RUN pip install --no-cache-dir -r /tmp/requirements-serve.txt     && find /opt/venv -type d -name "__pycache__" -prune -exec rm -rf {} +     && find /opt/venv -type d -name "tests" -path "*/site-packages/*/tests" -prune -exec rm -rf {} +
+#11 1.044 Collecting fastapi==0.165.0 (from -r /tmp/requirements-serve.txt (line 4))
+#11 1.219   Downloading fastapi-0.165.0-py3-none-any.whl.metadata (27 kB)
+#11 1.294 Collecting uvicorn==0.54.0 (from -r /tmp/requirements-serve.txt (line 5))
+#11 1.332   Downloading uvicorn-0.54.0-py3-none-any.whl.metadata (6.6 kB)
+#11 1.462 Collecting pydantic==2.14.4 (from -r /tmp/requirements-serve.txt (line 6))
+#11 1.493   Downloading pydantic-2.14.4-py3-none-any.whl.metadata (143 kB)
+#11 1.610 Collecting scikit-learn==1.9.1 (from -r /tmp/requirements-serve.txt (line 7))
+#11 1.643   Downloading scikit_learn-1.9.1-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (9.3 kB)
+#11 1.755 Collecting scipy==1.18.1 (from -r /tmp/requirements-serve.txt (line 8))
+#11 1.785   Downloading scipy-1.18.1-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (62 kB)
+#11 1.907 Collecting pandas==3.1.1 (from -r /tmp/requirements-serve.txt (line 9))
+#11 1.937   Downloading pandas-3.1.1-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (16 kB)
+#11 2.088 Collecting numpy==2.5.4 (from -r /tmp/requirements-serve.txt (line 10))
+#11 2.118   Downloading numpy-2.5.4-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (6.6 kB)
+#11 2.172 Collecting PyYAML==6.0.4 (from -r /tmp/requirements-serve.txt (line 11))
+#11 2.207   Downloading pyyaml-6.0.4-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.3 kB)
+#11 2.263 Collecting mlflow-skinny==3.18.0 (from -r /tmp/requirements-serve.txt (line 12))
+#11 2.295   Downloading mlflow_skinny-3.18.0-py3-none-any.whl.metadata (51 kB)
+#11 2.344 Collecting cloudpickle==3.1.3 (from -r /tmp/requirements-serve.txt (line 13))
+#11 2.376   Downloading cloudpickle-3.1.3-py3-none-any.whl.metadata (7.1 kB)
+#11 2.425 Collecting python-dateutil==2.9.0.post0 (from -r /tmp/requirements-serve.txt (line 15))
+#11 2.461   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+#11 2.510 Collecting starlette>=1.6.0 (from fastapi==0.165.0->-r /tmp/requirements-serve.txt (line 4))
+#11 2.540   Downloading starlette-1.10.0-py3-none-any.whl.metadata (6.6 kB)
+#11 2.584 Collecting anyio>=4.1.0 (from fastapi==0.165.0->-r /tmp/requirements-serve.txt (line 4))
+#11 2.616   Downloading anyio-4.16.0-py3-none-any.whl.metadata (4.7 kB)
+#11 2.663 Collecting typing-extensions>=4.8.0 (from fastapi==0.165.0->-r /tmp/requirements-serve.txt (line 4))
+#11 2.721   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+#11 2.753 Collecting typing-inspection>=0.4.2 (from fastapi==0.165.0->-r /tmp/requirements-serve.txt (line 4))
+#11 2.782   Downloading typing_inspection-0.4.5-py3-none-any.whl.metadata (2.6 kB)
+#11 2.821 Collecting annotated-doc>=0.0.2 (from fastapi==0.165.0->-r /tmp/requirements-serve.txt (line 4))
+#11 2.853   Downloading annotated_doc-0.0.7-py3-none-any.whl.metadata (6.4 kB)
+#11 2.899 Collecting opentelemetry-api>=1.44.0 (from fastapi==0.165.0->-r /tmp/requirements-serve.txt (line 4))
+#11 2.952   Downloading opentelemetry_api-1.45.2-py3-none-any.whl.metadata (1.4 kB)
+#11 3.000 Collecting click>=7.0 (from uvicorn==0.54.0->-r /tmp/requirements-serve.txt (line 5))
+#11 3.034   Downloading click-8.5.1-py3-none-any.whl.metadata (2.6 kB)
+#11 3.074 Collecting h11>=0.8 (from uvicorn==0.54.0->-r /tmp/requirements-serve.txt (line 5))
+#11 3.134   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+#11 3.171 Collecting annotated-types>=0.6.0 (from pydantic==2.14.4->-r /tmp/requirements-serve.txt (line 6))
+#11 3.201   Downloading annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+#11 3.697 Collecting pydantic-core==2.50.5 (from pydantic==2.14.4->-r /tmp/requirements-serve.txt (line 6))
+#11 3.727   Downloading pydantic_core-2.50.5-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (6.6 kB)
+#11 3.773 Collecting joblib>=1.4.0 (from scikit-learn==1.9.1->-r /tmp/requirements-serve.txt (line 7))
+#11 3.804   Downloading joblib-1.6.0-py3-none-any.whl.metadata (6.5 kB)
+#11 3.856 Collecting narwhals>=2.0.1 (from scikit-learn==1.9.1->-r /tmp/requirements-serve.txt (line 7))
+#11 3.893   Downloading narwhals-2.29.0-py3-none-any.whl.metadata (15 kB)
+#11 3.936 Collecting threadpoolctl>=3.5.0 (from scikit-learn==1.9.1->-r /tmp/requirements-serve.txt (line 7))
+#11 3.976   Downloading threadpoolctl-3.8.0-py3-none-any.whl.metadata (29 kB)
+#11 4.043 Collecting cachetools<8,>=5.0.0 (from mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 4.073   Downloading cachetools-7.3.3-py3-none-any.whl.metadata (5.5 kB)
+#11 4.143 Collecting databricks-sdk<1,>=0.20.0 (from mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 4.201   Downloading databricks_sdk-0.169.0-py3-none-any.whl.metadata (44 kB)
+#11 4.297 Collecting gitpython<4,>=3.1.9 (from mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 4.334   Downloading gitpython-3.2.1-py3-none-any.whl.metadata (13 kB)
+#11 4.398 Collecting importlib_metadata!=4.7.0,<11,>=3.7.0 (from mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 4.429   Downloading importlib_metadata-10.2.0-py3-none-any.whl.metadata (4.6 kB)
+#11 4.476 Collecting opentelemetry-proto<3,>=1.9.0 (from mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 4.523   Downloading opentelemetry_proto-1.45.2-py3-none-any.whl.metadata (2.3 kB)
+#11 4.565 Collecting opentelemetry-sdk<3,>=1.9.0 (from mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 4.596   Downloading opentelemetry_sdk-1.45.2-py3-none-any.whl.metadata (1.6 kB)
+#11 4.640 Collecting packaging<27 (from mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 4.673   Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+#11 4.807 Collecting protobuf<8,>=3.12.0 (from mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 4.837   Downloading protobuf-7.36.2-cp310-abi3-manylinux2014_x86_64.whl.metadata (595 bytes)
+#11 4.882 Collecting python-dotenv<2,>=0.19.0 (from mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 4.932   Downloading python_dotenv-1.2.4-py3-none-any.whl.metadata (29 kB)
+#11 4.976 Collecting python-multipart<1,>=0.0.18 (from mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 5.026   Downloading python_multipart-0.0.34-py3-none-any.whl.metadata (6.3 kB)
+#11 5.077 Collecting requests<3,>=2.17.3 (from mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 5.105   Downloading requests-2.34.2-py3-none-any.whl.metadata (4.8 kB)
+#11 5.150 Collecting sqlparse<1,>=0.4.0 (from mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 5.180   Downloading sqlparse-0.6.1-py3-none-any.whl.metadata (6.9 kB)
+#11 5.235 Collecting six>=1.5 (from python-dateutil==2.9.0.post0->-r /tmp/requirements-serve.txt (line 15))
+#11 5.284   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+#11 5.327 Collecting idna>=2.8 (from anyio>=4.1.0->fastapi==0.165.0->-r /tmp/requirements-serve.txt (line 4))
+#11 5.380   Downloading idna-3.20-py3-none-any.whl.metadata (7.2 kB)
+#11 5.427 Collecting certifi>=2026.10.19 (from databricks-sdk<1,>=0.20.0->mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 5.469   Downloading certifi-2026.11.20-py3-none-any.whl.metadata (2.5 kB)
+#11 5.534 Collecting google-auth~=2.0 (from databricks-sdk<1,>=0.20.0->mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 5.563   Downloading google_auth-2.63.1-py3-none-any.whl.metadata (6.0 kB)
+#11 5.655 Collecting urllib3<3,>=1.26 (from databricks-sdk<1,>=0.20.0->mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 5.686   Downloading urllib3-2.8.0-py3-none-any.whl.metadata (7.4 kB)
+#11 5.727 Collecting gitdb<5,>=4.0.1 (from gitpython<4,>=3.1.9->mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 5.756   Downloading gitdb-4.0.12-py3-none-any.whl.metadata (1.2 kB)
+#11 5.791 Collecting smmap<6,>=3.0.1 (from gitdb<5,>=4.0.1->gitpython<4,>=3.1.9->mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 5.832   Downloading smmap-5.0.3-py3-none-any.whl.metadata (4.6 kB)
+#11 5.875 Collecting pyasn1-modules>=0.2.1 (from google-auth~=2.0->databricks-sdk<1,>=0.20.0->mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 5.928   Downloading pyasn1_modules-0.4.2-py3-none-any.whl.metadata (3.5 kB)
+#11 6.084 Collecting cryptography>=38.0.3 (from google-auth~=2.0->databricks-sdk<1,>=0.20.0->mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 6.137   Downloading cryptography-50.0.2-cp311-abi3-manylinux_2_34_x86_64.whl.metadata (4.4 kB)
+#11 6.197 Collecting zipp>=3.20 (from importlib_metadata!=4.7.0,<11,>=3.7.0->mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 6.236   Downloading zipp-4.1.2-py3-none-any.whl.metadata (3.6 kB)
+#11 6.273 Collecting lazy-importer>=0.1 (from importlib_metadata!=4.7.0,<11,>=3.7.0->mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 6.306   Downloading lazy_importer-0.1.0-py3-none-any.whl.metadata (7.3 kB)
+#11 6.398 Collecting opentelemetry-semantic-conventions==0.66b2 (from opentelemetry-sdk<3,>=1.9.0->mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 6.430   Downloading opentelemetry_semantic_conventions-0.66b2-py3-none-any.whl.metadata (2.4 kB)
+#11 6.547 Collecting charset_normalizer<4,>=2 (from requests<3,>=2.17.3->mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 6.577   Downloading charset_normalizer-3.5.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (46 kB)
+#11 6.688 Collecting cffi>=2.0.0 (from cryptography>=38.0.3->google-auth~=2.0->databricks-sdk<1,>=0.20.0->mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 6.717   Downloading cffi-2.1.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.5 kB)
+#11 6.756 Collecting pycparser (from cffi>=2.0.0->cryptography>=38.0.3->google-auth~=2.0->databricks-sdk<1,>=0.20.0->mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 6.797   Downloading pycparser-3.12-py3-none-any.whl.metadata (9.7 kB)
+#11 6.854 Collecting pyasn1<0.7.0,>=0.6.1 (from pyasn1-modules>=0.2.1->google-auth~=2.0->databricks-sdk<1,>=0.20.0->mlflow-skinny==3.18.0->-r /tmp/requirements-serve.txt (line 12))
+#11 6.884   Downloading pyasn1-0.6.5-py3-none-any.whl.metadata (8.4 kB)
+#11 6.927 Downloading fastapi-0.165.0-py3-none-any.whl (159 kB)
+#11 6.973 Downloading uvicorn-0.54.0-py3-none-any.whl (87 kB)
+#11 7.032 Downloading pydantic-2.14.4-py3-none-any.whl (494 kB)
+#11 7.114 Downloading scikit_learn-1.9.1-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (9.1 MB)
+#11 7.705    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 9.1/9.1 MB 15.6 MB/s  0:00:00
+#11 7.739 Downloading scipy-1.18.1-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (35.3 MB)
+#11 10.04    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 35.3/35.3 MB 15.4 MB/s  0:00:02
+#11 10.07 Downloading numpy-2.5.4-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.7 MB)
+#11 11.20    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.7/16.7 MB 14.9 MB/s  0:00:01
+#11 11.23 Downloading pandas-3.1.1-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (12.0 MB)
+#11 12.04    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.0/12.0 MB 14.8 MB/s  0:00:00
+#11 12.07 Downloading pyyaml-6.0.4-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (838 kB)
+#11 12.13    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 838.5/838.5 kB 15.3 MB/s  0:00:00
+#11 12.16 Downloading mlflow_skinny-3.18.0-py3-none-any.whl (4.4 MB)
+#11 12.46    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.4/4.4 MB 15.1 MB/s  0:00:00
+#11 12.49 Downloading cloudpickle-3.1.3-py3-none-any.whl (22 kB)
+#11 12.52 Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+#11 12.57 Downloading pydantic_core-2.50.5-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (2.3 MB)
+#11 12.72    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.3/2.3 MB 15.2 MB/s  0:00:00
+#11 12.76 Downloading anyio-4.16.0-py3-none-any.whl (134 kB)
+#11 12.82 Downloading cachetools-7.3.3-py3-none-any.whl (20 kB)
+#11 12.87 Downloading click-8.5.1-py3-none-any.whl (126 kB)
+#11 12.92 Downloading databricks_sdk-0.169.0-py3-none-any.whl (1.3 MB)
+#11 12.98    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 27.1 MB/s  0:00:00
+#11 13.01 Downloading gitpython-3.2.1-py3-none-any.whl (231 kB)
+#11 13.06 Downloading gitdb-4.0.12-py3-none-any.whl (62 kB)
+#11 13.09 Downloading google_auth-2.63.1-py3-none-any.whl (271 kB)
+#11 13.14 Downloading importlib_metadata-10.2.0-py3-none-any.whl (34 kB)
+#11 13.17 Downloading opentelemetry_api-1.45.2-py3-none-any.whl (60 kB)
+#11 13.20 Downloading opentelemetry_proto-1.45.2-py3-none-any.whl (72 kB)
+#11 13.24 Downloading opentelemetry_sdk-1.45.2-py3-none-any.whl (141 kB)
+#11 13.28 Downloading opentelemetry_semantic_conventions-0.66b2-py3-none-any.whl (206 kB)
+#11 13.32 Downloading packaging-26.3-py3-none-any.whl (129 kB)
+#11 13.37 Downloading protobuf-7.36.2-cp310-abi3-manylinux2014_x86_64.whl (343 kB)
+#11 13.42 Downloading python_dotenv-1.2.4-py3-none-any.whl (23 kB)
+#11 13.45 Downloading python_multipart-0.0.34-py3-none-any.whl (32 kB)
+#11 13.48 Downloading requests-2.34.2-py3-none-any.whl (73 kB)
+#11 13.52 Downloading charset_normalizer-3.5.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (254 kB)
+#11 13.57 Downloading idna-3.20-py3-none-any.whl (69 kB)
+#11 13.61 Downloading smmap-5.0.3-py3-none-any.whl (24 kB)
+#11 13.64 Downloading sqlparse-0.6.1-py3-none-any.whl (51 kB)
+#11 13.68 Downloading starlette-1.10.0-py3-none-any.whl (80 kB)
+#11 13.72 Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+#11 13.76 Downloading urllib3-2.8.0-py3-none-any.whl (135 kB)
+#11 13.81 Downloading annotated_doc-0.0.7-py3-none-any.whl (5.3 kB)
+#11 13.84 Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+#11 13.88 Downloading certifi-2026.11.20-py3-none-any.whl (127 kB)
+#11 13.92 Downloading cryptography-50.0.2-cp311-abi3-manylinux_2_34_x86_64.whl (4.8 MB)
+#11 14.25    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.8/4.8 MB 14.6 MB/s  0:00:00
+#11 14.28 Downloading cffi-2.1.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (221 kB)
+#11 14.33 Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+#11 14.36 Downloading joblib-1.6.0-py3-none-any.whl (306 kB)
+#11 14.42 Downloading lazy_importer-0.1.0-py3-none-any.whl (12 kB)
+#11 14.46 Downloading narwhals-2.29.0-py3-none-any.whl (501 kB)
+#11 14.53 Downloading pyasn1_modules-0.4.2-py3-none-any.whl (181 kB)
+#11 14.58 Downloading pyasn1-0.6.5-py3-none-any.whl (84 kB)
+#11 14.62 Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+#11 14.65 Downloading threadpoolctl-3.8.0-py3-none-any.whl (32 kB)
+#11 14.69 Downloading typing_inspection-0.4.5-py3-none-any.whl (14 kB)
+#11 14.72 Downloading zipp-4.1.2-py3-none-any.whl (10 kB)
+#11 14.75 Downloading pycparser-3.12-py3-none-any.whl (62 kB)
+#11 14.91 Installing collected packages: zipp, urllib3, typing-extensions, threadpoolctl, sqlparse, smmap, six, PyYAML, python-multipart, python-dotenv, pycparser, pyasn1, protobuf, packaging, numpy, narwhals, lazy-importer, idna, h11, cloudpickle, click, charset_normalizer, certifi, cachetools, annotated-types, annotated-doc, uvicorn, typing-inspection, scipy, requests, python-dateutil, pydantic-core, pyasn1-modules, opentelemetry-proto, opentelemetry-api, joblib, importlib_metadata, gitdb, cffi, anyio, starlette, scikit-learn, pydantic, pandas, opentelemetry-semantic-conventions, gitpython, cryptography, opentelemetry-sdk, google-auth, fastapi, databricks-sdk, mlflow-skinny
+#11 29.60 
+#11 29.60 Successfully installed PyYAML-6.0.4 annotated-doc-0.0.7 annotated-types-0.8.0 anyio-4.16.0 cachetools-7.3.3 certifi-2026.11.20 cffi-2.1.1 charset_normalizer-3.5.2 click-8.5.1 cloudpickle-3.1.3 cryptography-50.0.2 databricks-sdk-0.169.0 fastapi-0.165.0 gitdb-4.0.12 gitpython-3.2.1 google-auth-2.63.1 h11-0.16.0 idna-3.20 importlib_metadata-10.2.0 joblib-1.6.0 lazy-importer-0.1.0 mlflow-skinny-3.18.0 narwhals-2.29.0 numpy-2.5.4 opentelemetry-api-1.45.2 opentelemetry-proto-1.45.2 opentelemetry-sdk-1.45.2 opentelemetry-semantic-conventions-0.66b2 packaging-26.3 pandas-3.1.1 protobuf-7.36.2 pyasn1-0.6.5 pyasn1-modules-0.4.2 pycparser-3.12 pydantic-2.14.4 pydantic-core-2.50.5 python-dateutil-2.9.0.post0 python-dotenv-1.2.4 python-multipart-0.0.34 requests-2.34.2 scikit-learn-1.9.1 scipy-1.18.1 six-1.17.0 smmap-5.0.3 sqlparse-0.6.1 starlette-1.10.0 threadpoolctl-3.8.0 typing-extensions-4.16.0 typing-inspection-0.4.5 urllib3-2.8.0 uvicorn-0.54.0 zipp-4.1.2
+#11 DONE 31.9s
+
+#12 [runtime  3/10] COPY --from=builder /opt/venv /opt/venv
+#12 DONE 1.8s
+
+#13 [runtime  4/10] WORKDIR /app
+#13 DONE 0.2s
+
+#14 [runtime  5/10] COPY models/ ./models/
+#14 DONE 0.3s
+
+#15 [runtime  6/10] RUN python - <<'EOF'
+#15 0.609 Verificado model.pkl: sha256=ca4331a49948c99b29580463d89e8aa1dc8d14451f866c029588f3de67ce2ed5
+#15 0.609 Verificado stations.csv: sha256=429951fb49a3dafa73384ed2718bd3dd372ae969824b0c6f2bbb0c486bada545
+#15 0.610 Verificado feature_store.csv.gz: sha256=aa1a39cd1cc8e354728ba835496573ea125925293792bf0a42d203000bf05ee6
+#15 0.610 Modelo verificado: models:/mibici-demand-forecaster/1
+#15 DONE 0.8s
+
+#16 [runtime  7/10] RUN mkdir -p /app/logs && chown app:app /app/logs
+#16 DONE 0.9s
+
+#17 [runtime  8/10] COPY config.yaml ./config.yaml
+#17 DONE 0.2s
+
+#18 [runtime  9/10] COPY src/__init__.py src/config.py src/features.py ./src/
+#18 DONE 0.8s
+
+#19 [runtime 10/10] COPY src/serving/ ./src/serving/
+#19 DONE 0.6s
+
+#20 exporting to image
+#20 exporting layers
+#20 exporting layers 7.6s done
+#20 exporting manifest sha256:c6dbf19e64d4c97523edf14157490ce173dfd208f46fac6d19c4cc8d5d04c15b 0.1s done
+#20 exporting config sha256:7193c4e95d5bed6f9e3efc36c1103018e67708141c6b6626e093431fc4b945ff 0.1s done
+#20 exporting attestation manifest sha256:7ca8bc3dd19fccc48f9a14c7615bb7d6509389b27a4d72b84ed713ce5bba79b2
+#20 exporting attestation manifest sha256:7ca8bc3dd19fccc48f9a14c7615bb7d6509389b27a4d72b84ed713ce5bba79b2 0.2s done
+#20 exporting manifest list sha256:8d5c4ae5c67d2997965d94b6e9c5d42d18dbca7f673771eb15f2f598e003c536
+#20 exporting manifest list sha256:8d5c4ae5c67d2997965d94b6e9c5d42d18dbca7f673771eb15f2f598e003c536 0.1s done
+#20 naming to docker.io/library/ml-service:clon-limpio 0.0s done
+#20 unpacking to docker.io/library/ml-service:clon-limpio
+#20 unpacking to docker.io/library/ml-service:clon-limpio 2.5s done
+#20 DONE 11.0s
+# fin: 2026-11-22T14:33:01-06:00
+# duracion_segundos: 56
+# codigo_salida: 0

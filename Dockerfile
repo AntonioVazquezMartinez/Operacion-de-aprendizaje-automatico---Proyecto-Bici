@@ -5,11 +5,13 @@
 # Construir y correr (comandos de la tarea):
 #   docker build -t ml-service:latest .
 #   docker run -p 8000:8000 ml-service:latest
-# Imagen publicada: gusrivasmna/mibici-demand-service:1.0.0 (ver docs/docker.md).
+# Imagen publicada: gusrivasmna/mibici-demand-service:1.1.0 (la 1.0.0 sigue publicada; ver docs/docker.md).
 #
-# Requisito del build: la carpeta models/champion/ (modelo MLflow exportado + stations.csv) NO está en Git
-# (.gitignore). Se obtiene con `python -m src.modeling.export` (desde el Model Registry de mlruns.db) o con
-# `dvc pull`. Si falta, el build se detiene con un mensaje explícito (etapa final, paso "Verifica el modelo").
+# El modelo está en Git (versión 1.1.0): models/champion/ (modelo MLflow exportado del Model Registry,
+# stations.csv y feature_store.csv.gz) + models/champion_metadata.json, así que el build funciona en un clon
+# limpio. Se regenera con `python -m src.modeling.export`. El paso "Verifica el modelo" detiene el build si falta
+# un archivo o si un SHA-256 no coincide con los metadatos.
+# Con Podman: podman build --format docker -t ml-service:latest . (--format docker conserva el HEALTHCHECK).
 # =============================================================================
 
 # Imagen base fijada por versión exacta (misma Python 3.13.9 del entrenamiento) y por digest del índice
@@ -43,7 +45,7 @@ RUN pip install --no-cache-dir -r /tmp/requirements-serve.txt \
 # hadolint ignore=DL3006
 FROM ${PYTHON_IMAGE} AS runtime
 
-ARG SERVICE_VERSION=1.0.0
+ARG SERVICE_VERSION=1.1.0
 ARG MODEL_VERSION=1
 ARG MODEL_NAME=mibici-demand-forecaster
 ARG VCS_REF=unknown
@@ -85,8 +87,9 @@ WORKDIR /app
 # Modelo y metadatos (cambian con cada versión del modelo, menos seguido que el código).
 COPY models/ ./models/
 
-# Verifica el modelo: falla con un mensaje claro si falta models/champion/ o si el SHA-256 de model.pkl no
-# coincide con models/champion_metadata.json (solo biblioteca estándar).
+# Verifica el modelo: falla con un mensaje claro si falta un archivo de models/champion/ o si el SHA-256 del
+# modelo, del catálogo de estaciones o del feature store no coincide con models/champion_metadata.json (solo
+# biblioteca estándar).
 RUN python - <<'EOF'
 import hashlib, json, pathlib, sys
 root = pathlib.Path("/app/models")
@@ -94,16 +97,27 @@ needed = [root / "champion" / "MLmodel", root / "champion" / "stations.csv", roo
 missing = [str(p.relative_to("/app")) for p in needed if not p.exists()]
 if missing:
     sys.exit("ERROR: faltan archivos del modelo en el contexto de build: " + ", ".join(missing) + ". "
-             "La carpeta models/champion/ no se versiona en Git: genérala con `python -m src.modeling.export` "
-             "o descárgala con `dvc pull` antes de `docker build`.")
+             "models/champion/ se versiona en Git (clona el repositorio completo) y se regenera con "
+             "`python -m src.modeling.export`.")
 meta = json.loads((root / "champion_metadata.json").read_text(encoding="utf-8"))
-model_file = root / "champion" / meta.get("model_file", "model.pkl")
-digest = hashlib.sha256(model_file.read_bytes()).hexdigest()
-if digest != meta.get("model_sha256"):
-    sys.exit(f"ERROR: SHA-256 de {model_file.name} = {digest}; "
-             f"champion_metadata.json espera {meta.get('model_sha256')}.")
-print(f"Modelo verificado: {meta['model_uri']} sha256={digest}")
+checks = [(meta.get("model_file", "model.pkl"), meta.get("model_sha256")),
+          (meta.get("stations_file", "stations.csv"), meta.get("stations_sha256"))]
+if meta.get("feature_store"):
+    checks.append((meta["feature_store"]["file"], meta["feature_store"]["sha256"]))
+for name, expected in checks:
+    path = root / "champion" / name
+    if not path.exists():
+        sys.exit(f"ERROR: falta models/champion/{name} (declarado en champion_metadata.json).")
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    if digest != expected:
+        sys.exit(f"ERROR: SHA-256 de {name} = {digest}; champion_metadata.json espera {expected}.")
+    print(f"Verificado {name}: sha256={digest}")
+print(f"Modelo verificado: {meta['model_uri']}")
 EOF
+
+# Carpeta con permisos de escritura para el registro opcional de predicciones
+# (docker run -e PREDICTION_LOG=/app/logs/predicciones.jsonl -v <carpeta>:/app/logs ...).
+RUN mkdir -p /app/logs && chown app:app /app/logs
 
 # Configuración y código (solo los módulos que importa el servicio: src.config, src.features, src.serving).
 COPY config.yaml ./config.yaml
