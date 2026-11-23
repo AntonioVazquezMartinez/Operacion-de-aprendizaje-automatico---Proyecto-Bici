@@ -1,148 +1,161 @@
-# Sistema MLOps: Prediccion de Demanda en MiBici Guadalajara (Fase 1) - Equipo 19
+# Sistema MLOps: Predicción de Demanda en MiBici Guadalajara - Equipo 19
 
-Este repositorio contiene la entrega de la Fase 1 (Procesamiento y Modelado Inicial) para el proyecto colaborativo del curso Operacion con Modelos de Machine Learning (TC5061) en la Maestria en Inteligencia Artificial Aplicada del Tecnologico de Monterrey.
+Proyecto de la materia Operaciones de aprendizaje automático (TC5061), Maestría en Inteligencia Artificial Aplicada, Tecnológico de Monterrey.
 
 - Repositorio: https://github.com/AntonioVazquezMartinez/Operacion-de-aprendizaje-automatico---Proyecto-Bici
-- Equipo Asignado: Equipo 19
 - Integrantes:
-  - Jose Antonio Vazquez Martinez (A01797208) - Data Engineer & ML Engineer
-  - Jesus Angel Rincon Ruiz (A01793960) - Data Scientist
+  - José Antonio Vázquez Martínez (A01797208) - Data Engineer & ML Engineer
+  - Jesús Ángel Rincón Ruiz (A01793960) - Data Scientist
   - Erick Francisco Siller Ojeda (A01382929) - Software Engineer
-  - Gustavo Alejandro Vazquez Rivas (A01611559) - Site Reliability Engineer (SRE)
+  - Gustavo Alejandro Vázquez Rivas (A01611559) - Site Reliability Engineer (SRE)
 
-El objetivo es construir la base de un pipeline productivo de Machine Learning con buenas practicas de MLOps. Organizamos el proyecto con Cookiecutter Data Science, programamos codigo modular con programacion orientada a objetos (POO), implementamos versionado y trazabilidad de datos con MLflow y repartimos las tareas entre los 5 roles clave de MLOps.
+## Caso de negocio
 
----
-
-## Caso de Negocio: MiBici Guadalajara
-
-- Problematica: En Guadalajara el sistema de bicicletas presenta desbalances constantes en las estaciones durante las horas pico de entrada y salida laboral. Hay estaciones que se quedan completamente vacias y otras que se llenan al tope, impidiendo que los usuarios puedan anclar su bicicleta.
-- Propuesta de Valor: Construir un modelo predictivo que estime la demanda por hora en cada estacion con anticipacion, ayudando a planear las rutas de las camionetas de redistribucion para surtir o liberar bicicletas a tiempo.
-- Formulacion ML: Modelo de regresion supervisada para predecir el numero de extracciones de bicicletas por estacion en bloques de una hora ("demand_count").
+Las estaciones de MiBici se vacían o se saturan en las horas pico. El modelo estima las **extracciones de bicicletas por estación y hora** (`demand_count`) con 1 a 24 horas de anticipación para planear el rebalanceo con camionetas antes de que ocurra el desabasto.
 
 ---
 
-## Estructura del Proyecto (Cookiecutter Data Science)
+## Estructura del proyecto (Cookiecutter Data Science v2)
 
 ```text
-Operacion-de-aprendizaje-automatico---Proyecto-Bici/
-│
-├── .github/
-│   └── workflows/
-│       └── tests.yml        <- Integracion continua: corre las pruebas en cada push y pull request
-├── .gitignore               <- Archivos y carpetas ignorados por git
-├── Makefile                 <- Targets reproducibles del pipeline (make help)
-├── pyproject.toml           <- Metadatos del paquete mibici-mlops (Python >= 3.11)
-├── README.md                <- Documentacion principal del proyecto
-├── requirements.txt         <- Librerias de Python requeridas
-├── environment.yml          <- Configuracion del entorno para Conda
+├── .github/workflows/     <- Integración continua: corre las pruebas en cada pull request y en push a main
+├── Makefile               <- Comandos del pipeline (make data, make train, ...)
+├── README.md
+├── config.yaml            <- Configuración única: rutas, meses, reglas, semillas, modelos e hiperparámetros
+├── pyproject.toml         <- Metadatos del paquete (pip install -e .)
+├── requirements.txt       <- Dependencias
+├── environment.yml        <- Entorno Conda reproducible
 │
 ├── data/
-│   ├── raw/                 <- Datos brutos originales descargados de MiBici (inmutables)
-│   ├── interim/             <- Datos limpios tras aplicar los filtros de calidad
-│   └── processed/           <- Datos con caracteristicas listos para el modelo
+│   ├── external/          <- Datos de terceros (p. ej. nuevas horas a predecir)
+│   ├── raw/               <- Datos originales inmutables de MiBici
+│   ├── interim/           <- Viajes limpios
+│   └── processed/         <- Matriz estación-hora para el modelo y predicciones
 │
+├── models/                <- (Los modelos se versionan en el MLflow Model Registry)
 ├── notebooks/
-│   └── 01_eda_mibici.ipynb  <- Cuaderno de analisis exploratorio de datos (EDA) y pruebas
+│   └── 1.0-eq19-eda-mibici.ipynb   <- Exploración; importa los módulos de src/
+├── references/
+│   └── diccionario_datos.md
+├── reports/
+│   ├── figures/           <- Figuras del EDA y comparación de modelos
+│   ├── fase2/             <- Rol y reflexión de cada integrante en la Fase 2
+│   ├── model_comparison.csv
+│   ├── ML_Canvas_MiBici.md
+│   └── roles_mlops.md
 │
-├── src/                     <- Codigo fuente modular con POO
-│   ├── data/
-│   │   ├── downloader.py    <- Clase MiBiciDataDownloader: Descarga de datos abiertos de MiBici (viajes y estaciones)
-│   │   └── cleaner.py       <- Clase MiBiciDataCleaner: Limpieza y validacion de reglas de negocio
-│   ├── features/
-│   │   ├── engineer.py      <- Clase MiBiciFeatureEngineer: Variables de tiempo, ciclicas y de rezago
-│   │   └── preprocessor.py  <- Clase MiBiciPreprocessor: Particion temporal, escalado, codificacion y PCA
-│   ├── models/
-│   │   └── train_baseline.py <- Clase BaselineTrainer: Baselines por version de datos registrados en MLflow
-│   └── utils/
-│       └── mlflow_logger.py <- Clase MLflowDataVersioner: Versionado, metadatos y trazabilidad en MLflow
+├── src/                   <- Código fuente del proyecto
+│   ├── config.py          <- Carga de config.yaml y rutas del proyecto
+│   ├── dataset.py         <- MiBiciDataDownloader + MiBiciDataCleaner
+│   ├── features.py        <- MiBiciFeatureEngineer, partición temporal y preprocesador
+│   ├── plots.py           <- Gráficas del EDA y de evaluación
+│   ├── tracking.py        <- Conexión a MLflow, hashes SHA-256 y versionado de datos
+│   └── modeling/
+│       ├── pipeline.py    <- Pipeline de scikit-learn (preprocesamiento + modelo) y métricas
+│       ├── train.py       <- Optuna + MLflow Tracking + Model Registry
+│       └── predict.py     <- Predicción por lotes con el modelo `champion`
 │
-├── tests/
-│   └── test_pipeline.py     <- Pruebas unitarias automatizadas con unittest
-│
-├── models/                  <- Modelos entrenados y serializados (Fase 2)
-│
-└── reports/
-    ├── ML_Canvas_MiBici.md  <- Canvas formal de Machine Learning
-    ├── roles_mlops.md       <- Matriz de responsabilidades y flujo entre roles
-    ├── figures/             <- Figuras del EDA generadas por el pipeline (versionadas en git)
-    ├── Fase 1_Equipo19.docx <- Reporte ejecutivo en Word editable
-    └── Fase 1_Equipo19.pdf  <- Reporte ejecutivo oficial en PDF (con figuras integradas)
+└── tests/                 <- Pruebas unitarias y de integración
 ```
 
 ---
 
-## Guia de Inicio Rapido
+## Cómo reproducir el proyecto
 
-### 1. Crear y Activar el Entorno Virtual (Python 3.11+)
-```powershell
-# En PowerShell (Windows)
+### 1. Entorno
+
+```bash
+git clone https://github.com/AntonioVazquezMartinez/Operacion-de-aprendizaje-automatico---Proyecto-Bici.git
+cd Operacion-de-aprendizaje-automatico---Proyecto-Bici
+
 python -m venv .venv
-.venv\Scripts\Activate.ps1
+# Windows PowerShell:  .venv\Scripts\Activate.ps1
+# Linux / macOS:       source .venv/bin/activate
+
 pip install -r requirements.txt
+pip install -e .
 ```
+
+### 2. Pipeline completo
 
 ```bash
-# En bash (macOS / Linux)
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+python -m src.dataset            # descarga + limpieza            -> data/raw, data/interim
+python -m src.features           # características y rezagos       -> data/processed
+python -m src.plots              # figuras del EDA                 -> reports/figures
+python -m src.modeling.train     # Optuna + MLflow + Model Registry
+python -m src.modeling.predict   # predicción con el modelo champion
 ```
 
-### 2. Ejecutar el Pipeline de Ingesta, Limpieza, Features, Preprocesamiento y Baselines
+Con `make` disponible: `make pipeline`. Todos los comandos aceptan `--config otra_config.yaml`.
 
-El pipeline consta de cinco modulos que se ejecutan en orden. Los dos ultimos (`src/features/preprocessor.py` y `src/models/train_baseline.py`) forman parte del pipeline: generan las versiones preprocesadas de la matriz (con y sin PCA) y entrenan los baselines que se comparan en MLflow.
-
-```powershell
-python -m src.data.downloader
-python -m src.data.cleaner
-python -m src.features.engineer
-python -m src.features.preprocessor
-python -m src.models.train_baseline
-```
-
-Con `make` (disponible en macOS, Linux y Git Bash en Windows) el mismo flujo se ejecuta con un solo comando. `make help` lista todos los targets:
+Opciones útiles del entrenamiento:
 
 ```bash
-make help        # Lista los targets disponibles
-make pipeline    # Ejecuta los cinco modulos en orden
-make test        # Corre la suite de pruebas
-make mlflow-ui   # Levanta la interfaz de MLflow
+python -m src.modeling.train --models poisson hist_gradient_boosting   # solo algunos modelos
+python -m src.modeling.train --n-trials 5                               # prueba rápida
 ```
 
-Cada etapa tambien se puede correr por separado (`make data`, `make clean-data`, `make features`, `make preprocess`, `make baselines`). Si el interprete no esta activado en la terminal, se indica con `make test PYTHON=.venv/bin/python`.
+### 3. Pruebas
 
-Los datos se descargan del portal de datos abiertos de MiBici (https://www.mibici.net/es/datos-abiertos/). Por defecto se usa mayo de 2024; otros meses se agregan en `TRIPS_URLS` de `src/data/downloader.py`.
-
-### 3. Ejecutar Pruebas Automatizadas
-```powershell
-python -m unittest tests/test_pipeline.py -v
+```bash
+python -m pytest -v
 ```
 
-### 4. Integracion Continua
+El flujo `.github/workflows/tests.yml` ejecuta la misma suite en GitHub Actions en cada pull request y en cada push a `main`.
 
-El flujo `.github/workflows/tests.yml` instala `requirements.txt` con Python 3.11 y corre la suite de pruebas en cada push y pull request hacia GitHub, de modo que ningun cambio se integra a `main` sin pasar las pruebas.
+La prueba de integración entrena, registra y vuelve a cargar el modelo `champion` en una base de MLflow temporal.
 
-### 5. Visualizar Experimentos y Versiones en MLflow UI
-```powershell
-mlflow ui --backend-store-uri sqlite:///mlruns.db --host 127.0.0.1 --port 5000
+### 4. MLflow UI
+
+```bash
+mlflow ui --backend-store-uri sqlite:///mlruns.db --port 5000
 ```
+
+- Experimento `MiBici_Datos`: versiones raw, interim y processed con su hash SHA-256.
+- Experimento `MiBici_Fase2_Modelos`: una corrida por modelo (con sus trials de Optuna anidados) y la corrida `00_Comparativa_Modelos`.
+- Pestaña **Models**: `mibici-demand-forecaster`, con una versión por algoritmo y los alias `champion` y `challenger`.
 
 ---
 
-## Matriz de Roles MLOps
+## Decisiones de modelado
 
-| Rol | Integrante | Responsabilidades en Fase 1 |
-|---|---|---|
-| Data Engineer | Jose Antonio Vazquez Martinez | Descarga de datos, pipeline de limpieza ETL y registro de versiones raw e interim en MLflow. |
-| Data Scientist | Jesus Angel Rincon Ruiz | Definicion del ML Canvas, analisis exploratorio (EDA) y diseno de variables de tiempo y rezagos. |
-| Software Engineer | Erick Francisco Siller Ojeda | Estructuracion con Cookiecutter DS, refactorizacion a clases POO y pruebas unitarias. |
-| Site Reliability Engineer (SRE) | Gustavo Alejandro Vazquez Rivas | Configuracion de dependencias, base de datos local SQLite para MLflow y entorno reproducible. |
+| Decisión | Justificación |
+|---|---|
+| Rezagos de 24 h y 168 h (se eliminó el de 1 h) | El Canvas plantea un horizonte de 1 a 24 h; el rezago de 1 h no estaría disponible al predecir con más anticipación |
+| Partición cronológica 70/15/15 | Evita usar información del futuro para predecir el pasado |
+| Selección por MAE de validación; test se usa una sola vez | El modelo final se reentrena con train + val y se evalúa en test |
+| Regresión de Poisson | Línea base interpretable para conteos |
+| HistGradientBoosting con pérdida Poisson | Captura interacciones no lineales (estación × hora) y escala a millones de filas |
+| Random Forest | Ensamble por *bagging* como punto de comparación |
+| Sin PCA | En la Fase 1 empeoró el RMSE y con 13 variables no aporta |
+
+## Ampliar el periodo de datos
+
+Agrega los meses en `data.months` de `config.yaml`. Si el CSV `datos_abiertos_AAAA_MM.csv` ya está en `data/raw/` se usa directamente; si no, agrega su URL en `data.trip_urls`. Con un año de datos conviene fijar `tuning.train_sample_rows` para acelerar Optuna.
+
+### Datos de entrada (descarga manual)
+
+El portal de MiBici bloquea la descarga automática (HTTP 406), por lo que los archivos se descargan a mano desde https://www.mibici.net/es/datos-abiertos/ y se colocan en `data/raw/` con estos nombres:
+
+- Viajes: `datos_abiertos_2025_01.csv` ... `datos_abiertos_2025_12.csv`
+- Catálogo de estaciones: `nomenclatura_2026_09.csv`
+
+`src/dataset.py` usa primero los archivos presentes en `data/raw/` y solo intenta descargar los que falten. Lee archivos en UTF-8 o latin-1 y tolera registros con comillas mal cerradas (caso de julio de 2025), reportando cuántas filas descarta.
+
+### Resultados de la Fase 2 (datos 2025)
+
+| Modelo | MAE val. | MAE prueba | RMSE prueba | R² prueba | Registry |
+|---|---|---|---|---|---|
+| HistGradientBoosting (Poisson) | 0.804 | **0.766** | 1.304 | 0.693 | v1 · `champion` |
+| RandomForest | 0.826 | 0.783 | 1.351 | 0.670 | v2 · `challenger` |
+| PoissonRegressor | 1.249 | 1.098 | 3.115 | -0.753 | v3 |
+| Dummy (media) | 1.630 | 1.535 | 2.355 | -0.002 | — |
 
 ---
 
-## Declaracion de Uso de Inteligencia Artificial
+## Declaración de uso de Inteligencia Artificial
 
 Ver `reports/declaracion_ia.md`. Resumen:
 
-- Anthropic. (2026). Claude (Opus 5.5) [Modelo de lenguaje grande], utilizado como herramienta de consulta y de apoyo en la revision de la redaccion, la organizacion, el formato del reporte y la rubrica. El experimento corresponde a la ejecucion real del pipeline sobre los datos abiertos de MiBici, registrada en MLflow. https://claude.ai/
+- **Fase 1:** Anthropic. (2026). Claude (Opus 5.5) [Modelo de lenguaje grande], utilizado como herramienta de consulta y de apoyo en la revisión de la redacción, la organización, el formato del reporte y la rúbrica.
+- **Fase 2:** Anthropic. (2026). Claude (Opus 5.5) [Modelo de lenguaje grande], utilizado como apoyo en la reestructuración del repositorio a Cookiecutter Data Science v2, la refactorización a módulos configurables, la generación del código de entrenamiento con Optuna, MLflow Tracking y Model Registry, las pruebas automatizadas y la documentación. El equipo revisó, ejecutó y validó el código; los resultados reportados corresponden a la ejecución real del pipeline sobre los datos abiertos de MiBici, registrada en MLflow. https://claude.ai/

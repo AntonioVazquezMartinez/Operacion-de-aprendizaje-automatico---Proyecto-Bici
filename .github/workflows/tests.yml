@@ -19,4 +19,4 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Corre las pruebas
-        run: python -m unittest tests/test_pipeline.py -v
+        run: python -m pytest -v
