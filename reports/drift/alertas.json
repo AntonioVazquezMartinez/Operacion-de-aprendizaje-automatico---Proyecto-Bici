@@ -1,0 +1,135 @@
+{
+  "model_uri": "models:/mibici-demand-forecaster/1",
+  "thresholds": {
+    "psi_warning": 0.1,
+    "psi_alert": 0.25,
+    "drift_share_alert": 0.3,
+    "mae_warning_pct": 10.0,
+    "mae_alert_pct": 25.0,
+    "bias_warning_pct": 10.0,
+    "bias_alert_pct": 20.0,
+    "missing_alert_pct": 5.0
+  },
+  "scenarios": [
+    {
+      "scenario": "base_prueba",
+      "alert_level": "OK",
+      "mae": 0.7655929572370478,
+      "mae_change_pct": 0.0,
+      "bias_pct": 4.5420559659215165,
+      "max_feature_psi": 0.026937724665264937,
+      "target_psi": 0.0025776173315008753,
+      "missing_pct": 0.0,
+      "action": "Sin acción: el modelo opera dentro de los umbrales."
+    },
+    {
+      "scenario": "estacional_diciembre",
+      "alert_level": "ADVERTENCIA",
+      "mae": 0.7378053702387015,
+      "mae_change_pct": -3.629551021293225,
+      "bias_pct": 18.41171097168592,
+      "max_feature_psi": 0.07277995893150671,
+      "target_psi": 0.023140593617510096,
+      "missing_pct": 0.0,
+      "action": "Cambio moderado: aumentar la frecuencia de monitoreo y programar reentrenamiento si persiste dos semanas; considerar variables de temporada (vacaciones, clima)."
+    },
+    {
+      "scenario": "rezagos_inflados_x2",
+      "alert_level": "ALERTA",
+      "mae": 1.107677066615949,
+      "mae_change_pct": 44.68224350096561,
+      "bias_pct": 58.651491159100225,
+      "max_feature_psi": 2.341984898615152,
+      "target_psi": 0.0025776173315008753,
+      "missing_pct": 0.0,
+      "action": "Drift en las entradas sin cambio en la demanda real: probable error en el cálculo de variables. Revisar el feature pipeline antes de considerar reentrenar."
+    },
+    {
+      "scenario": "rezagos_faltantes_40pct",
+      "alert_level": "ALERTA",
+      "mae": 0.8365588878747212,
+      "mae_change_pct": 9.269407452986862,
+      "bias_pct": -10.816009460016828,
+      "max_feature_psi": 0.026937724665264937,
+      "target_psi": 0.0025776173315008753,
+      "missing_pct": 40.07107961336045,
+      "action": "Calidad de datos: revisar el feature pipeline y el feature store (rezagos faltantes). No reentrenar con datos incompletos; corregir la fuente y reprocesar."
+    },
+    {
+      "scenario": "caida_demanda_40pct",
+      "alert_level": "ALERTA",
+      "mae": 0.8101478364788405,
+      "mae_change_pct": 5.819656361859312,
+      "bias_pct": 74.41521816649663,
+      "max_feature_psi": 0.026937724665264937,
+      "target_psi": 0.10025240278854687,
+      "missing_pct": 0.0,
+      "action": "Pérdida de desempeño: reentrenar con los datos más recientes (incluyendo el periodo con drift), comparar contra el challenger y promover por alias si mejora el MAE."
+    }
+  ],
+  "weekly": [
+    {
+      "week_start": "2025-11-03",
+      "alert_level": "OK",
+      "mae": 0.779696858073486,
+      "mae_change_pct": 1.8422192502054666,
+      "bias_pct": -2.126633691673727
+    },
+    {
+      "week_start": "2025-11-10",
+      "alert_level": "OK",
+      "mae": 0.776737118324653,
+      "mae_change_pct": 1.455624817634609,
+      "bias_pct": -0.5460156594114047
+    },
+    {
+      "week_start": "2025-11-17",
+      "alert_level": "OK",
+      "mae": 0.7653829987223,
+      "mae_change_pct": -0.027424300702233517,
+      "bias_pct": -5.362332720803817
+    },
+    {
+      "week_start": "2025-11-24",
+      "alert_level": "OK",
+      "mae": 0.7882797392096108,
+      "mae_change_pct": 2.963295542116461,
+      "bias_pct": -1.6497284717737568
+    },
+    {
+      "week_start": "2025-12-01",
+      "alert_level": "OK",
+      "mae": 0.791513126760142,
+      "mae_change_pct": 3.385633224296838,
+      "bias_pct": 0.9183964448677294
+    },
+    {
+      "week_start": "2025-12-08",
+      "alert_level": "OK",
+      "mae": 0.7700939196032441,
+      "mae_change_pct": 0.5879054037330611,
+      "bias_pct": 5.311172665633664
+    },
+    {
+      "week_start": "2025-12-15",
+      "alert_level": "OK",
+      "mae": 0.744195101687946,
+      "mae_change_pct": -2.794938922417026,
+      "bias_pct": 4.6537589410112945
+    },
+    {
+      "week_start": "2025-12-22",
+      "alert_level": "ALERTA",
+      "mae": 0.7410184713570205,
+      "mae_change_pct": -3.209863106462511,
+      "bias_pct": 36.64388184010858
+    },
+    {
+      "week_start": "2025-12-29",
+      "alert_level": "ALERTA",
+      "mae": 0.7153987609143869,
+      "mae_change_pct": -6.556251053276006,
+      "bias_pct": 23.367972976054507
+    }
+  ]
+}

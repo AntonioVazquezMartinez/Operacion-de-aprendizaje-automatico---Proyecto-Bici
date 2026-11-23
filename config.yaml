@@ -113,3 +113,31 @@ models:
       max_depth: {type: int, low: 6, high: 14}
       min_samples_leaf: {type: int, low: 20, high: 100}
       max_features: {type: float, low: 0.3, high: 1.0}
+# ----------------------------------------------------------------------------- Entrega Final
+serving:
+  # Paquete de despliegue exportado desde el Model Registry (python -m src.serving.export_model)
+  bundle_dir: models/champion
+  experiment: MiBici_Despliegue
+  feature_store_hours: 360   # historia por estación que viaja con el modelo para calcular rezagos
+  reference_rows: 1000       # filas fijas para verificar la reproducibilidad en otro entorno
+  image_name: mibici-demand-api
+  image_version: 1.0.0
+
+monitoring:
+  experiment: MiBici_Monitoreo
+  output_dir: reports/drift
+  reference_sample_rows: 200000
+  psi_bins: 10
+  psi_warning: 0.10          # PSI: < 0.10 estable, 0.10-0.25 moderado, >= 0.25 significativo
+  psi_alert: 0.25
+  drift_share_alert: 0.30    # fracción de variables con PSI >= psi_alert
+  mae_warning_pct: 10.0      # aumento del MAE contra la línea base (periodo de prueba)
+  mae_alert_pct: 25.0
+  bias_warning_pct: 10.0     # sesgo = (predicción media - demanda media) / demanda media
+  bias_alert_pct: 20.0
+  missing_alert_pct: 5.0     # % de filas con alguna variable faltante
+  # Escenarios simulados
+  seasonal_start: "2025-12-15"
+  lag_shift_factor: 2.0
+  missing_fraction: 0.40
+  demand_drop_fraction: 0.40

@@ -1,0 +1,30 @@
+{
+  "timestamp_utc": "2026-11-22T18:06:05+00:00",
+  "host": "db5df408e591",
+  "environment": {
+    "python": "3.12.16",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41",
+    "scikit_learn": "1.9.1",
+    "pandas": "3.1.1",
+    "numpy": "2.5.4"
+  },
+  "export_environment": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "scikit_learn": "1.9.1",
+    "pandas": "3.1.1",
+    "numpy": "2.5.4"
+  },
+  "model_uri": "models:/mibici-demand-forecaster/1",
+  "model_sha256_expected": "ee03d0da0d1d0c83d00a44bc35a01fc624412591448442665a68364eb43a6f51",
+  "model_sha256_actual": "ee03d0da0d1d0c83d00a44bc35a01fc624412591448442665a68364eb43a6f51",
+  "reference_rows": 1000,
+  "reference_max_abs_diff": 8.881784197001252e-16,
+  "reference_mean_abs_diff": 1.8873791418627663e-18,
+  "model_hash_ok": true,
+  "tolerance": 1e-06,
+  "predictions_identical": true,
+  "predictions_ok": true,
+  "reproducible": true,
+  "tag": "contenedor"
+}

@@ -1,0 +1,12 @@
+# Dependencias mínimas del servicio (imagen de contenedor), con las mismas versiones que el
+# entorno de entrenamiento. scikit-learn, numpy, pandas y scipy deben coincidir con las del modelo
+# (ver models/champion/model_card.json -> export_environment).
+scikit-learn==1.9.1
+numpy==2.5.4
+pandas==3.1.1
+scipy==1.18.1
+joblib==1.6.0
+PyYAML==6.0.3
+fastapi==0.162.2
+pydantic==2.14.3
+uvicorn==0.54.0

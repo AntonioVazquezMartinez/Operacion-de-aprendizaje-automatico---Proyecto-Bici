@@ -1,12 +1,23 @@
-# Dependencias del proyecto MiBici (Fase 2). Instalar con: pip install -r requirements.txt
-pandas>=2.2.0
-numpy>=1.26.0
-scikit-learn>=1.4.0
-mlflow>=3.1.0
-optuna>=3.6.0
-matplotlib>=3.8.0
-PyYAML>=6.0.1
-requests>=2.31.0
-pytest>=8.0.0
-jupyter>=1.0.0
-python-docx>=1.1.0
+# Dependencias del proyecto MiBici (Python 3.12). Instalar con: pip install -r requirements.txt
+# Versiones fijas, tomadas del entorno donde se entrenó el modelo champion. Las de scikit-learn,
+# numpy, pandas, scipy, cloudpickle y mlflow coinciden con las que MLflow guardó junto al modelo.
+pandas==3.1.1
+numpy==2.5.4
+scipy==1.18.1
+scikit-learn==1.9.1
+joblib==1.6.0
+cloudpickle==3.1.2
+mlflow==3.18.0
+optuna==5.0.0
+matplotlib==3.11.2
+PyYAML==6.0.3
+requests==2.34.2
+pytest==9.2.0
+jupyter==1.1.1
+python-docx==1.2.0
+# Entrega Final: servicio FastAPI y pruebas de la API
+fastapi==0.162.2
+pydantic==2.14.3
+uvicorn==0.54.0
+httpx==0.28.1
+# DVC se instala aparte (pip install dvc) porque solo lo usa quien versiona los datos.

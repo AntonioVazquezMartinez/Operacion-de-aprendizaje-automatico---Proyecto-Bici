@@ -1,0 +1,23 @@
+# Solo entran a la imagen: requirements-api.txt, config.yaml, src/ y models/champion/
+.git
+.github
+.venv
+venv
+env
+**/__pycache__
+**/*.pyc
+*.egg-info
+.pytest_cache
+data/
+mlruns.db
+mlartifacts/
+mlruns/
+notebooks/
+reports/
+references/
+tests/
+tmp_claude/
+logs/
+*.docx
+*.pdf
+.dvc/cache

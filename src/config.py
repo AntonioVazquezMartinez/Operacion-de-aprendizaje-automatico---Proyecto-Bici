@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import argparse
 import copy
+import os
+import random
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -50,8 +52,20 @@ class Config(dict):
         return folder.as_uri()
 
 
+def set_global_seed(seed: int) -> None:
+    """Fija la semilla de Python, NumPy y del hash de cadenas para que las corridas sean repetibles.
+
+    Los estimadores, el TargetEncoder y Optuna reciben además `random_state` explícito desde config.yaml.
+    """
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    random.seed(seed)
+    import numpy as np
+
+    np.random.seed(seed)
+
+
 def load_config(path: Optional[str | Path] = None, overrides: Optional[Dict[str, Any]] = None) -> Config:
-    """Lee config.yaml (o el archivo indicado) y aplica sobrescrituras opcionales por sección."""
+    """Lee config.yaml (o el archivo indicado), aplica sobrescrituras y fija la semilla global."""
     config_path = Path(path) if path else DEFAULT_CONFIG_PATH
     with open(config_path, encoding="utf-8") as f:
         data = yaml.safe_load(f)
@@ -61,6 +75,8 @@ def load_config(path: Optional[str | Path] = None, overrides: Optional[Dict[str,
             data.setdefault(section, {}).update(values)
         else:
             data[section] = values
+    if "seed" in data:
+        set_global_seed(int(data["seed"]))
     return Config(data)
 
 

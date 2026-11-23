@@ -1,0 +1,70 @@
+# Pipeline de DVC: cada etapa declara sus dependencias y salidas, y dvc.lock guarda el hash
+# (MD5) de cada una. `dvc repro` vuelve a ejecutar solo las etapas cuyas entradas cambiaron.
+# Los CSV crudos se versionan aparte con `dvc add data/raw` (archivo data/raw.dvc).
+stages:
+  data:
+    cmd: python -m src.dataset
+    deps:
+      - src/dataset.py
+      - data/raw
+    params:
+      - config.yaml:
+          - data.months
+          - cleaning
+    outs:
+      - data/interim/viajes_cleaned.csv
+
+  features:
+    cmd: python -m src.features
+    deps:
+      - src/features.py
+      - data/interim/viajes_cleaned.csv
+    params:
+      - config.yaml:
+          - features
+    outs:
+      - data/processed/mibici_hourly_demand.csv
+
+  train:
+    cmd: python -m src.modeling.train
+    deps:
+      - src/modeling/train.py
+      - src/modeling/pipeline.py
+      - data/processed/mibici_hourly_demand.csv
+    params:
+      - config.yaml:
+          - seed
+          - split
+          - tuning
+          - models
+    outs:
+      - reports/model_comparison.csv:
+          cache: false
+
+  export:
+    cmd: python -m src.serving.export_model
+    deps:
+      - src/serving/bundle.py
+      - src/serving/export_model.py
+      - data/processed/mibici_hourly_demand.csv
+    params:
+      - config.yaml:
+          - serving
+    outs:
+      # El paquete del modelo se guarda también en Git (pesa ~3 MB) para que la imagen se
+      # construya desde un clon limpio; DVC registra su hash en dvc.lock.
+      - models/champion:
+          cache: false
+
+  drift:
+    cmd: python -m src.monitoring.drift
+    deps:
+      - src/monitoring/drift.py
+      - models/champion
+      - data/processed/mibici_hourly_demand.csv
+    params:
+      - config.yaml:
+          - monitoring
+    outs:
+      - reports/drift:
+          cache: false
