@@ -22,9 +22,23 @@ data:
   # Año completo 2025 (CSV colocados en data/raw). Fase 1 usaba solo 2024-05.
   months: ["2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06",
            "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12"]
+  # URL oficiales del portal de datos abiertos (requieren User-Agent de navegador, ver src/dataset.py).
   trip_urls:
     "2024-05": https://www.mibici.net/site/assets/files/81663/datos_abiertos_2024_05.csv
-  stations_url: https://www.mibici.net/site/assets/files/1118/nomenclatura_2026_09.csv
+    "2025-01": https://www.mibici.net/site/assets/files/97653/datos_abiertos_2025_01.csv
+    "2025-02": https://www.mibici.net/site/assets/files/99879/datos_abiertos_2025_02.csv
+    "2025-03": https://www.mibici.net/site/assets/files/101986/datos_abiertos_2025_03.csv
+    "2025-04": https://www.mibici.net/site/assets/files/103813/datos_abiertos_2025_04.csv
+    "2025-05": https://www.mibici.net/site/assets/files/105513/datos_abiertos_2025_05.csv
+    "2025-06": https://www.mibici.net/site/assets/files/107088/datos_abiertos_2025_06.csv
+    "2025-07": https://www.mibici.net/site/assets/files/108898/datos_abiertos_2025_07.csv
+    "2025-08": https://www.mibici.net/site/assets/files/111021/datos_abiertos_2025_08.csv
+    "2025-09": https://www.mibici.net/site/assets/files/113216/datos_abiertos_2025_09.csv
+    "2025-10": https://www.mibici.net/site/assets/files/115104/datos_abiertos_2025_10.csv
+    "2025-11": https://www.mibici.net/site/assets/files/116773/datos_abiertos_2025_11.csv
+    "2025-12": https://www.mibici.net/site/assets/files/118153/datos_abiertos_2025_12.csv
+  # nomenclatura_2026_09.csv (usada en la Fase 2) ya no está publicada; el portal la reemplazó por la de 2026-10.
+  stations_url: https://www.mibici.net/site/assets/files/1118/nomenclatura_2026_10.csv
   download_timeout_seconds: 120
   raw_trips_file: viajes_raw.csv
   stations_file: nomenclatura_estaciones.csv
@@ -70,8 +84,48 @@ mlflow:
 tuning:
   metric: val_mae            # métrica que minimiza Optuna y que decide el modelo champion
   n_trials: 20               # trials por modelo (se puede sobrescribir con --n-trials)
-  timeout_seconds: 900       # tiempo máximo de búsqueda por modelo
+  # Sin corte por tiempo: un timeout hace que el número de trials dependa de la velocidad de la
+  # máquina (no determinista). Con null siempre se completan n_trials; un número en segundos
+  # reactiva el corte. Los trials completados se registran en MLflow (tuning_trials_completed).
+  timeout_seconds: null
   train_sample_rows: 300000  # Optuna busca con una muestra de train; el modelo final usa todos los datos
+
+serving:
+  # Modelo champion exportado desde el Model Registry (python -m src.modeling.export). La carpeta
+  # es un modelo MLflow autocontenido: se carga sin la base mlruns.db (la usa la API y el contenedor).
+  model_dir: models/champion
+  metadata_file: models/champion_metadata.json
+  # Muestra fija del conjunto de prueba con su predicción de referencia (patrón oro de reproducibilidad).
+  reference_predictions_file: models/reference_predictions.csv
+  reference_sample_rows: 500
+  # Catálogo mínimo de estaciones (id, latitude, longitude, capacity) que se guarda dentro de model_dir
+  # para que el servicio derive las variables de estación.
+  stations_file: stations.csv
+  # Feature store (idea adaptada de la rama entrega-final): demanda horaria por estación de las últimas
+  # feature_store_hours horas del periodo de datos, dentro de model_dir. Con él /predict calcula los rezagos
+  # cuando el cliente no los envía. Debe superar el rezago más largo (168 h): con 360 h la ventana predecible va
+  # de la hora 168 del feature store hasta 24 h después del último dato.
+  feature_store_file: feature_store.csv.gz
+  feature_store_hours: 360
+  # Muestra fija de (estación, hora) de la ventana predecible con los rezagos y la predicción calculados fuera de
+  # línea (patrón oro de /predict sin rezagos; la usa scripts/verify_reproducibility.py).
+  feature_store_reference_file: models/reference_feature_store_predictions.csv
+  feature_store_reference_rows: 200
+  # --- API (src/serving/app.py). MODEL_DIR y MODEL_METADATA (variables de entorno) sobrescriben las rutas.
+  # 1.1.0: los rezagos de /predict pasan a ser opcionales (feature store); con rezagos responde igual que 1.0.0.
+  service_version: 1.1.0
+  # Máximo de instancias por petición en /predict y /predict/raw (la referencia completa tiene 500 filas).
+  max_batch_size: 1000
+  # Desfase de la hora local de Guadalajara (sin horario de verano desde 2022). Las fechas con zona horaria
+  # se convierten a este desfase; las fechas sin zona horaria se toman como hora local.
+  local_utc_offset: "-06:00"
+  # true: no se carga un modelo cuyo SHA-256 no coincide con champion_metadata.json (la API responde 503).
+  require_sha256_match: true
+  # true: un error al cargar el modelo detiene el arranque; false: la API arranca y responde 503.
+  strict_startup: false
+  # Registro de predicciones (JSONL, una línea por petición a /predict): null = apagado. La variable de entorno
+  # PREDICTION_LOG tiene prioridad (p. ej. PREDICTION_LOG=/app/logs/predicciones.jsonl en el contenedor).
+  prediction_log_file: null
 
 models:
   # class: ruta del estimador de scikit-learn; params: fijos; search_space: lo que ajusta Optuna.
@@ -113,3 +167,85 @@ models:
       max_depth: {type: int, low: 6, high: 14}
       min_samples_leaf: {type: int, low: 20, high: 100}
       max_features: {type: float, low: 0.3, high: 1.0}
+
+monitoring:
+  # Simulación de data drift, umbrales y reglas de alerta (python -m src.monitoring.drift).
+  experiment_name: MiBici_Monitoreo
+  model_dir: models/champion          # modelo champion exportado (python -m src.modeling.export)
+  output_dir: reports/drift           # drift_report.json / .md y drift_summary.csv
+  # Referencia de DISTRIBUCIÓN: conjunto de validación (lo pide la tarea y es el periodo más reciente que vio
+  # el modelo final, sin mezclar estaciones del año). Línea base de DESEMPEÑO: conjunto de prueba, porque el
+  # modelo final se entrenó con train + val y su MAE en validación sería optimista.
+  reference_split: val
+  baseline_split: test
+  psi_bins: 10                        # intervalos por cuantiles de la referencia (variables continuas)
+  psi_epsilon: 1.0e-4                 # proporción mínima para intervalos vacíos (PSI finito)
+  discrete_max_unique: 30             # <= 30 valores distintos en la referencia -> cada valor es una categoría
+  # Submuestra fija (semilla `seed`) para KS: con ~477 mil filas el p-valor es ~0 ante cualquier diferencia,
+  # por eso la decisión usa el estadístico D y el p-valor solo se reporta.
+  ks_sample_rows: 50000
+  window_days: 7                      # ventanas del conjunto de prueba para la vista temporal (figura 10)
+  # Variables de calendario: son funciones deterministas de la fecha, así que su "drift" solo refleja qué días
+  # caen en la ventana (festivos, días incompletos de una semana). Se reportan pero NO deciden el nivel de drift;
+  # su falla real (reloj o zona horaria equivocados) la detecta el desfase del perfil horario.
+  informative_variables: [sin_hour, cos_hour, sin_dayofweek, cos_dayofweek, is_weekend, is_holiday]
+  thresholds:
+    # PSI: convención usual de la industria (riesgo crediticio): < 0.10 estable, 0.10-0.25 cambio moderado,
+    # > 0.25 cambio importante. Es una regla práctica, no una prueba estadística.
+    psi: {warning: 0.10, alert: 0.25}
+    # Estadístico D de KS (máxima distancia entre funciones de distribución): 0.10 = una décima parte de la
+    # población cambia de lado de algún valor; criterio del equipo para muestras grandes.
+    ks_statistic: {warning: 0.10, alert: 0.20}
+    # Wasserstein / desviación estándar de la referencia: desplazamiento de 0.10 / 0.25 desviaciones estándar
+    # (tamaños de efecto pequeño / moderado); criterio del equipo.
+    wasserstein_norm: {warning: 0.10, alert: 0.25}
+    # Aumento de la tasa de faltantes por variable: la referencia no tiene faltantes (se descartan las horas
+    # sin historial completo), así que 1 % ya es una falla del pipeline y 5 % afecta de forma visible.
+    missing_rate: {warning: 0.01, alert: 0.05}
+    # Filas cuyos rezagos de conteo (demand_lag_24h, demand_lag_168h) no son enteros >= 0: por construcción siempre
+    # lo son, así que cualquier violación es una falla del pipeline (mismo criterio que los faltantes).
+    count_domain_violation_rate: {warning: 0.01, alert: 0.05}
+    # Filas con estación (Origen_Id) desconocida para el TargetEncoder: 1 % ~ 4 de 370 estaciones.
+    unseen_category_rate: {warning: 0.01, alert: 0.05}
+    # Desfase (horas) entre el perfil horario de la demanda rezagada y el de referencia: cualquier desfase
+    # indica reloj o zona horaria equivocados; 2 h o más ya cruza los picos de demanda.
+    hour_profile_shift_hours: {warning: 1, alert: 2}
+    # Degradación relativa contra la línea base (ML Canvas: degradación del MAE como señal de concept drift).
+    # El WAPE (MAE / demanda media) se vigila con el mismo umbral porque el MAE baja solo cuando baja la demanda.
+    mae_degradation: {warning: 0.10, alert: 0.25}
+    wape_degradation: {warning: 0.10, alert: 0.25}
+  # Escenarios de monitoreo (todos usan la semilla `seed`). `type` elige el generador de src/monitoring/scenarios.py.
+  scenarios:
+    control:
+      type: control
+      description: Conjunto de prueba sin alteración (valida que los umbrales no den falsas alarmas).
+    rezagos_faltantes:
+      type: missing_lags
+      fraction: 0.30
+      description: 30 % de las filas sin rezagos (falla de la consulta histórica; el imputador usa la mediana).
+    rezagos_escala:
+      type: scale_lags
+      factor: 1.5
+      description: Rezagos multiplicados por 1.5 (unidades o agregación equivocadas en el pipeline).
+    reloj_desfasado:
+      type: clock_shift
+      hours: 6
+      description: Variables de calendario calculadas con 6 h de desfase (UTC en lugar de hora de Guadalajara).
+    aumento_demanda:
+      type: demand_change
+      factor: 1.4
+      description: 40 % más viajes (remuestreo con reemplazo); se recalculan rezagos y objetivo.
+    caida_demanda:
+      type: demand_change
+      factor: 0.6
+      description: 40 % menos viajes (adelgazamiento binomial); se recalculan rezagos y objetivo.
+    vacaciones_diciembre:
+      type: time_window
+      start: "2025-12-20 00:00"
+      end: "2025-12-31 23:00"
+      description: Periodo real de vacaciones y fiestas de fin de año (20 al 31 de diciembre de 2025).
+    estaciones_nuevas:
+      type: new_stations
+      fraction: 0.15
+      id_offset: 100000
+      description: 15 % de estaciones con Id nuevo que abren al inicio de la ventana (sin historial ni codificación).

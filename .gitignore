@@ -54,9 +54,21 @@ data/processed/*
 data/external/*
 !data/external/.gitkeep
 
+# Modelo exportado: desde la versión 1.1.0 la carpeta models/champion/ (modelo MLflow de ~6 MB, catálogo de
+# estaciones y feature store) SÍ va en Git para que `docker build` funcione en un clon limpio. DVC la declara
+# como salida con `cache: false` (dvc.yaml) y solo guarda su hash en dvc.lock.
+
 # Generic team files
 reports/Fase 1_EquipoXX.*
 
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Cobertura de pruebas
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Bloqueos temporales de Microsoft Office (documento abierto en Word)
+~$*

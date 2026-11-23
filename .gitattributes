@@ -1,0 +1,25 @@
+# Archivos que se ejecutan dentro de contenedores Linux: siempre con fin de línea LF, aunque Git en Windows use
+# core.autocrlf=true (un script bash con CRLF falla con "$'\r': command not found").
+*.sh text eol=lf
+Dockerfile text eol=lf
+docker/Dockerfile.* text eol=lf
+*.dockerignore text eol=lf
+.dockerignore text eol=lf
+
+# Binarios: Git nunca los convierte ni intenta mostrar un diff de texto.
+*.pkl binary
+*.joblib binary
+*.gz binary
+
+# Artefactos de servicio en models/ (metadatos, referencias y la carpeta MLflow models/champion/): el SHA-256 de
+# varios se guarda en models/champion_metadata.json y el de la carpeta en dvc.lock, así que deben tener los mismos
+# bytes en Windows y en Linux. Se exportan con LF y Git los entrega con LF en cualquier sistema.
+models/**/*.csv text eol=lf
+models/**/*.json text eol=lf
+models/**/*.yaml text eol=lf
+models/**/*.txt text eol=lf
+models/**/MLmodel text eol=lf
+
+# Paquete original de la Fase 2 (rama entrega-final): se conserva byte a byte tal como está en Git, sin ninguna
+# conversión de fin de línea (los SHA-256 de su model_card.json se verifican con scripts/compare_fase2_binary.py).
+models/fase2_original/** -text

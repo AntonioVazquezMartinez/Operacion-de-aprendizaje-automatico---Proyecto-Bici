@@ -1,0 +1,220 @@
+# Servidor A: venv del repo (.venv, Python 3.13.9), modelo real models/champion (servicio 1.1.0)
+INFO:     Started server process [26672]
+INFO:     Waiting for application startup.
+2026-11-22 14:24:12,833 INFO mibici.serving: Modelo cargado: models:/mibici-demand-forecaster/1 (SHA-256 verificado: True, 370 estaciones)
+2026-11-22 14:24:12,833 INFO mibici.serving: Feature store: 2025-12-17 00:00:00 a 2025-12-31 23:00:00 (SHA-256 verificado: True); ventana predecible sin rezagos 2025-12-24T00:00:00 a 2026-01-01T23:00:00
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-11-22 14:24:16,294 INFO mibici.serving: GET /health -> 200 (1.28 ms)
+INFO:     127.0.0.1:49300 - "GET /health HTTP/1.1" 200 OK
+2026-11-22 14:24:16,469 INFO mibici.serving: GET / -> 200 (0.73 ms)
+INFO:     127.0.0.1:49302 - "GET / HTTP/1.1" 200 OK
+2026-11-22 14:24:16,485 INFO mibici.serving: GET /health -> 200 (0.59 ms)
+INFO:     127.0.0.1:49303 - "GET /health HTTP/1.1" 200 OK
+2026-11-22 14:24:16,501 INFO mibici.serving: GET /model-info -> 200 (0.99 ms)
+INFO:     127.0.0.1:49304 - "GET /model-info HTTP/1.1" 200 OK
+2026-11-22 14:24:16,555 INFO mibici.serving: predict: 1 instancias (0 con feature store) en 39.14 ms
+2026-11-22 14:24:16,555 INFO mibici.serving: POST /predict -> 200 (40.76 ms)
+INFO:     127.0.0.1:49305 - "POST /predict HTTP/1.1" 200 OK
+2026-11-22 14:24:16,593 INFO mibici.serving: predict: 3 instancias (0 con feature store) en 15.85 ms
+2026-11-22 14:24:16,593 INFO mibici.serving: POST /predict -> 200 (16.93 ms)
+INFO:     127.0.0.1:49306 - "POST /predict HTTP/1.1" 200 OK
+2026-11-22 14:24:16,618 INFO mibici.serving: predict: 1 instancias (0 con feature store) en 10.61 ms
+2026-11-22 14:24:16,619 INFO mibici.serving: POST /predict -> 200 (11.57 ms)
+INFO:     127.0.0.1:49307 - "POST /predict HTTP/1.1" 200 OK
+2026-11-22 14:24:16,633 INFO mibici.serving: predict: 1 instancias (1 con feature store) en 13.09 ms
+2026-11-22 14:24:16,634 INFO mibici.serving: POST /predict -> 200 (14.11 ms)
+INFO:     127.0.0.1:49308 - "POST /predict HTTP/1.1" 200 OK
+2026-11-22 14:24:16,658 INFO mibici.serving: predict: 1 instancias (1 con feature store) en 22.20 ms
+2026-11-22 14:24:16,659 INFO mibici.serving: POST /predict -> 200 (23.43 ms)
+INFO:     127.0.0.1:49309 - "POST /predict HTTP/1.1" 200 OK
+2026-11-22 14:24:16,674 INFO mibici.serving: predict: 2 instancias (1 con feature store) en 13.14 ms
+2026-11-22 14:24:16,674 INFO mibici.serving: POST /predict -> 200 (14.08 ms)
+INFO:     127.0.0.1:49310 - "POST /predict HTTP/1.1" 200 OK
+2026-11-22 14:24:16,690 INFO mibici.serving: predict/raw: 1 filas en 13.58 ms
+2026-11-22 14:24:16,691 INFO mibici.serving: POST /predict/raw -> 200 (15.23 ms)
+INFO:     127.0.0.1:49311 - "POST /predict/raw HTTP/1.1" 200 OK
+2026-11-22 14:24:16,692 INFO mibici.serving: 422 POST /predict: 1 errores de validación
+2026-11-22 14:24:16,692 INFO mibici.serving: POST /predict -> 422 (0.42 ms)
+INFO:     127.0.0.1:49312 - "POST /predict HTTP/1.1" 422 Unprocessable Content
+2026-11-22 14:24:16,694 INFO mibici.serving: 422 POST /predict: 2 errores de validación
+2026-11-22 14:24:16,694 INFO mibici.serving: POST /predict -> 422 (0.54 ms)
+INFO:     127.0.0.1:49313 - "POST /predict HTTP/1.1" 422 Unprocessable Content
+2026-11-22 14:24:16,718 INFO mibici.serving: 422 POST /predict: 1 errores de validación
+2026-11-22 14:24:16,718 INFO mibici.serving: POST /predict -> 422 (0.49 ms)
+INFO:     127.0.0.1:49314 - "POST /predict HTTP/1.1" 422 Unprocessable Content
+2026-11-22 14:24:16,734 INFO mibici.serving: 422 POST /predict: 2 errores de validación
+2026-11-22 14:24:16,734 INFO mibici.serving: POST /predict -> 422 (0.37 ms)
+INFO:     127.0.0.1:49315 - "POST /predict HTTP/1.1" 422 Unprocessable Content
+2026-11-22 14:24:16,749 INFO mibici.serving: 422 POST /predict: 1 errores de validación
+2026-11-22 14:24:16,750 INFO mibici.serving: POST /predict -> 422 (0.42 ms)
+INFO:     127.0.0.1:49316 - "POST /predict HTTP/1.1" 422 Unprocessable Content
+2026-11-22 14:24:16,764 INFO mibici.serving: 422 POST /predict: 1 errores de validación
+2026-11-22 14:24:16,765 INFO mibici.serving: POST /predict -> 422 (0.37 ms)
+INFO:     127.0.0.1:49317 - "POST /predict HTTP/1.1" 422 Unprocessable Content
+2026-11-22 14:24:16,782 INFO mibici.serving: POST /predict -> 422 (1.91 ms)
+INFO:     127.0.0.1:49318 - "POST /predict HTTP/1.1" 422 Unprocessable Content
+2026-11-22 14:24:16,784 INFO mibici.serving: 422 POST /predict: 1 errores de validación
+2026-11-22 14:24:16,784 INFO mibici.serving: POST /predict -> 422 (0.35 ms)
+INFO:     127.0.0.1:49319 - "POST /predict HTTP/1.1" 422 Unprocessable Content
+2026-11-22 14:24:16,829 INFO mibici.serving: POST /predict -> 422 (18.50 ms)
+INFO:     127.0.0.1:49320 - "POST /predict HTTP/1.1" 422 Unprocessable Content
+2026-11-22 14:24:16,830 INFO mibici.serving: 422 POST /predict: 1 errores de validación
+2026-11-22 14:24:16,830 INFO mibici.serving: POST /predict -> 422 (0.31 ms)
+INFO:     127.0.0.1:49322 - "POST /predict HTTP/1.1" 422 Unprocessable Content
+2026-11-22 14:24:16,842 INFO mibici.serving: POST /predict/raw -> 422 (0.60 ms)
+INFO:     127.0.0.1:49323 - "POST /predict/raw HTTP/1.1" 422 Unprocessable Content
+2026-11-22 14:24:16,843 INFO mibici.serving: POST /predict -> 404 (0.69 ms)
+INFO:     127.0.0.1:49324 - "POST /predict HTTP/1.1" 404 Not Found
+2026-11-22 14:24:16,845 INFO mibici.serving: GET /no-existe -> 404 (0.19 ms)
+INFO:     127.0.0.1:49325 - "GET /no-existe HTTP/1.1" 404 Not Found
+2026-11-22 14:24:16,857 INFO mibici.serving: GET /predict -> 405 (0.28 ms)
+INFO:     127.0.0.1:49326 - "GET /predict HTTP/1.1" 405 Method Not Allowed
+2026-11-22 14:24:16,887 INFO mibici.serving: predict: 500 instancias (0 con feature store) en 21.28 ms
+2026-11-22 14:24:16,888 INFO mibici.serving: POST /predict -> 200 (24.39 ms)
+INFO:     127.0.0.1:49327 - "POST /predict HTTP/1.1" 200 OK
+2026-11-22 14:24:16,929 INFO mibici.serving: predict/raw: 500 filas en 9.28 ms
+2026-11-22 14:24:16,930 INFO mibici.serving: POST /predict/raw -> 200 (11.95 ms)
+INFO:     127.0.0.1:49328 - "POST /predict/raw HTTP/1.1" 200 OK
+2026-11-22 14:24:16,972 INFO mibici.serving: predict: 200 instancias (200 con feature store) en 22.86 ms
+2026-11-22 14:24:16,973 INFO mibici.serving: POST /predict -> 200 (25.18 ms)
+INFO:     127.0.0.1:49329 - "POST /predict HTTP/1.1" 200 OK
+
+# Servidor B: contenedor ml-service:latest (imagen 1.1.0). Incluye también las peticiones de scripts/verify_reproducibility.py; pip freeze de la imagen en reproducibilidad/imagen_pip_freeze.txt
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+2026-11-22 20:21:45,774 INFO mibici.serving: Modelo cargado: models:/mibici-demand-forecaster/1 (SHA-256 verificado: True, 370 estaciones)
+2026-11-22 20:21:45,774 INFO mibici.serving: Feature store: 2025-12-17 00:00:00 a 2025-12-31 23:00:00 (SHA-256 verificado: True); ventana predecible sin rezagos 2025-12-24T00:00:00 a 2026-01-01T23:00:00
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2026-11-22 20:21:46,652 INFO mibici.serving: GET /health -> 200 (0.96 ms)
+INFO:     127.0.0.1:48282 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35332 - "GET /health HTTP/1.1" 200 OK
+2026-11-22 20:22:01,828 INFO mibici.serving: GET /health -> 200 (0.56 ms)
+INFO:     127.0.0.1:60154 - "GET /health HTTP/1.1" 200 OK
+2026-11-22 20:22:17,046 INFO mibici.serving: GET /health -> 200 (0.35 ms)
+INFO:     172.17.0.1:60562 - "GET /health HTTP/1.1" 200 OK
+2026-11-22 20:22:28,429 INFO mibici.serving: GET /health -> 200 (0.42 ms)
+2026-11-22 20:22:28,442 INFO mibici.serving: GET /model-info -> 200 (1.68 ms)
+INFO:     172.17.0.1:60566 - "GET /model-info HTTP/1.1" 200 OK
+2026-11-22 20:22:28,535 INFO mibici.serving: predict/raw: 500 filas en 80.75 ms
+2026-11-22 20:22:28,536 INFO mibici.serving: POST /predict/raw -> 200 (84.75 ms)
+INFO:     172.17.0.1:60570 - "POST /predict/raw HTTP/1.1" 200 OK
+2026-11-22 20:22:28,572 INFO mibici.serving: predict: 500 instancias (0 con feature store) en 20.38 ms
+2026-11-22 20:22:28,575 INFO mibici.serving: POST /predict -> 200 (24.62 ms)
+INFO:     172.17.0.1:60572 - "POST /predict HTTP/1.1" 200 OK
+2026-11-22 20:22:28,611 INFO mibici.serving: predict: 200 instancias (200 con feature store) en 12.49 ms
+2026-11-22 20:22:28,613 INFO mibici.serving: POST /predict -> 200 (14.16 ms)
+INFO:     172.17.0.1:60586 - "POST /predict HTTP/1.1" 200 OK
+2026-11-22 20:22:28,798 INFO mibici.serving: GET /health -> 200 (0.34 ms)
+INFO:     172.17.0.1:60596 - "GET /health HTTP/1.1" 200 OK
+2026-11-22 20:22:28,801 INFO mibici.serving: GET /model-info -> 200 (0.44 ms)
+INFO:     172.17.0.1:60608 - "GET /model-info HTTP/1.1" 200 OK
+2026-11-22 20:22:28,827 INFO mibici.serving: predict/raw: 500 filas en 15.84 ms
+2026-11-22 20:22:28,828 INFO mibici.serving: POST /predict/raw -> 200 (18.92 ms)
+INFO:     172.17.0.1:60618 - "POST /predict/raw HTTP/1.1" 200 OK
+2026-11-22 20:22:28,863 INFO mibici.serving: predict: 500 instancias (0 con feature store) en 12.24 ms
+2026-11-22 20:22:28,864 INFO mibici.serving: POST /predict -> 200 (15.96 ms)
+INFO:     172.17.0.1:60620 - "POST /predict HTTP/1.1" 200 OK
+2026-11-22 20:22:28,907 INFO mibici.serving: predict: 200 instancias (200 con feature store) en 12.25 ms
+2026-11-22 20:22:28,908 INFO mibici.serving: POST /predict -> 200 (13.93 ms)
+INFO:     172.17.0.1:60624 - "POST /predict HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35332 - "GET /health HTTP/1.1" 200 OK
+2026-11-22 20:22:32,307 INFO mibici.serving: GET /health -> 200 (0.39 ms)
+2026-11-22 20:22:42,027 INFO mibici.serving: GET / -> 200 (0.53 ms)
+INFO:     172.17.0.1:45106 - "GET / HTTP/1.1" 200 OK
+2026-11-22 20:22:42,042 INFO mibici.serving: GET /health -> 200 (0.32 ms)
+INFO:     172.17.0.1:45110 - "GET /health HTTP/1.1" 200 OK
+2026-11-22 20:22:42,058 INFO mibici.serving: GET /model-info -> 200 (0.41 ms)
+INFO:     172.17.0.1:45126 - "GET /model-info HTTP/1.1" 200 OK
+2026-11-22 20:22:42,088 INFO mibici.serving: predict: 1 instancias (0 con feature store) en 14.75 ms
+INFO:     172.17.0.1:45138 - "POST /predict HTTP/1.1" 200 OK
+2026-11-22 20:22:42,089 INFO mibici.serving: POST /predict -> 200 (15.74 ms)
+2026-11-22 20:22:42,113 INFO mibici.serving: predict: 3 instancias (0 con feature store) en 8.74 ms
+INFO:     172.17.0.1:45140 - "POST /predict HTTP/1.1" 200 OK
+2026-11-22 20:22:42,113 INFO mibici.serving: POST /predict -> 200 (9.59 ms)
+2026-11-22 20:22:42,145 INFO mibici.serving: predict: 1 instancias (0 con feature store) en 9.85 ms
+INFO:     172.17.0.1:45142 - "POST /predict HTTP/1.1" 200 OK
+2026-11-22 20:22:42,145 INFO mibici.serving: POST /predict -> 200 (10.99 ms)
+2026-11-22 20:22:42,165 INFO mibici.serving: predict: 1 instancias (1 con feature store) en 9.55 ms
+2026-11-22 20:22:42,165 INFO mibici.serving: POST /predict -> 200 (10.40 ms)
+INFO:     172.17.0.1:45158 - "POST /predict HTTP/1.1" 200 OK
+2026-11-22 20:22:42,184 INFO mibici.serving: predict: 1 instancias (1 con feature store) en 9.81 ms
+2026-11-22 20:22:42,184 INFO mibici.serving: POST /predict -> 200 (10.87 ms)
+INFO:     172.17.0.1:45164 - "POST /predict HTTP/1.1" 200 OK
+2026-11-22 20:22:42,200 INFO mibici.serving: predict: 2 instancias (1 con feature store) en 9.23 ms
+2026-11-22 20:22:42,201 INFO mibici.serving: POST /predict -> 200 (10.41 ms)
+INFO:     172.17.0.1:45172 - "POST /predict HTTP/1.1" 200 OK
+2026-11-22 20:22:42,236 INFO mibici.serving: predict/raw: 1 filas en 9.21 ms
+INFO:     172.17.0.1:45180 - "POST /predict/raw HTTP/1.1" 200 OK
+2026-11-22 20:22:42,238 INFO mibici.serving: POST /predict/raw -> 200 (10.78 ms)
+2026-11-22 20:22:42,259 INFO mibici.serving: 422 POST /predict: 1 errores de validación
+2026-11-22 20:22:42,259 INFO mibici.serving: POST /predict -> 422 (0.50 ms)
+INFO:     172.17.0.1:45192 - "POST /predict HTTP/1.1" 422 Unprocessable Content
+2026-11-22 20:22:42,274 INFO mibici.serving: 422 POST /predict: 2 errores de validación
+2026-11-22 20:22:42,274 INFO mibici.serving: POST /predict -> 422 (0.48 ms)
+INFO:     172.17.0.1:45194 - "POST /predict HTTP/1.1" 422 Unprocessable Content
+2026-11-22 20:22:42,277 INFO mibici.serving: 422 POST /predict: 1 errores de validación
+2026-11-22 20:22:42,277 INFO mibici.serving: POST /predict -> 422 (0.44 ms)
+INFO:     172.17.0.1:45200 - "POST /predict HTTP/1.1" 422 Unprocessable Content
+2026-11-22 20:22:42,279 INFO mibici.serving: 422 POST /predict: 2 errores de validación
+2026-11-22 20:22:42,279 INFO mibici.serving: POST /predict -> 422 (0.34 ms)
+INFO:     172.17.0.1:45214 - "POST /predict HTTP/1.1" 422 Unprocessable Content
+2026-11-22 20:22:42,282 INFO mibici.serving: 422 POST /predict: 1 errores de validación
+2026-11-22 20:22:42,282 INFO mibici.serving: POST /predict -> 422 (0.31 ms)
+INFO:     172.17.0.1:45220 - "POST /predict HTTP/1.1" 422 Unprocessable Content
+2026-11-22 20:22:42,284 INFO mibici.serving: 422 POST /predict: 1 errores de validación
+2026-11-22 20:22:42,284 INFO mibici.serving: POST /predict -> 422 (0.32 ms)
+INFO:     172.17.0.1:45230 - "POST /predict HTTP/1.1" 422 Unprocessable Content
+2026-11-22 20:22:42,287 INFO mibici.serving: POST /predict -> 422 (1.09 ms)
+INFO:     172.17.0.1:45234 - "POST /predict HTTP/1.1" 422 Unprocessable Content
+2026-11-22 20:22:42,289 INFO mibici.serving: 422 POST /predict: 1 errores de validación
+2026-11-22 20:22:42,289 INFO mibici.serving: POST /predict -> 422 (0.33 ms)
+INFO:     172.17.0.1:45250 - "POST /predict HTTP/1.1" 422 Unprocessable Content
+2026-11-22 20:22:42,294 INFO mibici.serving: POST /predict -> 422 (2.39 ms)
+INFO:     172.17.0.1:45258 - "POST /predict HTTP/1.1" 422 Unprocessable Content
+2026-11-22 20:22:42,296 INFO mibici.serving: 422 POST /predict: 1 errores de validación
+2026-11-22 20:22:42,296 INFO mibici.serving: POST /predict -> 422 (0.28 ms)
+INFO:     172.17.0.1:45272 - "POST /predict HTTP/1.1" 422 Unprocessable Content
+2026-11-22 20:22:42,298 INFO mibici.serving: POST /predict/raw -> 422 (0.40 ms)
+INFO:     172.17.0.1:45288 - "POST /predict/raw HTTP/1.1" 422 Unprocessable Content
+2026-11-22 20:22:42,300 INFO mibici.serving: POST /predict -> 404 (0.39 ms)
+INFO:     172.17.0.1:45298 - "POST /predict HTTP/1.1" 404 Not Found
+2026-11-22 20:22:42,302 INFO mibici.serving: GET /no-existe -> 404 (0.10 ms)
+INFO:     172.17.0.1:45310 - "GET /no-existe HTTP/1.1" 404 Not Found
+2026-11-22 20:22:42,304 INFO mibici.serving: GET /predict -> 405 (0.13 ms)
+INFO:     172.17.0.1:45316 - "GET /predict HTTP/1.1" 405 Method Not Allowed
+2026-11-22 20:22:42,324 INFO mibici.serving: predict: 500 instancias (0 con feature store) en 13.75 ms
+INFO:     172.17.0.1:45318 - "POST /predict HTTP/1.1" 200 OK
+2026-11-22 20:22:42,325 INFO mibici.serving: POST /predict -> 200 (16.16 ms)
+2026-11-22 20:22:42,363 INFO mibici.serving: predict/raw: 500 filas en 11.24 ms
+2026-11-22 20:22:42,364 INFO mibici.serving: POST /predict/raw -> 200 (14.04 ms)
+INFO:     172.17.0.1:45322 - "POST /predict/raw HTTP/1.1" 200 OK
+2026-11-22 20:22:42,393 INFO mibici.serving: predict: 200 instancias (200 con feature store) en 11.90 ms
+INFO:     172.17.0.1:45330 - "POST /predict HTTP/1.1" 200 OK
+2026-11-22 20:22:42,394 INFO mibici.serving: POST /predict -> 200 (13.72 ms)
+2026-11-22 20:22:47,512 INFO mibici.serving: GET /health -> 200 (0.44 ms)
+INFO:     127.0.0.1:38346 - "GET /health HTTP/1.1" 200 OK
+2026-11-22 20:23:02,689 INFO mibici.serving: GET /health -> 200 (0.59 ms)
+INFO:     127.0.0.1:57688 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42766 - "GET /health HTTP/1.1" 200 OK
+2026-11-22 20:23:17,877 INFO mibici.serving: GET /health -> 200 (0.35 ms)
+2026-11-22 20:23:33,047 INFO mibici.serving: GET /health -> 200 (0.47 ms)
+INFO:     127.0.0.1:44962 - "GET /health HTTP/1.1" 200 OK
+2026-11-22 20:23:48,217 INFO mibici.serving: GET /health -> 200 (0.40 ms)
+INFO:     127.0.0.1:45060 - "GET /health HTTP/1.1" 200 OK
+
+# Servidor C: venv del repo con MODEL_DIR apuntando a una carpeta inexistente (esperado: 503)
+INFO:     Started server process [41248]
+INFO:     Waiting for application startup.
+2026-11-22 14:24:12,196 ERROR mibici.serving: No se pudo cargar el modelo: FileNotFoundError: No existe un modelo MLflow (archivo MLmodel) en models/no_existe
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+2026-11-22 14:24:16,330 INFO mibici.serving: GET /health -> 503 (3.60 ms)
+INFO:     127.0.0.1:49301 - "GET /health HTTP/1.1" 503 Service Unavailable
+2026-11-22 14:24:17,117 INFO mibici.serving: GET /health -> 503 (0.41 ms)
+INFO:     127.0.0.1:49330 - "GET /health HTTP/1.1" 503 Service Unavailable
+2026-11-22 14:24:17,135 INFO mibici.serving: GET /model-info -> 503 (0.72 ms)
+INFO:     127.0.0.1:49331 - "GET /model-info HTTP/1.1" 503 Service Unavailable
+2026-11-22 14:24:17,150 INFO mibici.serving: POST /predict -> 503 (1.10 ms)
+INFO:     127.0.0.1:49332 - "POST /predict HTTP/1.1" 503 Service Unavailable

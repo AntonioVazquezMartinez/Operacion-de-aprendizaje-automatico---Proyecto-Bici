@@ -20,7 +20,7 @@ import numpy as np
 import pandas as pd
 from sklearn.pipeline import Pipeline
 
-from src.config import Config, base_arg_parser, load_config
+from src.config import Config, base_arg_parser, load_config, set_global_seeds
 from src.features import load_features, model_input_columns, temporal_split
 from src.modeling.pipeline import evaluate
 
@@ -69,7 +69,9 @@ def main() -> None:
     parser.add_argument("--input", help="CSV con las columnas de entrada; por defecto, el periodo de prueba")
     parser.add_argument("--output", help="Ruta del CSV de salida")
     args = parser.parse_args()
-    predict(load_config(args.config), args.input, args.output, args.alias)
+    config = load_config(args.config)
+    set_global_seeds(config["seed"])
+    predict(config, args.input, args.output, args.alias)
 
 
 if __name__ == "__main__":

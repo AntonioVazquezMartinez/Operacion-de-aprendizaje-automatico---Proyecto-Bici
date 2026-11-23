@@ -1,0 +1,21 @@
+== data/interim/viajes_cleaned.csv: bytes win 436953575 linux 432541111 | CRLF win 4412464 linux 0
+   sha win 304eedfb601a1a1a41ef91fc6ccec59a9acffce24e0bb542e75e15ea8db3948c
+   sha linux 80f16e3b14edd80ea29f817773d751c7bae1cc3dbd7164f92bc410506f9cca21
+   sha win con CRLF->LF 80f16e3b14edd80ea29f817773d751c7bae1cc3dbd7164f92bc410506f9cca21 | idénticos tras normalizar fin de línea: True
+== data/processed/mibici_hourly_demand.csv: bytes win 495441249 linux 492262208 | CRLF win 3179041 linux 0
+   sha win fec850d2bdbc935a16cc3e439c1debe824647c801aea4652710d59d6a1a597dc
+   sha linux 354fee1685cebddb550bb8dc43318f0a07e5194f0edb4fa964af71e00b269531
+   sha win con CRLF->LF 95f24f9c81d731c893ac604aaedaeee893de2c4663f555bd974e9a92fc843de5 | idénticos tras normalizar fin de línea: False
+== data/raw/nomenclatura_estaciones.csv: bytes win 34291 linux 33820 | CRLF win 471 linux 0
+   sha win 326b4bc8f646b0bced516024f25c10bbb8dec64fa75bba018c1f66ffd3a5cf2f
+   sha linux edb0081c0613a35c06ef0ed28a5f6f5dcdba542b2ac629f667730f7f235a997b
+   sha win con CRLF->LF edb0081c0613a35c06ef0ed28a5f6f5dcdba542b2ac629f667730f7f235a997b | idénticos tras normalizar fin de línea: True
+== models/champion/stations.csv: bytes win 11052 linux 10681 | CRLF win 371 linux 0
+   sha win 350f093dd0fe854d859b8a03d8b927c0ee743677afa7f45d6daa2fadc5ab6647
+   sha linux 429951fb49a3dafa73384ed2718bd3dd372ae969824b0c6f2bbb0c486bada545
+   sha win con CRLF->LF 429951fb49a3dafa73384ed2718bd3dd372ae969824b0c6f2bbb0c486bada545 | idénticos tras normalizar fin de línea: True
+== models/reference_predictions.csv: bytes win 84617 linux 84155 | CRLF win 501 linux 0
+   sha win 3bb0832b2656c8d0ffaf6d555929c1af09d2b508631c238a8134ae7ac0859926
+   sha linux acb4ec725e6e2987292066383a760e2190ba587d19781031aa5726305812de1c
+   sha win con CRLF->LF bf5254b3d738b7c7b689a038428d908846c00c76642703fce62eafb1333d3ca7 | idénticos tras normalizar fin de línea: False
+referencia: mismas filas/entradas: False | columnas distintas: ['sin_hour']

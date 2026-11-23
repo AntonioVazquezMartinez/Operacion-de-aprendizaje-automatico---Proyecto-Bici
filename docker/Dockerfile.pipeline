@@ -1,0 +1,53 @@
+# syntax=docker/dockerfile:1
+# =============================================================================
+# Entorno Linux limpio para correr las pruebas y el pipeline completo (datos -> características -> entrenamiento
+# -> predicción -> exportación) con el mismo código, datos y semillas que en Windows. No es la imagen de serving.
+#
+# Construir (contexto = raíz del repositorio; usa docker/Dockerfile.pipeline.dockerignore):
+#   docker build -f docker/Dockerfile.pipeline -t mibici-pipeline:1.0.0 .
+# Pruebas:
+#   docker run --rm mibici-pipeline:1.0.0 python -m pytest -q
+# Pipeline completo sin tocar los artefactos del host (los CSV crudos se montan de solo lectura y todo lo que
+# se genera va al volumen /work; ver docker/run_pipeline_linux.sh):
+#   docker run --rm -v "$PWD/data/raw:/hostraw:ro" -v mibici-wp3-pipeline:/work mibici-pipeline:1.0.0
+# =============================================================================
+
+ARG PYTHON_IMAGE=python:3.13.9-slim@sha256:326df678c20c78d465db501563f3492d17c42a4afe33a1f2bf5406a1d56b0e86
+# La etiqueta y el digest de la base vienen de ARG PYTHON_IMAGE (hadolint no los ve en la instrucción FROM).
+# hadolint ignore=DL3006
+FROM ${PYTHON_IMAGE}
+
+ARG REPO_URL=https://github.com/AntonioVazquezMartinez/Operacion-de-aprendizaje-automatico---Proyecto-Bici
+LABEL org.opencontainers.image.title="mibici-pipeline" \
+      org.opencontainers.image.description="Entorno Linux para reentrenar y probar el pipeline de MiBici (Equipo 19)" \
+      org.opencontainers.image.source="${REPO_URL}"
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONHASHSEED=42 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    MLFLOW_DISABLE_AGENT_HINT=1 \
+    MPLBACKEND=Agg
+
+# Dependencias completas fijadas (mismas versiones exactas que el entorno de entrenamiento en Windows).
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+RUN groupadd --system --gid 10001 app \
+    && useradd --system --uid 10001 --gid app --home-dir /home/app --create-home --shell /bin/bash app \
+    && mkdir -p /work && chown app:app /work
+
+WORKDIR /app
+COPY pyproject.toml config.yaml ./
+COPY src/ ./src/
+COPY tests/ ./tests/
+COPY models/ ./models/
+COPY reports/model_comparison.csv ./reports/model_comparison.csv
+COPY docker/run_pipeline_linux.sh docker/compare_pipeline.py ./docker/
+RUN chown -R app:app /app
+
+USER app
+VOLUME ["/work"]
+
+CMD ["bash", "docker/run_pipeline_linux.sh"]

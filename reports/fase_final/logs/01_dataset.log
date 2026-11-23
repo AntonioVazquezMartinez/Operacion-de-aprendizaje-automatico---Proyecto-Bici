@@ -1,0 +1,22 @@
+# comando: python -m src.dataset
+# python: Python 3.13.9 (C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\.venv\Scripts\python.exe)
+# inicio: 2026-11-22T12:14:41-06:00
+Catálogo de estaciones: C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\data\raw\nomenclatura_estaciones.csv (470 estaciones)
+Viajes raw: C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\data\raw\viajes_raw.csv (4532032 filas, meses 2025-01, 2025-02, 2025-03, 2025-04, 2025-05, 2025-06, 2025-07, 2025-08, 2025-09, 2025-10, 2025-11, 2025-12)
+=== Limpieza y validación de datos ===
+4532032 -> 4412463 filas (retención 97.36%). Guardado en C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\data\interim\viajes_cleaned.csv
+2026/11/22 12:15:03 INFO mlflow.agent.hint: Load the `mlflow-trace-instrumentation` skill at C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\.venv\Lib\site-packages\mlflow\assistant\skills\mlflow-trace-instrumentation\SKILL.md before writing any tracing code; it ships with this MLflow install. Set MLFLOW_DISABLE_AGENT_HINT=1 to silence this.
+2026/11/22 12:15:04 INFO mlflow.store.db.utils: Creating initial MLflow database tables...
+2026/11/22 12:15:05 INFO mlflow.store.db.utils: Updating database tables
+C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\.venv\Lib\site-packages\mlflow\data\dataset_source_registry.py:148: UserWarning: The specified dataset source can be interpreted in multiple ways: LocalArtifactDatasetSource, LocalArtifactDatasetSource. MLflow will assume that this is a LocalArtifactDatasetSource source.
+  return _dataset_source_registry.resolve(
+C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\.venv\Lib\site-packages\mlflow\types\utils.py:440: UserWarning: Hint: Inferred schema contains integer column(s). Integer columns in Python cannot represent missing values. If your input data contains missing values at inference time, it will be encoded as floats and will cause a schema enforcement error. The best way to avoid this problem is to infer the model schema based on a realistic data sample (training dataset) that includes missing values. Alternatively, you can declare integer columns as doubles (float64) whenever these columns may have missing values. See `Handling Integers With Missing Values <https://www.mlflow.org/docs/latest/models.html#handling-integers-with-missing-values>`_ for more details.
+  warnings.warn(
+C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\.venv\Lib\site-packages\mlflow\data\dataset_source_registry.py:148: UserWarning: The specified dataset source can be interpreted in multiple ways: LocalArtifactDatasetSource, LocalArtifactDatasetSource. MLflow will assume that this is a LocalArtifactDatasetSource source.
+  return _dataset_source_registry.resolve(
+C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\.venv\Lib\site-packages\mlflow\types\utils.py:440: UserWarning: Hint: Inferred schema contains integer column(s). Integer columns in Python cannot represent missing values. If your input data contains missing values at inference time, it will be encoded as floats and will cause a schema enforcement error. The best way to avoid this problem is to infer the model schema based on a realistic data sample (training dataset) that includes missing values. Alternatively, you can declare integer columns as doubles (float64) whenever these columns may have missing values. See `Handling Integers With Missing Values <https://www.mlflow.org/docs/latest/models.html#handling-integers-with-missing-values>`_ for more details.
+  warnings.warn(
+Versiones raw e interim registradas en MLflow.
+# fin: 2026-11-22T12:16:09-06:00
+# duracion_segundos: 88
+# codigo_salida: 0

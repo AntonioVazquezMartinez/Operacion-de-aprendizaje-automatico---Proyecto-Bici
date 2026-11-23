@@ -1,0 +1,16 @@
+# comando: python -m src.features
+# python: Python 3.13.9 (C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\.venv\Scripts\python.exe)
+# inicio: 2026-11-22T12:16:10-06:00
+=== Ingeniería de características ===
+C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\src\features.py:103: Pandas4Warning: Series.dt.dayofweek is deprecated and will be removed in a future version. Use Series.dt.day_of_week instead.
+  grid["day_of_week"] = ts.dt.dayofweek
+Matriz de características: C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\data\processed\mibici_hourly_demand.csv (3179040, 18)
+2026/11/22 12:16:27 INFO mlflow.agent.hint: Load the `mlflow-trace-instrumentation` skill at C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\.venv\Lib\site-packages\mlflow\assistant\skills\mlflow-trace-instrumentation\SKILL.md before writing any tracing code; it ships with this MLflow install. Set MLFLOW_DISABLE_AGENT_HINT=1 to silence this.
+C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\.venv\Lib\site-packages\mlflow\data\dataset_source_registry.py:148: UserWarning: The specified dataset source can be interpreted in multiple ways: LocalArtifactDatasetSource, LocalArtifactDatasetSource. MLflow will assume that this is a LocalArtifactDatasetSource source.
+  return _dataset_source_registry.resolve(
+C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\.venv\Lib\site-packages\mlflow\types\utils.py:440: UserWarning: Hint: Inferred schema contains integer column(s). Integer columns in Python cannot represent missing values. If your input data contains missing values at inference time, it will be encoded as floats and will cause a schema enforcement error. The best way to avoid this problem is to infer the model schema based on a realistic data sample (training dataset) that includes missing values. Alternatively, you can declare integer columns as doubles (float64) whenever these columns may have missing values. See `Handling Integers With Missing Values <https://www.mlflow.org/docs/latest/models.html#handling-integers-with-missing-values>`_ for more details.
+  warnings.warn(
+Versión processed registrada en MLflow.
+# fin: 2026-11-22T12:16:51-06:00
+# duracion_segundos: 42
+# codigo_salida: 0

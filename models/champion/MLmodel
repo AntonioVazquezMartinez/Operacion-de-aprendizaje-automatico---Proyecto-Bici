@@ -1,0 +1,43 @@
+artifact_path: file:///C:/Users/Alejandro/Documents/GitHub/TareaFinal/Operacion-de-aprendizaje-automatico---Proyecto-Bici/mlartifacts/models/m-8d4a146b1504459d91557f7760b2e304/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.13.9
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.9.1
+    skops_trusted_types: null
+is_signature_from_type_hint: false
+mlflow_version: 3.18.0
+model_id: m-8d4a146b1504459d91557f7760b2e304
+model_size_bytes: 6175186
+model_uuid: m-8d4a146b1504459d91557f7760b2e304
+prompts: null
+run_id: 9ef2f57d97374770bf956469ba97a02d
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "double", "name": "sin_hour", "required": true}, {"type": "double",
+    "name": "cos_hour", "required": true}, {"type": "double", "name": "sin_dayofweek",
+    "required": true}, {"type": "double", "name": "cos_dayofweek", "required": true},
+    {"type": "double", "name": "latitude", "required": true}, {"type": "double", "name":
+    "longitude", "required": true}, {"type": "long", "name": "capacity", "required":
+    true}, {"type": "double", "name": "demand_lag_24h", "required": true}, {"type":
+    "double", "name": "demand_lag_168h", "required": true}, {"type": "double", "name":
+    "demand_same_hour_mean_7d", "required": true}, {"type": "long", "name": "Origen_Id",
+    "required": true}, {"type": "long", "name": "is_weekend", "required": true}, {"type":
+    "long", "name": "is_holiday", "required": true}]'
+  outputs: '[{"type": "tensor", "tensor-spec": {"dtype": "float64", "shape": [-1]}}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-11-22 18:19:53.667461'

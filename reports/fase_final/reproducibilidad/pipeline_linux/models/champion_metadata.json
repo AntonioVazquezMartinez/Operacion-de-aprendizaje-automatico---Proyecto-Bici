@@ -1,0 +1,95 @@
+{
+  "registered_model_name": "mibici-demand-forecaster",
+  "version": 1,
+  "alias": "champion",
+  "aliases": [
+    "champion"
+  ],
+  "model_uri": "models:/mibici-demand-forecaster/1",
+  "alias_uri": "models:/mibici-demand-forecaster@champion",
+  "run_id": "d8cd726d51094c60929f181178c8fb40",
+  "algorithm": "hist_gradient_boosting",
+  "estimator_class": "sklearn.ensemble.HistGradientBoostingRegressor",
+  "hyperparameters": {
+    "loss": "poisson",
+    "early_stopping": false,
+    "learning_rate": 0.05514718587869894,
+    "max_iter": 481,
+    "max_leaf_nodes": 97,
+    "min_samples_leaf": 128,
+    "l2_regularization": 8.63200816860254e-06
+  },
+  "model_file": "model.pkl",
+  "model_sha256": "89839313a56f6289e939f258debbaca1906036e701474b73a006fcdda20f2a69",
+  "dataset_file": "mibici_hourly_demand.csv",
+  "dataset_sha256": "354fee1685cebddb550bb8dc43318f0a07e5194f0edb4fa964af71e00b269531",
+  "dataset_sha256_matches_registry": true,
+  "stations_file": "stations.csv",
+  "stations_sha256": "429951fb49a3dafa73384ed2718bd3dd372ae969824b0c6f2bbb0c486bada545",
+  "num_stations": 370,
+  "metrics": {
+    "test_mae": 0.7652553680017535,
+    "test_poisson_deviance": 0.9146342955117527,
+    "test_r2": 0.6941633308719144,
+    "test_rmse": 1.3008810437358584,
+    "val_mae": 0.804681083633366,
+    "val_poisson_deviance": 0.9478759642496706,
+    "val_r2": 0.6737890895285792,
+    "val_rmse": 1.5349528780319115
+  },
+  "input_columns": [
+    "sin_hour",
+    "cos_hour",
+    "sin_dayofweek",
+    "cos_dayofweek",
+    "latitude",
+    "longitude",
+    "capacity",
+    "demand_lag_24h",
+    "demand_lag_168h",
+    "demand_same_hour_mean_7d",
+    "Origen_Id",
+    "is_weekend",
+    "is_holiday"
+  ],
+  "target": "demand_count",
+  "prediction_postprocessing": "clip(prediccion, 0, None)",
+  "data_period": {
+    "start": "2025-01-08 00:00:00",
+    "end": "2025-12-31 23:00:00",
+    "train_val_end": "2025-11-08 06:00:00",
+    "test_start": "2025-11-08 07:00:00",
+    "rows_train": 2225180,
+    "rows_val": 476930,
+    "rows_test": 476930,
+    "months": [
+      "2025-01",
+      "2025-02",
+      "2025-03",
+      "2025-04",
+      "2025-05",
+      "2025-06",
+      "2025-07",
+      "2025-08",
+      "2025-09",
+      "2025-10",
+      "2025-11",
+      "2025-12"
+    ]
+  },
+  "reference_predictions": {
+    "file": "reference_predictions.csv",
+    "rows": 500,
+    "seed": 42,
+    "sha256": "acb4ec725e6e2987292066383a760e2190ba587d19781031aa5726305812de1c"
+  },
+  "library_versions": {
+    "python": "3.13.9",
+    "scikit-learn": "1.9.1",
+    "mlflow": "3.18.0",
+    "pandas": "3.1.1",
+    "numpy": "2.5.4"
+  },
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41",
+  "exported_at": "2026-11-22T18:59:46+00:00"
+}

@@ -19,7 +19,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, TargetEncoder
 
-from src.config import Config, base_arg_parser, load_config
+from src.config import Config, base_arg_parser, load_config, set_global_seeds
 
 
 # --------------------------------------------------------------------------- calendario
@@ -100,7 +100,7 @@ class MiBiciFeatureEngineer:
         grid = grid.copy()
         ts = grid["fecha_hora"]
         grid["hour"] = ts.dt.hour
-        grid["day_of_week"] = ts.dt.dayofweek
+        grid["day_of_week"] = ts.dt.day_of_week
         grid["month"] = ts.dt.month
         grid["is_weekend"] = (grid["day_of_week"] >= 5).astype(int)
         holidays = set().union(*(mexican_holidays(y) for y in ts.dt.year.unique()))
@@ -230,7 +230,9 @@ def main() -> None:
     parser = base_arg_parser("Ingeniería de características de MiBici")
     parser.add_argument("--no-mlflow", action="store_true")
     args = parser.parse_args()
-    run(load_config(args.config), use_mlflow=not args.no_mlflow)
+    config = load_config(args.config)
+    set_global_seeds(config["seed"])
+    run(config, use_mlflow=not args.no_mlflow)
 
 
 if __name__ == "__main__":

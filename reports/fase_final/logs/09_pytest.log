@@ -1,0 +1,38 @@
+# comando: python -m pytest -q  (2026-11-22T12:23:20-06:00, Python 3.13.9)
+.....................                                                    [100%]
+============================== warnings summary ===============================
+tests/test_modeling.py::TestModelingPipeline::test_evaluate_metrics
+tests/test_pipeline.py::TestDataAndFeatures::test_cleaner_removes_injected_anomalies
+tests/test_pipeline.py::TestDataAndFeatures::test_is_holiday_flag_marks_only_holidays
+  C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\src\features.py:103: Pandas4Warning: Series.dt.dayofweek is deprecated and will be removed in a future version. Use Series.dt.day_of_week instead.
+    grid["day_of_week"] = ts.dt.dayofweek
+
+tests/test_modeling.py: 16 warnings
+tests/test_pipeline.py: 1 warning
+  C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\.venv\Lib\site-packages\sklearn\preprocessing\_target_encoder.py:342: FutureWarning: `TargetEncoder.shuffle` and `TargetEncoder.random_state` are deprecated in version 1.9 and will be removed in version 1.11. Pass a cross-validation generator as `cv` argument to specify the shuffling behaviour instead.
+    warnings.warn(
+
+tests/test_modeling.py::TestModelingPipeline::test_train_register_and_predict_champion
+  C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\.venv\Lib\site-packages\mlflow\store\tracking\sqlalchemy_store.py:356: SADeprecationWarning: The ``noload`` loader strategy is deprecated and will be removed in a future release.  This option produces incorrect results by returning ``None`` for related items. (deprecated since: 2.1)
+    sqlalchemy.orm.configure_mappers()
+
+tests/test_modeling.py::TestModelingPipeline::test_train_register_and_predict_champion
+  C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\.venv\Lib\site-packages\mlflow\data\dataset_source_registry.py:148: UserWarning: The specified dataset source can be interpreted in multiple ways: LocalArtifactDatasetSource, LocalArtifactDatasetSource. MLflow will assume that this is a LocalArtifactDatasetSource source.
+    return _dataset_source_registry.resolve(
+
+tests/test_modeling.py::TestModelingPipeline::test_train_register_and_predict_champion
+tests/test_modeling.py::TestModelingPipeline::test_train_register_and_predict_champion
+tests/test_modeling.py::TestModelingPipeline::test_train_register_and_predict_champion
+tests/test_modeling.py::TestModelingPipeline::test_train_register_and_predict_champion
+  C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\.venv\Lib\site-packages\mlflow\types\utils.py:440: UserWarning: Hint: Inferred schema contains integer column(s). Integer columns in Python cannot represent missing values. If your input data contains missing values at inference time, it will be encoded as floats and will cause a schema enforcement error. The best way to avoid this problem is to infer the model schema based on a realistic data sample (training dataset) that includes missing values. Alternatively, you can declare integer columns as doubles (float64) whenever these columns may have missing values. See `Handling Integers With Missing Values <https://www.mlflow.org/docs/latest/models.html#handling-integers-with-missing-values>`_ for more details.
+    warnings.warn(
+
+tests/test_modeling.py::TestModelingPipeline::test_train_register_and_predict_champion
+tests/test_modeling.py::TestModelingPipeline::test_train_register_and_predict_champion
+tests/test_modeling.py::TestModelingPipeline::test_train_register_and_predict_champion
+  C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\.venv\Lib\site-packages\mlflow\models\utils.py:211: Pandas4Warning: Operation with range is deprecated. In a future version these will be treated as scalar-like. To retain the old behavior, explicitly wrap in a Series instead.
+    if all(df.columns == range(len(df.columns))):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+21 passed, 29 warnings in 33.52s
+# codigo_salida: 0

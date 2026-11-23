@@ -1,0 +1,8 @@
+# comando: docker run -d --name mibici-wp3 -p 8000:8000 ml-service:latest  (imagen sha256:d9244f3d66ec25c5d1676744ae2bd66d8cabc0bece881acde9e16eba1a1f3bd6)
+88efcba831db86d1f27283e4f05bfbafbceb21ed3f97763501a1c309a407572c
+t=2s health=starting
+t=4s health=starting
+t=6s health=starting
+t=8s health=healthy
+# usuario efectivo: uid=10001(app) gid=10001(app) groups=10001(app)
+# docker inspect Config.User: app

@@ -1,0 +1,19 @@
+# Contexto de build de docker/Dockerfile.pipeline (lista blanca). Los datos NO entran a la imagen: los CSV
+# crudos se montan en tiempo de ejecución (/hostraw) y todo lo generado va al volumen /work.
+*
+
+!requirements.txt
+!pyproject.toml
+!config.yaml
+!src/
+!tests/
+!models/champion/
+!models/champion_metadata.json
+!models/reference_predictions.csv
+!reports/model_comparison.csv
+!docker/run_pipeline_linux.sh
+!docker/compare_pipeline.py
+
+**/__pycache__
+**/*.py[cod]
+**/.pytest_cache

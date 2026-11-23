@@ -14,7 +14,7 @@ from typing import Dict, Tuple
 import pandas as pd
 import requests
 
-from src.config import Config, base_arg_parser, load_config
+from src.config import Config, base_arg_parser, load_config, set_global_seeds
 
 # El portal de MiBici responde HTTP 406 al User-Agent por defecto de requests;
 # se envía uno de navegador para que acepte la descarga.
@@ -258,7 +258,9 @@ def main() -> None:
     parser = base_arg_parser("Descarga y limpieza de los datos de MiBici")
     parser.add_argument("--no-mlflow", action="store_true", help="No registrar las versiones en MLflow")
     args = parser.parse_args()
-    run(load_config(args.config), use_mlflow=not args.no_mlflow)
+    config = load_config(args.config)
+    set_global_seeds(config["seed"])
+    run(config, use_mlflow=not args.no_mlflow)
 
 
 if __name__ == "__main__":

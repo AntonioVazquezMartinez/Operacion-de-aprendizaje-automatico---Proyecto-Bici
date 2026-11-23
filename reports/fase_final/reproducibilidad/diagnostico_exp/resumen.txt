@@ -1,0 +1,13 @@
+Windows: Windows-11-10.0.26300-SP0 | Linux: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41
+raw       filas distintas Windows vs Linux: 0 de 500 []
+np_exp    filas distintas Windows vs Linux: 5 de 500 [2, 77, 88, 143, 412]
+math_exp  filas distintas Windows vs Linux: 5 de 500 [2, 77, 88, 143, 412]
+pred      filas distintas Windows vs Linux: 5 de 500 [2, 77, 88, 143, 412]
+Windows: predict != np.exp(raw): 0; np.exp != math.exp: 0
+Linux: predict != np.exp(raw): 0; np.exp != math.exp: 0
+fila | suma de árboles (log) | Windows | Linux | Linux - Windows (ulp) | error Windows (ulp) | error Linux (ulp)
+2 | 0.4405022342004213 | 1.5534872370393082 | 1.5534872370393085 | +1 | 0.5023 | 0.4977
+77 | -9.74183934943004 | 5.877233250473746e-05 | 5.8772332504737454e-05 | -1 | 0.5084 | 0.4916
+88 | 2.0574812338592112 | 7.826232514469565 | 7.826232514469566 | +1 | 0.5050 | 0.4950
+143 | -1.307707434441387 | 0.27043934616294407 | 0.2704393461629441 | +1 | 0.4996 | 0.5004
+412 | -0.8011102279549206 | 0.44883038336066283 | 0.4488303833606628 | -1 | 0.5142 | 0.4858

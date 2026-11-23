@@ -1,0 +1,12 @@
+Verificación de reproducibilidad [contenedor-local-linux] contra http://localhost:8000
+  Cliente: Windows-11-10.0.26300-SP0 (Python 3.13.9)
+  Servidor: servicio 1.1.0, modelo models:/mibici-demand-forecaster/1; python 3.13.9, scikit-learn 1.9.1, pandas 3.1.1, numpy 2.5.4, platform Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41, mlflow 3.18.0
+  SHA-256 servido ca4331a49948c99b29580463d89e8aa1dc8d14451f866c029588f3de67ce2ed5 | esperado ca4331a49948c99b29580463d89e8aa1dc8d14451f866c029588f3de67ce2ed5
+  /predict/raw  filas 500 | dif. máx. 8.881784197001252e-16 | dif. media 2.4425042067025004e-18 | idénticas bit a bit 495/500
+                MAE 0.752896241060654 RMSE 1.1785947698217105 (referencia MAE 0.752896241060654 RMSE 1.1785947698217105)
+  /predict      filas 500 | dif. máx. 8.881784197001252e-16 | dif. media 2.4425042067025004e-18 | idénticas bit a bit 495/500
+                MAE 0.752896241060654 RMSE 1.1785947698217105 (referencia MAE 0.752896241060654 RMSE 1.1785947698217105)
+  /predict sin rezagos (feature store, ventana 2025-12-24T00:00:00 a 2026-01-01T23:00:00):
+                filas 200 | dif. máx. 0.0 | idénticas bit a bit 200/200 | rezagos idénticos 200/200
+  Tolerancia 1e-09 | veredicto PASS
+  Resultado: reports/fase_final/reproducibilidad/contenedor_local.json

@@ -1,0 +1,105 @@
+# comando: docker build -t ml-service:latest .
+# inicio: 2026-11-22T14:20:53-06:00
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 7.19kB 0.0s done
+#1 DONE 0.5s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 ...
+
+#3 [auth] docker/dockerfile:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 DONE 1.0s
+
+#4 docker-image://docker.io/docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183
+#4 resolve docker.io/docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183
+#4 resolve docker.io/docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183 0.3s done
+#4 CACHED
+
+#5 [internal] load metadata for docker.io/library/python:3.13.9-slim@sha256:326df678c20c78d465db501563f3492d17c42a4afe33a1f2bf5406a1d56b0e86
+#5 ...
+
+#6 [auth] library/python:pull token for registry-1.docker.io
+#6 DONE 0.0s
+
+#5 [internal] load metadata for docker.io/library/python:3.13.9-slim@sha256:326df678c20c78d465db501563f3492d17c42a4afe33a1f2bf5406a1d56b0e86
+#5 DONE 0.7s
+
+#7 [internal] load .dockerignore
+#7 transferring context: 703B done
+#7 DONE 0.0s
+
+#8 [builder 1/4] FROM docker.io/library/python:3.13.9-slim@sha256:326df678c20c78d465db501563f3492d17c42a4afe33a1f2bf5406a1d56b0e86
+#8 resolve docker.io/library/python:3.13.9-slim@sha256:326df678c20c78d465db501563f3492d17c42a4afe33a1f2bf5406a1d56b0e86 0.1s done
+#8 CACHED
+
+#9 [internal] load build context
+#9 transferring context: 560.54kB 0.0s done
+#9 DONE 0.1s
+
+#10 [runtime  2/10] RUN groupadd --system --gid 10001 app     && useradd --system --uid 10001 --gid app --home-dir /home/app --create-home --shell /usr/sbin/nologin app
+#10 ...
+
+#11 [builder 2/4] RUN python -m venv /opt/venv
+#11 CACHED
+
+#12 [builder 3/4] COPY requirements-serve.txt /tmp/requirements-serve.txt
+#12 CACHED
+
+#13 [builder 4/4] RUN pip install --no-cache-dir -r /tmp/requirements-serve.txt     && find /opt/venv -type d -name "__pycache__" -prune -exec rm -rf {} +     && find /opt/venv -type d -name "tests" -path "*/site-packages/*/tests" -prune -exec rm -rf {} +
+#13 CACHED
+
+#10 [runtime  2/10] RUN groupadd --system --gid 10001 app     && useradd --system --uid 10001 --gid app --home-dir /home/app --create-home --shell /usr/sbin/nologin app
+#10 0.924 useradd warning: app's uid 10001 is greater than SYS_UID_MAX 999
+#10 DONE 1.2s
+
+#14 [runtime  3/10] COPY --from=builder /opt/venv /opt/venv
+#14 DONE 8.4s
+
+#15 [runtime  4/10] WORKDIR /app
+#15 DONE 0.6s
+
+#16 [runtime  5/10] COPY models/ ./models/
+#16 DONE 0.3s
+
+#17 [runtime  6/10] RUN python - <<'EOF'
+#17 0.586 Verificado model.pkl: sha256=ca4331a49948c99b29580463d89e8aa1dc8d14451f866c029588f3de67ce2ed5
+#17 0.586 Verificado stations.csv: sha256=429951fb49a3dafa73384ed2718bd3dd372ae969824b0c6f2bbb0c486bada545
+#17 0.586 Verificado feature_store.csv.gz: sha256=aa1a39cd1cc8e354728ba835496573ea125925293792bf0a42d203000bf05ee6
+#17 0.586 Modelo verificado: models:/mibici-demand-forecaster/1
+#17 DONE 0.8s
+
+#18 [runtime  7/10] RUN mkdir -p /app/logs && chown app:app /app/logs
+#18 DONE 0.7s
+
+#19 [runtime  8/10] COPY config.yaml ./config.yaml
+#19 DONE 0.3s
+
+#20 [runtime  9/10] COPY src/__init__.py src/config.py src/features.py ./src/
+#20 DONE 0.3s
+
+#21 [runtime 10/10] COPY src/serving/ ./src/serving/
+#21 DONE 0.2s
+
+#22 exporting to image
+#22 exporting layers
+#22 exporting layers 7.2s done
+#22 exporting manifest sha256:8a64efd3104eea7753437eb6952fa70a330d264b45b2478e67a693df23cf72e4
+#22 exporting manifest sha256:8a64efd3104eea7753437eb6952fa70a330d264b45b2478e67a693df23cf72e4 0.4s done
+#22 exporting config sha256:9e1074c95a14943eff8da096c799a0ee87371da17c1ef0b1c6de4164dd5a919f
+#22 exporting config sha256:9e1074c95a14943eff8da096c799a0ee87371da17c1ef0b1c6de4164dd5a919f 0.3s done
+#22 exporting attestation manifest sha256:27c34a56e89d272a908c9bb8685c37f5e93717f3e0a4adfae43aac42b508f146
+#22 exporting attestation manifest sha256:27c34a56e89d272a908c9bb8685c37f5e93717f3e0a4adfae43aac42b508f146 0.2s done
+#22 exporting manifest list sha256:00747b9667e5a7f0b160185624920332b4452e16bcc672770c399a5910f3efe2
+#22 exporting manifest list sha256:00747b9667e5a7f0b160185624920332b4452e16bcc672770c399a5910f3efe2 0.1s done
+#22 naming to docker.io/library/ml-service:latest 0.0s done
+#22 unpacking to docker.io/library/ml-service:latest
+#22 unpacking to docker.io/library/ml-service:latest 2.3s done
+#22 DONE 10.7s
+# fin: 2026-11-22T14:21:23-06:00
+# duracion_segundos: 30
+# codigo_salida: 0

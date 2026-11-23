@@ -1,0 +1,13 @@
+# comando: python -m src.modeling.export
+# python: Python 3.13.9 (C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\.venv\Scripts\python.exe)
+# inicio: 2026-11-22T12:22:00-06:00
+2026/11/22 12:22:01 INFO mlflow.agent.hint: Load the `mlflow-trace-instrumentation` skill at C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\.venv\Lib\site-packages\mlflow\assistant\skills\mlflow-trace-instrumentation\SKILL.md before writing any tracing code; it ships with this MLflow install. Set MLFLOW_DISABLE_AGENT_HINT=1 to silence this.
+Exportando mibici-demand-forecaster@champion -> v1 (models:/mibici-demand-forecaster/1)
+Downloading artifacts:   0%|          | 0/7 [00:00<?, ?it/s]Downloading artifacts:  14%|█▍        | 1/7 [00:00<00:00, 25731.93it/s]Downloading artifacts:  29%|██▊       | 2/7 [00:00<00:00, 13252.15it/s]Downloading artifacts:  43%|████▎     | 3/7 [00:00<00:00, 15401.36it/s]Downloading artifacts:  57%|█████▋    | 4/7 [00:00<00:00, 17512.75it/s]Downloading artifacts:  71%|███████▏  | 5/7 [00:00<00:00, 19222.29it/s]Downloading artifacts:  86%|████████▌ | 6/7 [00:00<00:00, 20729.67it/s]Downloading artifacts: 100%|██████████| 7/7 [00:00<00:00, 8135.25it/s] Downloading artifacts: 100%|██████████| 7/7 [00:00<00:00, 7448.03it/s]
+Modelo: C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\models\champion (SHA-256 ca4331a49948c99b29580463d89e8aa1dc8d14451f866c029588f3de67ce2ed5)
+Metadatos: C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\models\champion_metadata.json
+Referencia: C:\Users\Alejandro\Documents\GitHub\TareaFinal\Operacion-de-aprendizaje-automatico---Proyecto-Bici\models\reference_predictions.csv (500 filas)
+Verificación: 500 filas, diferencia máxima absoluta = 0.000e+00 (Python 3.13.9, scikit-learn 1.9.1, win32)
+# fin: 2026-11-22T12:22:04-06:00
+# duracion_segundos: 4
+# codigo_salida: 0

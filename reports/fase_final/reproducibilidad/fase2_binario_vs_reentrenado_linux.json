@@ -1,0 +1,105 @@
+{
+  "generated_at": "2026-11-22T20:22:56+00:00",
+  "environment": {
+    "python": "3.13.9",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41",
+    "scikit-learn": "1.9.1",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "joblib": "1.6.0"
+  },
+  "fase2_binary": {
+    "folder": "models/fase2_original",
+    "source": "rama origin/entrega-final, models/champion/ (copia sin modificar)",
+    "model_uri": "models:/mibici-demand-forecaster/1",
+    "training_run_id": "b230b27936e2439db0c9eae68986d884",
+    "algorithm": "hist_gradient_boosting",
+    "hyperparameters": {
+      "loss": "poisson",
+      "early_stopping": false,
+      "learning_rate": 0.054063230854303944,
+      "max_iter": 487,
+      "max_leaf_nodes": 112,
+      "min_samples_leaf": 171,
+      "l2_regularization": 1.5206342407516477e-06
+    },
+    "registry_metrics": {
+      "val_mae": 0.8043,
+      "test_mae": 0.7656,
+      "test_rmse": 1.3042,
+      "test_r2": 0.6926
+    },
+    "export_environment": {
+      "python": "3.12.10",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "scikit_learn": "1.9.1",
+      "pandas": "3.1.1",
+      "numpy": "2.5.4"
+    },
+    "training_dataset_sha256": "d00671f92e82d3faff71cda7f844d63eb2c704855c73e7c2727cc4fa6c36ad0a"
+  },
+  "retrained_champion": {
+    "model_uri": "models:/mibici-demand-forecaster/1",
+    "run_id": "9ef2f57d97374770bf956469ba97a02d",
+    "model_sha256": "ca4331a49948c99b29580463d89e8aa1dc8d14451f866c029588f3de67ce2ed5",
+    "hyperparameters": {
+      "loss": "poisson",
+      "early_stopping": false,
+      "learning_rate": 0.054063230854303944,
+      "max_iter": 487,
+      "max_leaf_nodes": 112,
+      "min_samples_leaf": 171,
+      "l2_regularization": 1.5206342407516477e-06
+    },
+    "dataset_sha256": "fec850d2bdbc935a16cc3e439c1debe824647c801aea4652710d59d6a1a597dc",
+    "test_mae_registry": 0.7651310452008431,
+    "library_versions": {
+      "python": "3.13.9",
+      "scikit-learn": "1.9.1",
+      "mlflow": "3.18.0",
+      "pandas": "3.1.1",
+      "numpy": "2.5.4"
+    }
+  },
+  "hashes": {
+    "model_file": "model.joblib",
+    "model_sha256_card": "ee03d0da0d1d0c83d00a44bc35a01fc624412591448442665a68364eb43a6f51",
+    "model_sha256_file": "ee03d0da0d1d0c83d00a44bc35a01fc624412591448442665a68364eb43a6f51",
+    "model_sha256_ok": true,
+    "reference_sha256_card": "cb51275849cfcc1e4d7d30a56a310283a4fdbf65edb503d394ce80bbac32b90d",
+    "reference_sha256_file": "54886eaf973802e6661feab3e2bfb85b9c0724bc6267409038f36e6128ee7b74",
+    "reference_sha256_file_crlf": "cb51275849cfcc1e4d7d30a56a310283a4fdbf65edb503d394ce80bbac32b90d",
+    "reference_sha256_ok": true,
+    "reference_line_endings_in_git": "LF",
+    "note": "model_card.json guarda el SHA-256 del CSV de referencia escrito en Windows (CRLF); Git lo almacena normalizado a LF. El archivo copiado es el de Git sin cambios: su contenido con CRLF coincide con el hash de la ficha."
+  },
+  "fase2_reproduces_own_reference": {
+    "file": "models/fase2_original/reference_predictions.csv",
+    "rows": 1000,
+    "max_abs_diff": 8.881784197001252e-16,
+    "mean_abs_diff": 1.8873791418627663e-18,
+    "rows_bitwise_identical": 997,
+    "pass_tolerance_1e-9": true
+  },
+  "fase2_vs_retrained_on_reference": {
+    "file": "models/reference_predictions.csv",
+    "rows": 500,
+    "max_abs_diff": 0.5983954109243568,
+    "mean_abs_diff": 0.03680256681793775,
+    "rows_bitwise_identical": 0,
+    "pearson_correlation": 0.9989334445712195,
+    "rows_abs_diff_gt_0.1": 45,
+    "mean_diff_fase2_minus_retrained": -0.009497567959190325,
+    "metrics_vs_actual": {
+      "fase2_binary": {
+        "mae": 0.7488708936743764,
+        "rmse": 1.1721359130807572
+      },
+      "retrained_champion": {
+        "mae": 0.752896241060654,
+        "rmse": 1.1785947698217105
+      }
+    }
+  },
+  "same_hyperparameters": true
+}

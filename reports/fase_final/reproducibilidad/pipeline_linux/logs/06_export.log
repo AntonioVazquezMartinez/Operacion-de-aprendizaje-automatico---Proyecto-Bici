@@ -1,0 +1,12 @@
+# comando: python -m src.modeling.export --config /work/config_linux.yaml
+# python: Python 3.13.9 | Linux 6.6.87.2-microsoft-standard-WSL2 x86_64
+# inicio: 2026-11-22T18:59:42+00:00
+Exportando mibici-demand-forecaster@champion -> v1 (models:/mibici-demand-forecaster/1)
+Downloading artifacts:   0%|          | 0/7 [00:00<?, ?it/s]Downloading artifacts:  14%|█▍        | 1/7 [00:00<00:00, 22310.13it/s]Downloading artifacts:  29%|██▊       | 2/7 [00:00<00:00, 19284.16it/s]Downloading artifacts:  43%|████▎     | 3/7 [00:00<00:00, 9970.61it/s] Downloading artifacts:  57%|█████▋    | 4/7 [00:00<00:00, 5518.82it/s]Downloading artifacts:  71%|███████▏  | 5/7 [00:00<00:00, 5414.80it/s]Downloading artifacts:  86%|████████▌ | 6/7 [00:00<00:00, 5594.89it/s]Downloading artifacts: 100%|██████████| 7/7 [00:00<00:00, 5750.12it/s]Downloading artifacts: 100%|██████████| 7/7 [00:00<00:00, 5538.60it/s]
+Modelo: /work/models/champion (SHA-256 89839313a56f6289e939f258debbaca1906036e701474b73a006fcdda20f2a69)
+Metadatos: /work/models/champion_metadata.json
+Referencia: /work/models/reference_predictions.csv (500 filas)
+Verificación: 500 filas, diferencia máxima absoluta = 0.000e+00 (Python 3.13.9, scikit-learn 1.9.1, linux)
+# fin: 2026-11-22T18:59:46+00:00
+# duracion_segundos: 4
+# codigo_salida: 0

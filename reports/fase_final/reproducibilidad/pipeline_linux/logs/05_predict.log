@@ -1,0 +1,8 @@
+# comando: python -m src.modeling.predict --config /work/config_linux.yaml
+# python: Python 3.13.9 | Linux 6.6.87.2-microsoft-standard-WSL2 x86_64
+# inicio: 2026-11-22T18:59:37+00:00
+models:/mibici-demand-forecaster@champion: MAE 0.7653 | RMSE 1.3009 | R2 0.6942
+476930 predicciones guardadas en /work/data/processed/predicciones_champion.csv
+# fin: 2026-11-22T18:59:42+00:00
+# duracion_segundos: 5
+# codigo_salida: 0

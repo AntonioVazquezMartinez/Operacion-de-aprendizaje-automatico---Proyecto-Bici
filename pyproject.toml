@@ -22,4 +22,30 @@ include = ["src*"]
 line-length = 120
 
 [tool.pytest.ini_options]
+# Comando único: `pytest -q` (ver tests/README.md).
 testpaths = ["tests"]
+addopts = ["-ra", "--strict-markers", "--strict-config"]
+markers = [
+  "integration: flujo extremo a extremo (datos -> entrenamiento -> Model Registry temporal -> predicción); excluir con -m \"not integration\"",
+]
+# Avisos conocidos de librerías de terceros (no del código de src/); cualquier otro aviso se sigue mostrando.
+filterwarnings = [
+  # MLflow 3.x con SQLAlchemy 2.x y pandas 3.x.
+  "ignore:The ``noload`` loader strategy is deprecated:DeprecationWarning",
+  "ignore:Operation with range is deprecated:DeprecationWarning:mlflow",
+  "ignore:The specified dataset source can be interpreted in multiple ways:UserWarning",
+  "ignore:Hint. Inferred schema contains integer column:UserWarning",
+  # scikit-learn 1.9 depreca TargetEncoder(random_state=...); el cambio a `cv=` alteraría el modelo entrenado.
+  "ignore:`TargetEncoder.shuffle` and `TargetEncoder.random_state` are deprecated:FutureWarning",
+]
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+exclude_also = [
+  "if __name__ == .__main__.:",
+]
