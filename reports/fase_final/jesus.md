@@ -1,8 +1,6 @@
 # Fase final - Análisis y reflexión de Jesús Ángel Rincón Ruiz (A01793960)
 
-> Plantilla: escribe solo donde dice `<!-- ESCRIBE AQUÍ -->` (borra el comentario al escribir). No necesitas
-> ejecutar nada: todos los resultados ya están en el repositorio. La sección **Reflexión** se copia tal cual
-> al reporte final cuando vuelve a generarse, así que redáctala en primera persona y en párrafos.
+Versión final. La sección **Reflexión** se copia tal cual al reporte (`python reports/build_report.py`).
 
 ## Rol y responsabilidad en la fase final
 
@@ -12,7 +10,7 @@ En esta fase el equipo trabajó dos aproximaciones. En la rama `entrega-final` (
 está la que sirve el binario original de la Fase 2: servicio FastAPI con feature store, imagen construida con Podman y publicada en DockerHub
 (`angrinconr/mibici-demand-api`), CI que construye la imagen, verificación en 3 entornos y simulación de drift. La otra aproximación (rama `fase-final`) reentrena en un entorno
 limpio para verificar y complementar; se contrastaron y se integraron en `fase-final` (merge `14e4886`). Como DS
-también eres responsable del **análisis e interpretación** de los resultados del modelo y del drift.
+también soy responsable del **análisis e interpretación** de los resultados del modelo y del drift.
 
 ## Lo que se integró de tu rama (con su evidencia)
 
@@ -54,20 +52,27 @@ también eres responsable del **análisis e interpretación** de los resultados 
 ## Actividades por fase
 
 ### Fase 1
-<!-- ESCRIBE AQUÍ: 2 a 4 viñetas (ML Canvas, EDA, variables cíclicas y rezagos, MiBiciFeatureEngineer...). -->
+* Hice el ML Canvas y el EDA.
+* Armé las variables cíclicas y los rezagos.
 
 ### Fase 2
-<!-- ESCRIBE AQUÍ: 2 a 4 viñetas (rediseño de variables sin rezago de 1 h, algoritmos, espacios de Optuna,
-     migración a Cookiecutter v2 y config.yaml en el commit 93586e4...). -->
+* Rediseñé las variables y quité el rezago de 1 h porque era fuga de información; dejé rezagos de 24 h y 168 h, el promedio de la misma hora y los festivos.
+* Definí los algoritmos y los espacios de Optuna.
+* Integré la migración a Cookiecutter v2 y `config.yaml` (commit `93586e4`).
 
 ### Fase final
-<!-- ESCRIBE AQUÍ: tu implementación en entrega-final (servicio, feature store, Podman/DockerHub, CI, verificación,
-     drift) y qué analizaste de los resultados. -->
+* En `entrega-final` hice el servicio FastAPI con feature store, la imagen con Podman publicada en DockerHub, el job de CI que construye la imagen, la verificación en 3 entornos y la simulación de drift.
+* De ahí se integraron a `fase-final` el feature store, el modelo en Git, el registro de predicciones, la prueba de coherencia servicio-pipeline y el job `docker`.
+* Analicé los resultados del modelo y del drift (tablas de la plantilla).
 
 ## Análisis
 
-<!-- ESCRIBE AQUÍ: 2 o 3 párrafos respondiendo las preguntas guía con datos de las tablas. -->
+El servicio calcula los rezagos con un feature store (las últimas 360 h por estación) para que el cliente no tenga que mandarlos, y usa la misma función que el entrenamiento para que no haya diferencias. La limitación es que la ventana predecible es fija (del 24 de diciembre de 2025 al 1 de enero de 2026) y la foto caduca, así que en operación habría que refrescarla con los viajes nuevos. La imagen se construyó con Podman y se publicó en DockerHub (`angrinconr/mibici-demand-api`).
+
+El boosting gana porque captura relaciones no lineales entre hora, estación y rezagos: HistGradientBoosting tiene MAE 0.7651 y R² 0.6937, y la regresión de Poisson lineal MAE 1.0983 y R² negativo (−0.7481). Mi binario de la Fase 2 y el reentrenado tienen los mismos hiperparámetros pero predicciones ligeramente distintas (correlación 0.9989, diferencia media de 0.037 viajes), porque los datos del portal se descargaron en fechas distintas.
+
+El MAE solo engaña. Con −40 % de demanda el MAE baja 13.6 % y parece que el modelo mejora, pero el WAPE sube 43.8 %. En vacaciones de diciembre pasa algo parecido (MAE −6.0 %, WAPE +33.7 %). Por eso vigilamos el WAPE además del MAE. Con un WAPE de 60.3 % el modelo sirve para ordenar estaciones por riesgo, no para fijar el número exacto de bicicletas. Las ventanas semanales lo confirman: todo OK hasta el 13 de diciembre y alerta desde el 20 (WAPE +38.8 %, sesgo +32.9 %).
 
 ## Reflexión
 
-<!-- ESCRIBE AQUÍ: un párrafo (8 a 12 líneas): lecciones aprendidas y áreas de mejora desde tu rol. -->
+Lo que más me quedó de esta fase es que un modelo con buen MAE puede fallar justo cuando la demanda cambia. En diciembre el MAE bajó y parecía que todo iba bien, pero el WAPE subió más de 30 %, y las ventanas semanales mostraron alerta real desde el 20 de diciembre. Por eso para mí el monitoreo tiene que mirar el error relativo y el sesgo, no solo el MAE. También aprendí que contrastar las dos aproximaciones del equipo valió la pena. Mi binario de la Fase 2 y el reentrenado dan casi lo mismo (MAE 0.7656 contra 0.7651), y de la otra solución tomamos el reentrenamiento en limpio, DVC y la verificación en GitHub Actions. Como mejora, me faltó integrar mi rama con menos adaptación, y el servicio depende de un feature store con ventana fija que habría que refrescar en operación. Agregaría clima, calendario escolar y eventos, porque diciembre es justo donde el modelo más falla.
